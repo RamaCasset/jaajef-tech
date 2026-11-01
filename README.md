@@ -8,7 +8,8 @@ tied together by XP and Kopeks. Designs by Marie (Figma).
 | Part | State |
 |---|---|
 | Database foundation (accounts, profiles, XP, Kopeks, badges) | Done and tested (`supabase/migrations`) |
-| Chat, projects, quests, Souk, jobs | Not started |
+| Quests (attempts, rewards, streaks, leaderboards) | Done and tested (`supabase/migrations`) |
+| Chat, projects, Souk, jobs | Not started |
 | Frontend | Waiting for Marie's confirmed screens |
 
 ## Stack (first version)
@@ -49,6 +50,7 @@ themselves XP). They run on a plain PostgreSQL:
 psql -v ON_ERROR_STOP=1 -f supabase/tests/_stub_supabase.sql   # test database only
 for f in supabase/migrations/*.sql; do psql -v ON_ERROR_STOP=1 -f "$f"; done
 psql -v ON_ERROR_STOP=1 -f supabase/tests/foundation.test.sql
+psql -v ON_ERROR_STOP=1 -f supabase/tests/quests.test.sql
 ```
 
 Never run `_stub_supabase.sql` on a real Supabase project.

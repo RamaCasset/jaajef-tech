@@ -30,6 +30,30 @@ Every new account automatically gets a profile, a wallet and the welcome Kopeks.
 The GitHub username is stored only when the login really came from GitHub, so
 nobody can claim someone else's GitHub name by typing it in.
 
+## Quests
+1. A member opens a quest. The server starts a clock for that member.
+2. The member codes in the browser. The browser runs the tests and can save
+   progress so the member can resume later.
+3. On submit, the browser reports how many tests passed. If all of them did,
+   the server checks the time it measured itself, then pays the XP and Kopeks
+   once through `grant_reward()`.
+4. The member's streak goes up by one day (a missed day resets it to 1). Every
+   7th day in a row pays a chest of 100 Kopeks, once per day at most.
+5. Leaderboards (per quest, fastest first; per season, most points) show names
+   and times only, never anyone's code.
+
+Only published quests are visible. Quests with no tests, or still in draft,
+cannot be started. Seven quests from Marie's screens are loaded: one is
+complete (La Malédiction du Loop) and the other six are drafts waiting for
+their statements and tests.
+
+### Honest limit of the first version
+Because the code runs in the browser, the server cannot re-run it. It refuses
+solves that are impossibly fast and pays only once per quest, but a determined
+person could still claim a pass they did not earn. The planned fix (V2) is a
+server-side runner that re-runs the submitted code. Until then, quests are best
+treated as practice and demo content, not as a prize-grade competition.
+
 ## Still to decide (TBC)
 | Item | Placeholder used meanwhile |
 |---|---|
@@ -41,5 +65,5 @@ nobody can claim someone else's GitHub name by typing it in.
 ## Next steps
 1. Chat: communities, channels, messages (with live updates)
 2. Projects imported from GitHub
-3. Quests (in-browser tests) with ranking
-4. Souk, then Jobs
+3. Souk, then Jobs
+4. Back-office for writing quests, tests and seasons
