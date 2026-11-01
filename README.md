@@ -10,8 +10,9 @@ tied together by XP and Kopeks. Designs by Marie (Figma).
 | Database foundation (accounts, profiles, XP, Kopeks, badges) | Done and tested (`supabase/migrations`) |
 | Quests (attempts, rewards, streaks, leaderboards) | Done and tested (`supabase/migrations`) |
 | Quest teaching (hints, explanations, order, languages) | Done and tested; sample lesson only |
-| Chat (communities, channels, forum, messages, invites, spam limit) | Done and tested; not yet merged |
-| Private messages, projects, Souk, jobs | Not started |
+| Chat (communities, channels, forum, messages, invites, spam limit) | Done and tested |
+| Private messages and files (inbox, unread, blocking, file attachments) | Done and tested; not yet merged |
+| Projects, Souk, jobs | Not started |
 | Frontend | Waiting for Marie's confirmed screens |
 
 ## Stack (first version)
@@ -52,6 +53,7 @@ themselves XP). They run on a plain PostgreSQL:
 psql -v ON_ERROR_STOP=1 -f supabase/tests/_stub_supabase.sql   # test database only
 for f in supabase/migrations/*.sql; do psql -v ON_ERROR_STOP=1 -f "$f"; done
 psql -v ON_ERROR_STOP=1 -f supabase/tests/chat.test.sql
+psql -v ON_ERROR_STOP=1 -f supabase/tests/dm.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/foundation.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/quests.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/teaching.test.sql

@@ -24,6 +24,9 @@ database itself, and the tests check it.
 | Private communities | Only their members |
 | Channels, members and messages of a community | Only that community's members |
 | Invite links | Nobody directly; the server checks them |
+| Private conversations and messages | Only the two people in them |
+| Files sent in private messages | Only the two people, once attached to a message |
+| Who you blocked | Only you |
 
 A member can edit only their own name, avatar, banner, bio, location,
 username and "available to collaborate". Clan and level changes go through
@@ -92,7 +95,26 @@ and forum (a thread has a title, replies stay one level deep).
 - Messages are sent out live (Supabase Realtime).
 - Chat gives no XP or Kopeks, so it cannot be farmed.
 - Not yet possible: editing a community's name, transferring ownership, banning
-  (a removed person can rejoin a public community), private messages and files.
+  (a removed person can rejoin a public community) and files in community channels.
+
+## Private messages and files
+- There is one private conversation per pair of members, whoever starts it.
+  Only those two can read it. Everything is written through server functions.
+- You can edit and delete only your own messages. Deleting wipes the text and
+  detaches the file, so the other person loses access to it.
+- Each conversation has an unread count per person and a preview for the inbox.
+- Blocking works both ways: nobody can start or continue a conversation across a
+  block, and only the person who blocked can see the block.
+- One file per message: images, PDF, text, zip, up to 10 MB. The file goes into
+  the private Storage bucket `dm-files`, in a folder named after the sender's id.
+  The server checks the folder, that the file really exists, its type and its
+  size when the message is sent. Browsers cannot overwrite or delete files.
+- Limits against spam (in `game_config`): 20 messages per minute, 20 new
+  conversations per day, 4000 characters per message.
+- Known limit: a deleted message's file stays in Storage (nobody else can open
+  it) until a clean-up job is added.
+- Not yet possible: group conversations, several files per message, message
+  search.
 
 ## Still to decide (TBC)
 | Item | Placeholder used meanwhile |
@@ -103,9 +125,8 @@ and forum (a thread has a title, replies stay one level deep).
 | Payment provider | none: Kopeks are earned only in the first version |
 
 ## Next steps
-1. Private messages and shared files
-2. Projects imported from GitHub
-3. Souk, then Jobs
-4. Back-office for writing quests, tests, hints and seasons
-5. Writing the real quest content (the largest job). Later, let community
+1. Projects imported from GitHub
+2. Souk, then Jobs
+3. Back-office for writing quests, tests, hints and seasons
+4. Writing the real quest content (the largest job). Later, let community
    members propose quests, with an admin approving each one.
