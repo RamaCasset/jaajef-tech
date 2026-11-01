@@ -124,7 +124,7 @@ begin
   r2 := public.grant_reward('aaaaaaaa-0000-0000-0000-000000000001', 250, 50, 'quest_solved', 'quest:SQ-042:aaaaaaaa-0000-0000-0000-000000000001', 'quest', 'SQ-042');
   reset role;
 
-  if r1 is not true  then raise exception 'FAIL: first grant not applied'; end if;
+  if r1 is not true then raise exception 'FAIL: first grant not applied'; end if;
   if r2 is not false then raise exception 'FAIL: replayed grant was applied twice'; end if;
 
   select * into p from public.profiles where id = 'aaaaaaaa-0000-0000-0000-000000000001';
@@ -170,7 +170,7 @@ begin
   perform set_config('request.jwt.claim.sub', 'aaaaaaaa-0000-0000-0000-000000000001', true);
   perform public.set_character('griot_du_code', 'ndongo');
   perform public.set_onboarding_step(4::smallint);
-  perform public.set_onboarding_step(2::smallint);   -- must not go backwards
+  perform public.set_onboarding_step(2::smallint); -- must not go backwards
   reset role;
 
   select * into p from public.profiles where id = 'aaaaaaaa-0000-0000-0000-000000000001';
