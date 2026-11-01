@@ -23,3 +23,6 @@ $$;
 grant usage on schema auth to anon, authenticated, service_role;
 grant usage on schema public to anon, authenticated, service_role;
 grant execute on function auth.uid() to anon, authenticated, service_role;
+
+-- Supabase has this publication for live updates; the chat migration adds a table to it.
+create publication supabase_realtime;

@@ -92,12 +92,12 @@ begin
   if n <> 1 then raise exception 'FAIL: member sees % wallets (expected 1)', n; end if;
   select count(*) into n from public.kopek_transactions;
   if n <> 1 then raise exception 'FAIL: member sees % ledger rows (expected 1)', n; end if;
-  select count(*) into n from public.profiles;
+  select count(*) into n from public.profiles where id::text like 'aaaaaaaa-%';
   if n <> 3 then raise exception 'FAIL: profiles should be public (saw %)', n; end if;
   reset role;
 
   set local role anon;
-  select count(*) into n from public.profiles;
+  select count(*) into n from public.profiles where id::text like 'aaaaaaaa-%';
   if n <> 3 then raise exception 'FAIL: anon should see public profiles'; end if;
   reset role;
   raise notice 'OK 3: wallets private, profiles public';
