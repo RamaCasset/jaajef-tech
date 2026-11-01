@@ -27,6 +27,8 @@ database itself, and the tests check it.
 | Private conversations and messages | Only the two people in them |
 | Files sent in private messages | Only the two people, once attached to a message |
 | Who you blocked | Only you |
+| Projects confirmed on GitHub | Everyone, even visitors (unless the owner hides it) |
+| Projects not yet confirmed | Only their owner |
 
 A member can edit only their own name, avatar, banner, bio, location,
 username and "available to collaborate". Clan and level changes go through
@@ -116,6 +118,24 @@ and forum (a thread has a title, replies stay one level deep).
 - Not yet possible: group conversations, several files per message, message
   search.
 
+## Projects from GitHub
+- A member lists a repository by pasting its link, with a title, a short summary
+  and up to 8 tags. Limit: 30 projects per member.
+- The repository must be under the member's own GitHub name. That name comes only
+  from a verified GitHub sign-in and cannot be edited. Members who signed up by
+  email must connect GitHub first.
+- A new project is pending: only its owner sees it. It becomes public after the
+  server asks GitHub and confirms the repository exists and belongs to that name.
+  If a later check fails (deleted, renamed, moved), it is hidden again.
+- Description, language and stars come from GitHub and are written only by the
+  server. Members cannot change them.
+- The first confirmation of a repository pays a one-time XP reward (placeholder
+  50 XP, TBC). The reward belongs to the repository, so deleting and listing it
+  again pays nothing more.
+- Still to build: the small server program that asks GitHub (it uses
+  `projects_to_sync` and `record_github_sync`), project stars from other members,
+  and search. Organization repositories are not supported yet.
+
 ## Still to decide (TBC)
 | Item | Placeholder used meanwhile |
 |---|---|
@@ -123,9 +143,10 @@ and forum (a thread has a title, replies stay one level deep).
 | Souk creator share | not set (`souk_creator_share_percent`) |
 | Spelling of the 4th clan | stored as `buur_linguere`; display name set in the app |
 | Payment provider | none: Kopeks are earned only in the first version |
+| XP for a listed project | 50 XP (`project_publish_xp`) |
 
 ## Next steps
-1. Projects imported from GitHub
+1. The GitHub checker program for projects
 2. Souk, then Jobs
 3. Back-office for writing quests, tests, hints and seasons
 4. Writing the real quest content (the largest job). Later, let community
