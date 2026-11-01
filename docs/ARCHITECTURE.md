@@ -47,6 +47,19 @@ cannot be started. Seven quests from Marie's screens are loaded: one is
 complete (La Malédiction du Loop) and the other six are drafts waiting for
 their statements and tests.
 
+### Quests are lessons
+Every quest exists to teach coding. Each one has:
+- **A language:** Python, JavaScript, or HTML and CSS (for front-end quests,
+  checked automatically in the browser).
+- **A topic and a position,** so a clan's quests can be ordered from easy to hard.
+- **Hints,** revealed one at a time. The server counts how many a member used,
+  which supports the "quests without hints" goal. Hints are never public.
+- **An explanation,** written as a short lesson ("why it failed, the clean
+  solution, what to remember"). It stays locked until the member solves the quest.
+
+The hints and the explanation for La Malédiction du Loop are a sample of a
+finished lesson, written as a draft to be reviewed and edited.
+
 ### Honest limit of the first version
 Because the code runs in the browser, the server cannot re-run it. It refuses
 solves that are impossibly fast and pays only once per quest, but a determined
@@ -66,4 +79,6 @@ treated as practice and demo content, not as a prize-grade competition.
 1. Chat: communities, channels, messages (with live updates)
 2. Projects imported from GitHub
 3. Souk, then Jobs
-4. Back-office for writing quests, tests and seasons
+4. Back-office for writing quests, tests, hints and seasons
+5. Writing the real quest content (the largest job). Later, let community
+   members propose quests, with an admin approving each one.

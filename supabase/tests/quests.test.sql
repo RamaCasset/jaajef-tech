@@ -10,10 +10,10 @@ insert into auth.users (id, email, raw_app_meta_data, raw_user_meta_data) values
   ('bbbbbbbb-0000-0000-0000-000000000003', 'idle@exemple.sn', '{"provider":"email"}', '{}');
 
 -- Two extra published quests that pay instantly (min_seconds = 0), used for streak tests
-insert into public.quests (slug, title, clan, mastery, kind, language, est_minutes, xp_reward, kopek_reward, min_seconds, published)
+insert into public.quests (slug, title, clan, mastery, language, est_minutes, xp_reward, kopek_reward, min_seconds, published)
 values
-  ('test-quest-2', 'Test 2', 'griot_du_code', 'ndongo', 'code', 'javascript', 5, 100, 10, 0, true),
-  ('test-quest-3', 'Test 3', 'griot_du_code', 'ndongo', 'code', 'javascript', 5, 100, 10, 0, true);
+  ('test-quest-2', 'Test 2', 'griot_du_code', 'ndongo', 'javascript', 5, 100, 10, 0, true),
+  ('test-quest-3', 'Test 3', 'griot_du_code', 'ndongo', 'javascript', 5, 100, 10, 0, true);
 insert into public.quest_tests (quest_id, name, input, expected)
 select id, 'only_test', '[1]'::jsonb, '1'::jsonb from public.quests where slug in ('test-quest-2', 'test-quest-3');
 
@@ -286,7 +286,7 @@ begin
 
   perform public.start_quest(q);
   perform public.save_attempt(q, 'partial code', 3);
-  perform public.save_attempt(q, 'more code', 99);   -- clamped to the number of tests
+  perform public.save_attempt(q, 'more code', 99); -- clamped to the number of tests
   select tests_passed into n from public.quest_attempts where user_id = 'bbbbbbbb-0000-0000-0000-000000000002' and quest_id = q;
   if n <> 4 then raise exception 'FAIL: progress not clamped to 4, got %', n; end if;
   if (select code from public.quest_attempts where user_id = 'bbbbbbbb-0000-0000-0000-000000000002' and quest_id = q) <> 'more code' then

@@ -9,6 +9,7 @@ tied together by XP and Kopeks. Designs by Marie (Figma).
 |---|---|
 | Database foundation (accounts, profiles, XP, Kopeks, badges) | Done and tested (`supabase/migrations`) |
 | Quests (attempts, rewards, streaks, leaderboards) | Done and tested (`supabase/migrations`) |
+| Quest teaching (hints, explanations, order, languages) | Done and tested; sample lesson only |
 | Chat, projects, Souk, jobs | Not started |
 | Frontend | Waiting for Marie's confirmed screens |
 
@@ -51,6 +52,7 @@ psql -v ON_ERROR_STOP=1 -f supabase/tests/_stub_supabase.sql   # test database o
 for f in supabase/migrations/*.sql; do psql -v ON_ERROR_STOP=1 -f "$f"; done
 psql -v ON_ERROR_STOP=1 -f supabase/tests/foundation.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/quests.test.sql
+psql -v ON_ERROR_STOP=1 -f supabase/tests/teaching.test.sql
 ```
 
 Never run `_stub_supabase.sql` on a real Supabase project.
