@@ -1,0 +1,63 @@
+# Runs the database tests on every push. Shows a green tick when everything
+# passes and a red cross when anything fails.
+# It can also be started by hand from the Actions tab (Run workflow).
+name: Database tests
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  database:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    # A clean, temporary PostgreSQL that exists only for this run.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: postgres
+
+    steps:
+      - name: Get the code
+        uses: actions/checkout@v4
+
+      - name: Make sure the PostgreSQL client is available
+        run: |
+          command -v psql || (sudo apt-get update && sudo apt-get install -y postgresql-client)
+          psql --version
+
+      - name: Load the stand-in for Supabase (test database only)
+        run: psql -v ON_ERROR_STOP=1 -q -f supabase/tests/_stub_supabase.sql
+
+      - name: Apply every migration, in order
+        run: |
+          for f in supabase/migrations/*.sql; do
+            echo "Applying $f"
+            psql -v ON_ERROR_STOP=1 -q -f "$f"
+          done
+
+      - name: Run every test
+        run: |
+          for t in supabase/tests/*.test.sql; do
+            echo "Running $t"
+            psql -v ON_ERROR_STOP=1 -q -f "$t"
+          done
