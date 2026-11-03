@@ -29,6 +29,8 @@ database itself, and the tests check it.
 | Who you blocked | Only you |
 | Projects confirmed on GitHub | Everyone, even visitors (unless the owner hides it) |
 | Projects not yet confirmed | Only their owner |
+| Staff roles | You see your own; admins see all |
+| Audit log of staff actions | Admins only |
 
 A member can edit only their own name, avatar, banner, bio, location,
 username and "available to collaborate". Clan and level changes go through
@@ -136,6 +138,25 @@ and forum (a thread has a title, replies stay one level deep).
   `projects_to_sync` and `record_github_sync`), project stars from other members,
   and search. Organization repositories are not supported yet.
 
+## Staff (admin and moderator)
+- Staff are normal member accounts that carry a role, kept in a private table.
+  There is no separate kind of account. A separate back-office web address can
+  be added for convenience, but the real protection is the role in the database:
+  a link alone protects nothing.
+- Two roles: admin (everything) and moderator (platform-wide moderation, reports
+  to come). These are separate from the owner and moderator roles inside a
+  community.
+- Only the server can create an admin (from the Supabase SQL Editor with
+  `make_admin`). Admins can name and remove moderators but cannot create,
+  change or remove other admins. The last admin can never be removed.
+- Every staff action is written to a log that nobody can edit or delete, not
+  even the database owner. Only admins can read it. Members cannot see who is
+  staff.
+- Recommended: turn on two-factor sign-in for every staff account in Supabase.
+- Still to build: reports, quest back-office (including auto-generated quests
+  waiting for approval and quests submitted by admins), Souk and job review,
+  and feature on/off switches.
+
 ## Still to decide (TBC)
 | Item | Placeholder used meanwhile |
 |---|---|
@@ -144,6 +165,8 @@ and forum (a thread has a title, replies stay one level deep).
 | Spelling of the 4th clan | stored as `buur_linguere`; display name set in the app |
 | Payment provider | none: Kopeks are earned only in the first version |
 | XP for a listed project | 50 XP (`project_publish_xp`) |
+| How mastery ranks relate to clans | Both kept for now; relation open |
+| Monthly big challenges | Not designed: solo or teams, length, and reward (XP, Kopeks or a badge) all TBC |
 
 ## Next steps
 1. The GitHub checker program for projects
