@@ -30,7 +30,8 @@ database itself, and the tests check it.
 | Projects confirmed on GitHub | Everyone, even visitors (unless the owner hides it) |
 | Projects not yet confirmed | Only their owner |
 
-A member can edit only their own name, avatar, banner, bio, location,
+The clan and mastery are chosen once during onboarding and cannot be changed
+afterwards (repeating the same choice is harmless). A member can edit only their own name, avatar, banner, bio, location,
 username and "available to collaborate". Clan and level changes go through
 `set_character()` and `set_onboarding_step()`.
 
@@ -68,6 +69,9 @@ Every quest exists to teach coding. Each one has:
 
 The hints and the explanation for La Malédiction du Loop are a sample of a
 finished lesson, written as a draft to be reviewed and edited.
+
+Every quest takes at most 10 minutes. Monthly big challenges are recorded as
+to be confirmed (solo or teams, length, reward).
 
 ### Honest limit of the first version
 Because the code runs in the browser, the server cannot re-run it. It refuses
