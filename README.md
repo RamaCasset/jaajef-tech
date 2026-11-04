@@ -14,6 +14,7 @@ tied together by XP and Kopeks. Designs by Marie (Figma).
 | Private messages and files (inbox, unread, blocking, file attachments) | Done and tested |
 | Projects from GitHub (database side: listing, ownership check, pending until verified) | Done and tested; not yet merged. The GitHub checker program is the next piece |
 | Staff roles (admin, moderator, audit log) | Done and tested; not yet merged |
+| Reports and moderation (reports, warnings, suspensions, hiding content) | Done and tested; not yet merged |
 | Souk, jobs, back-office screens | Not started |
 | Frontend | Waiting for Marie's confirmed screens |
 
@@ -57,6 +58,7 @@ for f in supabase/migrations/*.sql; do psql -v ON_ERROR_STOP=1 -f "$f"; done
 psql -v ON_ERROR_STOP=1 -f supabase/tests/chat.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/dm.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/foundation.test.sql
+psql -v ON_ERROR_STOP=1 -f supabase/tests/moderation.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/projects.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/quests.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/staff.test.sql

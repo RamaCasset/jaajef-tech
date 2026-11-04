@@ -153,9 +153,31 @@ and forum (a thread has a title, replies stay one level deep).
   even the database owner. Only admins can read it. Members cannot see who is
   staff.
 - Recommended: turn on two-factor sign-in for every staff account in Supabase.
-- Still to build: reports, quest back-office (including auto-generated quests
+- Still to build: quest back-office (including auto-generated quests
   waiting for approval and quests submitted by admins), Souk and job review,
   and feature on/off switches.
+
+## Reports and moderation
+- Any signed-in member can report a community message, a private message they
+  are part of, a listed project, or a member. Nobody can report their own
+  content or something they cannot see. At most 10 reports per member per day.
+- Each report keeps a copy of what was reported, so the evidence stays even if
+  the author edits or deletes it. Private messages are only ever seen by staff
+  through a report about them, never by browsing.
+- Staff queue: dismiss, remove the content, warn the member, or suspend the
+  member. One decision closes every open report about the same thing.
+- Suspension: moderators up to 7 days, admins up to 365 days. A suspended
+  member can still read and delete their own messages but cannot post, edit,
+  send private messages, list projects, create communities or start
+  conversations. It ends by itself; only an admin can lift it early.
+- Nobody can sanction an admin through a report. Only an admin can sanction a
+  moderator.
+- A project hidden by staff cannot be brought back by its owner; only an admin
+  restores it.
+- Every decision is written to the audit log.
+- Known gap: join requests (ask to join) are not yet blocked for suspended
+  members, because that table arrives in a separate piece. Add it once ask to
+  join is merged.
 
 ## Still to decide (TBC)
 | Item | Placeholder used meanwhile |

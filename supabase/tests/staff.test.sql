@@ -110,7 +110,7 @@ begin
   perform sfkit.as_user(2);
   select count(*) into n from public.staff_roles;
   if n <> 0 then raise exception 'FAIL: a member sees % staff roles', n; end if;
-  select count(*) into n from public.admin_audit_log;
+  select count(*) into n from public.admin_audit_log where target_id::text like 'abababab-%';
   if n <> 0 then raise exception 'FAIL: a member sees % log lines', n; end if;
   perform sfkit.must_fail('member names a moderator', format('select public.set_moderator(%L, true)', sfkit.uid(3)), 'Only an admin');
   perform sfkit.must_fail('member lists staff', 'select * from public.list_staff()', 'Only an admin');
@@ -119,7 +119,7 @@ begin
   perform sfkit.as_user(1);
   select count(*) into n from public.staff_roles;
   if n <> 1 then raise exception 'FAIL: admin should see the staff list (1), saw %', n; end if;
-  select count(*) into n from public.admin_audit_log;
+  select count(*) into n from public.admin_audit_log where target_id::text like 'abababab-%';
   if n < 1 then raise exception 'FAIL: admin cannot read the log'; end if;
   reset role;
   raise notice 'OK 3: members see no staff and no log; admins see both';
@@ -217,7 +217,7 @@ end $$;
 do $$
 declare actions text;
 begin
-  select string_agg(action, ',' order by id) into actions from public.admin_audit_log;
+  select string_agg(action, ',' order by id) into actions from public.admin_audit_log where target_id::text like 'abababab-%';
   if actions <> 'admin_created,moderator_granted,admin_created,moderator_revoked,staff_revoked' then
     raise exception 'FAIL: the log reads %', actions;
   end if;
