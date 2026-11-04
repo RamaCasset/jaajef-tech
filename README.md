@@ -12,7 +12,8 @@ tied together by XP and Kopeks. Designs by Marie (Figma).
 | Quest teaching (hints, explanations, order, languages) | Done and tested; sample lesson only |
 | Chat (communities, channels, forum, messages, invites, spam limit) | Done and tested |
 | Private messages and files (inbox, unread, blocking, file attachments) | Done and tested |
-| Projects from GitHub (database side: listing, ownership check, pending until verified) | Done and tested; not yet merged. The GitHub checker program is the next piece |
+| Projects from GitHub (database side: listing, ownership check, pending until verified) | Done and tested |
+| GitHub checker (confirms projects against GitHub, hourly) | Built and tested; not yet merged. Setup guide: `docs/GITHUB_CHECKER_SETUP.md` |
 | Souk, jobs | Not started |
 | Frontend | Waiting for Marie's confirmed screens |
 
@@ -59,6 +60,7 @@ psql -v ON_ERROR_STOP=1 -f supabase/tests/foundation.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/projects.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/quests.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/teaching.test.sql
+node --experimental-strip-types supabase/functions/github-sync/sync.test.mjs   # the GitHub checker, needs Node 22
 ```
 
 Never run `_stub_supabase.sql` on a real Supabase project.
