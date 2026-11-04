@@ -13,6 +13,7 @@ tied together by XP and Kopeks. Designs by Marie (Figma).
 | Chat (communities, channels, forum, messages, invites, spam limit) | Done and tested |
 | Private messages and files (inbox, unread, blocking, file attachments) | Done and tested |
 | Projects from GitHub (database side: listing, ownership check, pending until verified) | Done and tested |
+| Project stars, comments and ask to collaborate | Done and tested; not yet merged |
 | Ask to join private communities (listed or hidden, requests, approval) | Done and tested; not yet merged |
 | Staff roles (admin, moderator, audit log) | Done and tested; not yet merged |
 | Reports and moderation (reports, warnings, suspensions, hiding content) | Done and tested; not yet merged |
@@ -61,6 +62,7 @@ psql -v ON_ERROR_STOP=1 -f supabase/tests/chat.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/dm.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/foundation.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/moderation.test.sql
+psql -v ON_ERROR_STOP=1 -f supabase/tests/project_social.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/projects.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/quests.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/staff.test.sql

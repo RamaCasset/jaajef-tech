@@ -142,8 +142,7 @@ and forum (a thread has a title, replies stay one level deep).
   50 XP, TBC). The reward belongs to the repository, so deleting and listing it
   again pays nothing more.
 - Still to build: the small server program that asks GitHub (it uses
-  `projects_to_sync` and `record_github_sync`), project stars from other members,
-  and search. Organization repositories are not supported yet.
+  `projects_to_sync` and `record_github_sync`) and search. Organization repositories are not supported yet.
 
 ## Staff (admin and moderator)
 - Staff are normal member accounts that carry a role, kept in a private table.
