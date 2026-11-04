@@ -21,7 +21,9 @@ database itself, and the tests check it.
 | Wallet (Kopeks balance) and history | Only the member |
 | Game settings (`game_config`) | Everyone |
 | Public communities (name, description) | Everyone, even visitors |
-| Private communities | Only their members |
+| Private communities that are listed | Name, description and member count: everyone. Inside: members only |
+| Private communities that are hidden | Only their members |
+| Join requests | The requester, and the community's owner and moderators |
 | Channels, members and messages of a community | Only that community's members |
 | Invite links | Nobody directly; the server checks them |
 | Private conversations and messages | Only the two people in them |
@@ -80,7 +82,8 @@ treated as practice and demo content, not as a prize-grade competition.
 
 ## Chat
 A community has an owner, optional moderators and members. It is public (anyone
-can join in one click) or private (you need an invite link). Inside it, channels
+can join in one click) or private. A private community is either listed (everyone sees its name and
+description and can ask to join) or hidden (invite link only). Inside it, channels
 come in three kinds: chat, announcement (only the owner and moderators can post)
 and forum (a thread has a title, replies stay one level deep).
 
@@ -93,6 +96,10 @@ and forum (a thread has a title, replies stay one level deep).
 - Only the owner changes roles. Moderators can invite, create channels and remove
   plain members, but not the owner or other moderators.
 - Invite links last 7 days and bring in up to 20 people by default.
+- Ask to join: a person sends a request with an optional short message to a
+  listed private community. The owner or a moderator approves or declines. Limits:
+  10 pending requests per person, and 7 days to wait after a decline. There are no
+  notifications yet: the app reads the pending requests.
 - Limits against spam, all in `game_config`: 20 messages per minute per member,
   3 communities created per member, 30 channels per community, 4000 characters
   per message. These numbers are guesses and can be changed without code.
