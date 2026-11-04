@@ -62,6 +62,7 @@ psql -v ON_ERROR_STOP=1 -f supabase/tests/chat.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/dm.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/foundation.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/moderation.test.sql
+psql -v ON_ERROR_STOP=1 -f supabase/tests/moderation_followup.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/project_social.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/projects.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/quests.test.sql

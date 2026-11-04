@@ -165,7 +165,7 @@ and forum (a thread has a title, replies stay one level deep).
 
 ## Reports and moderation
 - Any signed-in member can report a community message, a private message they
-  are part of, a listed project, or a member. Nobody can report their own
+  are part of, a project comment, a listed project, or a member. Nobody can report their own
   content or something they cannot see. At most 10 reports per member per day.
 - Each report keeps a copy of what was reported, so the evidence stays even if
   the author edits or deletes it. Private messages are only ever seen by staff
@@ -181,9 +181,28 @@ and forum (a thread has a title, replies stay one level deep).
 - A project hidden by staff cannot be brought back by its owner; only an admin
   restores it.
 - Every decision is written to the audit log.
-- Known gap: join requests (ask to join) are not yet blocked for suspended
-  members, because that table arrives in a separate piece. Add it once ask to
-  join is merged.
+- Suspended members are also blocked from join requests, project comments and
+  collaboration requests. Project comments can be reported, and staff can
+  remove them.
+
+### Stars, comments and ask to collaborate
+- Stars: a signed-in member stars a listed project (once; tapping again changes
+  nothing). The count is public. Who starred is private, even to the owner. You
+  cannot star your own project. Stars pay no reward, so there is nothing to
+  farm. These are separate from GitHub's own star count.
+- Comments: on listed projects only, up to 1000 characters, 20 per hour per
+  member. Everyone can read them. The author edits or deletes their own; the
+  project owner can delete any comment on their project.
+- Ask to collaborate: a short message (up to 500 characters) to the owner.
+  Allowed only when the owner has "available to collaborate" switched on in
+  their profile. One waiting request per member per project, at most 10 waiting
+  per member and 20 per project, and a 7-day wait after a decline. The owner
+  accepts or declines; accepting adds the person to a public collaborator list
+  (at most 10 per project). A collaborator can leave, and the owner can remove
+  anyone. Collaborators get no extra rights yet: the list is for display.
+- Only the requester and the owner can see a request.
+- A suspended member cannot comment or ask to collaborate, and a project hidden
+  by staff shows nothing and accepts nothing.
 
 ## Still to decide (TBC)
 | Item | Placeholder used meanwhile |
