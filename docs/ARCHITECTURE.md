@@ -77,6 +77,16 @@ finished lesson, written as a draft to be reviewed and edited.
 Every quest takes at most 10 minutes. Monthly big challenges are recorded as
 to be confirmed (solo or teams, length, reward).
 
+### Quest of the day
+One quest is shown to everyone each day (UTC, which is Senegal time), with its
+rewards, difficulty and the seconds left. An admin can schedule a quest for any
+day up to a year ahead; staff can look ahead 60 days. If nothing is scheduled,
+the database picks one by a fixed rule (the same for everyone all day), so the
+banner is never empty and no background job is needed. Quests scheduled for a
+later day are kept out of that pick. A signed-in member also sees whether they
+started or solved it. There is no extra reward yet: it pays the usual XP and
+Kopeks. Scheduling and clearing are written to the audit log.
+
 ### Honest limit of the first version
 Because the code runs in the browser, the server cannot re-run it. It refuses
 solves that are impossibly fast and pays only once per quest, but a determined
