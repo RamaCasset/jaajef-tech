@@ -21,7 +21,9 @@ database itself, and the tests check it.
 | Wallet (Kopeks balance) and history | Only the member |
 | Game settings (`game_config`) | Everyone |
 | Public communities (name, description) | Everyone, even visitors |
-| Private communities | Only their members |
+| Private communities that are listed | Name, description and member count: everyone. Inside: members only |
+| Private communities that are hidden | Only their members |
+| Join requests | The requester, and the community's owner and moderators |
 | Channels, members and messages of a community | Only that community's members |
 | Invite links | Nobody directly; the server checks them |
 | Private conversations and messages | Only the two people in them |
@@ -30,7 +32,8 @@ database itself, and the tests check it.
 | Projects confirmed on GitHub | Everyone, even visitors (unless the owner hides it) |
 | Projects not yet confirmed | Only their owner |
 
-A member can edit only their own name, avatar, banner, bio, location,
+The clan and mastery are chosen once during onboarding and cannot be changed
+afterwards (repeating the same choice is harmless). A member can edit only their own name, avatar, banner, bio, location,
 username and "available to collaborate". Clan and level changes go through
 `set_character()` and `set_onboarding_step()`.
 
@@ -69,6 +72,9 @@ Every quest exists to teach coding. Each one has:
 The hints and the explanation for La Malédiction du Loop are a sample of a
 finished lesson, written as a draft to be reviewed and edited.
 
+Every quest takes at most 10 minutes. Monthly big challenges are recorded as
+to be confirmed (solo or teams, length, reward).
+
 ### Honest limit of the first version
 Because the code runs in the browser, the server cannot re-run it. It refuses
 solves that are impossibly fast and pays only once per quest, but a determined
@@ -78,7 +84,8 @@ treated as practice and demo content, not as a prize-grade competition.
 
 ## Chat
 A community has an owner, optional moderators and members. It is public (anyone
-can join in one click) or private (you need an invite link). Inside it, channels
+can join in one click) or private. A private community is either listed (everyone sees its name and
+description and can ask to join) or hidden (invite link only). Inside it, channels
 come in three kinds: chat, announcement (only the owner and moderators can post)
 and forum (a thread has a title, replies stay one level deep).
 
@@ -91,6 +98,10 @@ and forum (a thread has a title, replies stay one level deep).
 - Only the owner changes roles. Moderators can invite, create channels and remove
   plain members, but not the owner or other moderators.
 - Invite links last 7 days and bring in up to 20 people by default.
+- Ask to join: a person sends a request with an optional short message to a
+  listed private community. The owner or a moderator approves or declines. Limits:
+  10 pending requests per person, and 7 days to wait after a decline. There are no
+  notifications yet: the app reads the pending requests.
 - Limits against spam, all in `game_config`: 20 messages per minute per member,
   3 communities created per member, 30 channels per community, 4000 characters
   per message. These numbers are guesses and can be changed without code.

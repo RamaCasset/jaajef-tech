@@ -12,9 +12,11 @@ tied together by XP and Kopeks. Designs by Marie (Figma).
 | Quest teaching (hints, explanations, order, languages) | Done and tested; sample lesson only |
 | Chat (communities, channels, forum, messages, invites, spam limit) | Done and tested |
 | Private messages and files (inbox, unread, blocking, file attachments) | Done and tested |
-| Projects from GitHub (database side: listing, ownership check, pending until verified) | Done and tested. The GitHub checker program is the next piece |
+| Projects from GitHub (database side: listing, ownership check, pending until verified) | Done and tested. The GitHub checker program is still to build |
 | Badges that unlock by themselves (3 automatic, 4 manual for now) | Done and tested; not yet merged |
+| Ask to join private communities (listed or hidden, requests, approval) | Done and tested |
 | Souk, jobs | Not started |
+| Character locked after first choice; quests capped at 10 minutes | Done and tested; not yet merged |
 | Frontend | Waiting for Marie's confirmed screens |
 
 ## Stack (first version)
@@ -54,9 +56,11 @@ themselves XP). They run on a plain PostgreSQL:
 ```bash
 psql -v ON_ERROR_STOP=1 -f supabase/tests/_stub_supabase.sql   # test database only
 for f in supabase/migrations/*.sql; do psql -v ON_ERROR_STOP=1 -f "$f"; done
+psql -v ON_ERROR_STOP=1 -f supabase/tests/ask_to_join.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/badges.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/chat.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/dm.test.sql
+psql -v ON_ERROR_STOP=1 -f supabase/tests/fixes.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/foundation.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/projects.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/quests.test.sql
