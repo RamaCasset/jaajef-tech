@@ -178,6 +178,22 @@ and forum (a thread has a title, replies stay one level deep).
 - A suspended member cannot comment or ask to collaborate, and a project hidden
   by staff shows nothing and accepts nothing.
 
+## Global search
+- One search for the header bar, across projects, members, communities and
+  quests. It works for visitors too. By default it returns up to 5 of each kind
+  (at most 10), with the best matches first: a name that starts with what you
+  typed comes before one that only contains it.
+- Only public things appear: projects listed for everyone (never pending,
+  private or hidden by staff, even for their owner), published quests, members,
+  and communities that are public or private-but-listed. A hidden private
+  community never shows.
+- A search needs at least 2 characters, ignores case and surrounding spaces,
+  and treats symbols such as % and _ as plain characters.
+- It looks at names, titles, repository names, tags and descriptions.
+- Not included: chat messages (private to their communities), the blog (not
+  built), and tuning for very large numbers of members (an index will be added
+  if searches become slow).
+
 ## Souk (shop)
 - Three kinds of items: themes, avatar frames and status badges. Each has a
   name, a price in Kopeks and a "look" (colours, label) that the app reads.
