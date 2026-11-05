@@ -20,6 +20,7 @@ tied together by XP and Kopeks. Designs by Marie (Figma).
 | Character locked after first choice; quests capped at 10 minutes | Done and tested |
 | Souk (buy, own and wear themes, avatar frames and status badges with Kopeks) | Done and tested; not yet merged. Creator submissions and the creator share come later |
 | Jobs | Not started |
+| Project stars, comments and ask to collaborate | Done and tested; not yet merged |
 | Frontend | Waiting for Marie's confirmed screens |
 
 ## Stack (first version)
@@ -66,6 +67,7 @@ psql -v ON_ERROR_STOP=1 -f supabase/tests/dm.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/fixes.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/foundation.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/moderation.test.sql
+psql -v ON_ERROR_STOP=1 -f supabase/tests/project_social.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/projects.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/quests.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/souk.test.sql

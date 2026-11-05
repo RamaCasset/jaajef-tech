@@ -146,8 +146,27 @@ and forum (a thread has a title, replies stay one level deep).
   50 XP, TBC). The reward belongs to the repository, so deleting and listing it
   again pays nothing more.
 - Still to build: the small server program that asks GitHub (it uses
-  `projects_to_sync` and `record_github_sync`), project stars from other members,
-  and search. Organization repositories are not supported yet.
+  `projects_to_sync` and `record_github_sync`) and search. Organization repositories are not supported yet.
+
+### Stars, comments and ask to collaborate
+- Stars: a signed-in member stars a listed project (once; tapping again changes
+  nothing). The count is public. Who starred is private, even to the owner. You
+  cannot star your own project. Stars pay no reward, so there is nothing to
+  farm. These are separate from GitHub's own star count.
+- Comments: on listed projects only, up to 1000 characters, 20 per hour per
+  member. Everyone can read them. The author edits or deletes their own; the
+  project owner can delete any comment on their project.
+- Ask to collaborate: a short message (up to 500 characters) to the owner.
+  Allowed only when the owner has "available to collaborate" switched on in
+  their profile. One waiting request per member per project, at most 10 waiting
+  per member and 20 per project, and a 7-day wait after a decline. The owner
+  accepts or declines; accepting adds the person to a public collaborator list
+  (at most 10 per project). A collaborator can leave, and the owner can remove
+  anyone. Collaborators get no extra rights yet: the list is for display.
+- Only the requester and the owner can see a request.
+- Known gap: suspended members (from the moderation piece) are not yet blocked
+  from commenting or sending requests, and staff-hidden projects are not yet
+  excluded. Both are small follow-ups once moderation is merged.
 
 ## Souk (shop)
 - Three kinds of items: themes, avatar frames and status badges. Each has a
