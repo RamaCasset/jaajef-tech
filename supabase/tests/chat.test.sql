@@ -63,7 +63,7 @@ declare c uuid; c2 uuid; n int;
 begin
   perform testkit.as_user('1');
   c := public.create_community('dev-dakar', 'Dev Dakar', 'Les devs de Dakar', false);
-  c2 := public.create_community('cercle-prive', 'Cercle prive', 'Sur invitation', true);
+  c2 := public.create_community('cercle-prive', 'Cercle prive', 'Sur invitation', true, false);
   reset role;
 
   if (select role from public.community_members where community_id = c and user_id = 'cccccccc-0000-0000-0000-000000000001') <> 'owner' then
@@ -90,7 +90,7 @@ do $$
 declare n int;
 begin
   perform testkit.as_user('3');
-  select count(*) into n from public.communities;
+  select count(*) into n from public.communities where slug in ('dev-dakar', 'cercle-prive');
   if n <> 1 then raise exception 'FAIL: outsider should see 1 community (the public one), saw %', n; end if;
   if exists (select 1 from public.communities where slug = 'cercle-prive') then
     raise exception 'FAIL: outsider can see a private community';
@@ -104,7 +104,7 @@ begin
   reset role;
 
   perform testkit.as_anon();
-  select count(*) into n from public.communities;
+  select count(*) into n from public.communities where slug in ('dev-dakar', 'cercle-prive');
   if n <> 1 then raise exception 'FAIL: visitor should see 1 public community, saw %', n; end if;
   perform testkit.must_fail('visitor reads channels', 'select count(*) from public.channels', 'permission denied');
   perform testkit.must_fail('visitor reads messages', 'select count(*) from public.messages', 'permission denied');
@@ -113,7 +113,7 @@ begin
 
   -- the owner does see the private one
   perform testkit.as_user('1');
-  select count(*) into n from public.communities;
+  select count(*) into n from public.communities where slug in ('dev-dakar', 'cercle-prive');
   if n <> 2 then raise exception 'FAIL: owner should see both communities, saw %', n; end if;
   reset role;
   raise notice 'OK 2: outsiders and visitors cannot see private communities, channels, members or messages';
