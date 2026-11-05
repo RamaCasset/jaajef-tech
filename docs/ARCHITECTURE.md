@@ -31,6 +31,8 @@ database itself, and the tests check it.
 | Who you blocked | Only you |
 | Projects confirmed on GitHub | Everyone, even visitors (unless the owner hides it) |
 | Projects not yet confirmed | Only their owner |
+| Application file, portfolio and CV | Only the member (the company applied to will see it once applying is built) |
+| Approved employers and offers on the board | Everyone, even visitors |
 | Staff roles | You see your own; admins see all |
 | Audit log of staff actions | Admins only |
 
@@ -334,9 +336,35 @@ What part 1 builds:
 - Suspended members cannot create, edit or publish. Everything is written
   through functions.
 
-Not in part 1: the application file (profile, skills, portfolio, CV), applying,
+Not in part 1 (part 2 is below): the application file, applying,
 "my applications", saved offers, saved searches and alerts, the email summary,
 the opt-in talent directory, and reporting an offer from the report button.
+
+
+### Application file (part 2)
+Each member can keep one private application file: headline, text about
+themselves, place, years of experience, availability, the kind of work wanted
+(job, freelance or both), up to 20 skills, and https links to a website and
+LinkedIn. A portfolio holds up to 10 items, each a title, a short text and a link,
+or a link to one of the member's own projects (an item pointing to a project goes
+away with it). A CV is one PDF of at most 5 MB, stored in the private bucket
+`cv-files` in the member's own folder; the member can open, replace or delete it.
+
+A completion percentage adds up from 8 parts: headline 10, text about you 15,
+place 5, experience 5, availability 5, three or more skills 20, one or more
+portfolio items 20, CV 20. `my_application_file()` returns the file with the
+percentage and the list of what is missing. Saving sends the whole form, so
+parts left blank are cleared.
+
+Only the member can read the file, not other members, visitors or staff. The
+member can erase everything (`delete_application_file()`); replacing or removing
+a CV returns the old file's path so the app can delete it from storage.
+
+Limits: the server checks that the CV file exists in the bucket, is in the
+member's folder, is named as a PDF and is within the size limit, but it cannot
+read what is inside the file. Applying (next part) will add one rule: the company
+applied to can open the CV of its applicants, for 90 days after the application
+is declined or the offer closes.
 
 ## Staff (admin and moderator)
 - Staff are normal member accounts that carry a role, kept in a private table.
