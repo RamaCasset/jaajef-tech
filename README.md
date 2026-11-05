@@ -18,9 +18,9 @@ tied together by XP and Kopeks. Designs by Marie (Figma).
 | Staff roles (admin, moderator, audit log) | Done and tested |
 | Reports and moderation (reports, warnings, suspensions, hiding content) | Done and tested |
 | Character locked after first choice; quests capped at 10 minutes | Done and tested |
-| Souk (buy, own and wear themes, avatar frames and status badges with Kopeks) | Done and tested; not yet merged. Creator submissions and the creator share come later |
+| Souk (buy, own and wear themes, avatar frames and status badges with Kopeks) | Done and tested. Creator submissions and the creator share come later |
 | Jobs | Not started |
-| Project stars, comments and ask to collaborate | Done and tested; not yet merged |
+| Project stars, comments and ask to collaborate | Done and tested |
 | Frontend | Waiting for Marie's confirmed screens |
 
 ## Stack (first version)
