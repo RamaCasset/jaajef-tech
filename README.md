@@ -19,6 +19,7 @@ tied together by XP and Kopeks. Designs by Marie (Figma).
 | Reports and moderation (reports, warnings, suspensions, hiding content) | Done and tested |
 | Character locked after first choice; quests capped at 10 minutes | Done and tested |
 | Souk (buy, own and wear themes, avatar frames and status badges with Kopeks) | Done and tested. Creator submissions and the creator share come later |
+| Streak extras (real streak today, longest streak, activity calendar, top streaks) | Done and tested |
 | Jobs | Not started |
 | Project stars, comments and ask to collaborate | Done and tested |
 | GitHub checker (confirms projects against GitHub, hourly) | Built and tested; not yet merged. Setup guide: `docs/GITHUB_CHECKER_SETUP.md` |
@@ -74,6 +75,7 @@ psql -v ON_ERROR_STOP=1 -f supabase/tests/projects.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/quests.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/souk.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/staff.test.sql
+psql -v ON_ERROR_STOP=1 -f supabase/tests/streaks.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/teaching.test.sql
 node --experimental-strip-types supabase/functions/github-sync/sync.test.mjs   # the GitHub checker, needs Node 22
 ```
