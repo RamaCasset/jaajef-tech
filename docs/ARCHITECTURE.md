@@ -21,7 +21,9 @@ database itself, and the tests check it.
 | Wallet (Kopeks balance) and history | Only the member |
 | Game settings (`game_config`) | Everyone |
 | Public communities (name, description) | Everyone, even visitors |
-| Private communities | Only their members |
+| Private communities that are listed | Name, description and member count: everyone. Inside: members only |
+| Private communities that are hidden | Only their members |
+| Join requests | The requester, and the community's owner and moderators |
 | Channels, members and messages of a community | Only that community's members |
 | Invite links | Nobody directly; the server checks them |
 | Private conversations and messages | Only the two people in them |
@@ -29,8 +31,11 @@ database itself, and the tests check it.
 | Who you blocked | Only you |
 | Projects confirmed on GitHub | Everyone, even visitors (unless the owner hides it) |
 | Projects not yet confirmed | Only their owner |
+| Staff roles | You see your own; admins see all |
+| Audit log of staff actions | Admins only |
 
-A member can edit only their own name, avatar, banner, bio, location,
+The clan and mastery are chosen once during onboarding and cannot be changed
+afterwards (repeating the same choice is harmless). A member can edit only their own name, avatar, banner, bio, location,
 username and "available to collaborate". Clan and level changes go through
 `set_character()` and `set_onboarding_step()`.
 
@@ -69,6 +74,9 @@ Every quest exists to teach coding. Each one has:
 The hints and the explanation for La Malédiction du Loop are a sample of a
 finished lesson, written as a draft to be reviewed and edited.
 
+Every quest takes at most 10 minutes. Monthly big challenges are recorded as
+to be confirmed (solo or teams, length, reward).
+
 ### Honest limit of the first version
 Because the code runs in the browser, the server cannot re-run it. It refuses
 solves that are impossibly fast and pays only once per quest, but a determined
@@ -78,7 +86,8 @@ treated as practice and demo content, not as a prize-grade competition.
 
 ## Chat
 A community has an owner, optional moderators and members. It is public (anyone
-can join in one click) or private (you need an invite link). Inside it, channels
+can join in one click) or private. A private community is either listed (everyone sees its name and
+description and can ask to join) or hidden (invite link only). Inside it, channels
 come in three kinds: chat, announcement (only the owner and moderators can post)
 and forum (a thread has a title, replies stay one level deep).
 
@@ -91,6 +100,10 @@ and forum (a thread has a title, replies stay one level deep).
 - Only the owner changes roles. Moderators can invite, create channels and remove
   plain members, but not the owner or other moderators.
 - Invite links last 7 days and bring in up to 20 people by default.
+- Ask to join: a person sends a request with an optional short message to a
+  listed private community. The owner or a moderator approves or declines. Limits:
+  10 pending requests per person, and 7 days to wait after a decline. There are no
+  notifications yet: the app reads the pending requests.
 - Limits against spam, all in `game_config`: 20 messages per minute per member,
   3 communities created per member, 30 channels per community, 4000 characters
   per message. These numbers are guesses and can be changed without code.
@@ -155,14 +168,76 @@ and forum (a thread has a title, replies stay one level deep).
   from commenting or sending requests, and staff-hidden projects are not yet
   excluded. Both are small follow-ups once moderation is merged.
 
+## Staff (admin and moderator)
+- Staff are normal member accounts that carry a role, kept in a private table.
+  There is no separate kind of account. A separate back-office web address can
+  be added for convenience, but the real protection is the role in the database:
+  a link alone protects nothing.
+- Two roles: admin (everything) and moderator (platform-wide moderation, reports
+  to come). These are separate from the owner and moderator roles inside a
+  community.
+- Only the server can create an admin (from the Supabase SQL Editor with
+  `make_admin`). Admins can name and remove moderators but cannot create,
+  change or remove other admins. The last admin can never be removed.
+- Every staff action is written to a log that nobody can edit or delete, not
+  even the database owner. Only admins can read it. Members cannot see who is
+  staff.
+- Recommended: turn on two-factor sign-in for every staff account in Supabase.
+- Still to build: quest back-office (including auto-generated quests
+  waiting for approval and quests submitted by admins), Souk and job review,
+  and feature on/off switches.
+
+## Reports and moderation
+- Any signed-in member can report a community message, a private message they
+  are part of, a listed project, or a member. Nobody can report their own
+  content or something they cannot see. At most 10 reports per member per day.
+- Each report keeps a copy of what was reported, so the evidence stays even if
+  the author edits or deletes it. Private messages are only ever seen by staff
+  through a report about them, never by browsing.
+- Staff queue: dismiss, remove the content, warn the member, or suspend the
+  member. One decision closes every open report about the same thing.
+- Suspension: moderators up to 7 days, admins up to 365 days. A suspended
+  member can still read and delete their own messages but cannot post, edit,
+  send private messages, list projects, create communities or start
+  conversations. It ends by itself; only an admin can lift it early.
+- Nobody can sanction an admin through a report. Only an admin can sanction a
+  moderator.
+- A project hidden by staff cannot be brought back by its owner; only an admin
+  restores it.
+- Every decision is written to the audit log.
+- Known gap: join requests (ask to join) are not yet blocked for suspended
+  members, because that table arrives in a separate piece. Add it once ask to
+  join is merged.
+
+## Badges
+- Each badge has a rule: what is counted and how many. The rules are in the table
+  `badge_rules` and can be changed without code.
+- Progress is tracked as members act (for example 42 out of 100). A badge unlocks
+  when the goal is reached. Progress never goes down, and an unlocked badge is
+  never taken back. Badges give no XP or Kopeks.
+- Three badges are automatic: Gardien du Baobab (quests solved), L'Architecte
+  (projects confirmed on GitHub) and Maitre Griot (contributions).
+- The other four are manual for now, awarded by the server: Champion du Sahel
+  (needs a ranking tier), Oeil du Saltigue (needs Data and AI challenges), Sceau
+  de Linguere (needs security audits) and Teranga legendaire (needs a karma score).
+- What counts as a contribution is TO BE CONFIRMED. For now: a forum thread or
+  reply, not deleted, in a community with at least 3 members. The minimum stops
+  anyone from farming the badge in their own empty community.
+- Members cannot award themselves badges or change the rules. Everyone can read
+  badges and progress, so profiles can show them.
+
 ## Still to decide (TBC)
 | Item | Placeholder used meanwhile |
 |---|---|
 | Level formula | 10 000 XP per level (`xp_per_level`) |
 | Souk creator share | not set (`souk_creator_share_percent`) |
 | Spelling of the 4th clan | stored as `buur_linguere`; display name set in the app |
+| What counts as a contribution (Maitre Griot) | Forum threads and replies in communities of 3 or more members |
+| The four manual badges | Awarded by hand until their rules exist |
 | Payment provider | none: Kopeks are earned only in the first version |
 | XP for a listed project | 50 XP (`project_publish_xp`) |
+| How mastery ranks relate to clans | Both kept for now; relation open |
+| Monthly big challenges | Not designed: solo or teams, length, and reward (XP, Kopeks or a badge) all TBC |
 
 ## Next steps
 1. The GitHub checker program for projects
