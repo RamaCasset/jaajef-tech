@@ -148,6 +148,8 @@ and forum (a thread has a title, replies stay one level deep).
 - Still to build: the small server program that asks GitHub (it uses
   `projects_to_sync` and `record_github_sync`) and search. Organization repositories are not supported yet.
 
+
+
 ### Stars, comments and ask to collaborate
 - Stars: a signed-in member stars a listed project (once; tapping again changes
   nothing). The count is public. Who starred is private, even to the owner. You
@@ -164,9 +166,8 @@ and forum (a thread has a title, replies stay one level deep).
   (at most 10 per project). A collaborator can leave, and the owner can remove
   anyone. Collaborators get no extra rights yet: the list is for display.
 - Only the requester and the owner can see a request.
-- Known gap: suspended members (from the moderation piece) are not yet blocked
-  from commenting or sending requests, and staff-hidden projects are not yet
-  excluded. Both are small follow-ups once moderation is merged.
+- A suspended member cannot comment or ask to collaborate, and a project hidden
+  by staff shows nothing and accepts nothing.
 
 ## Souk (shop)
 - Three kinds of items: themes, avatar frames and status badges. Each has a
@@ -205,7 +206,7 @@ and forum (a thread has a title, replies stay one level deep).
 
 ## Reports and moderation
 - Any signed-in member can report a community message, a private message they
-  are part of, a listed project, or a member. Nobody can report their own
+  are part of, a project comment, a listed project, or a member. Nobody can report their own
   content or something they cannot see. At most 10 reports per member per day.
 - Each report keeps a copy of what was reported, so the evidence stays even if
   the author edits or deletes it. Private messages are only ever seen by staff
@@ -221,9 +222,9 @@ and forum (a thread has a title, replies stay one level deep).
 - A project hidden by staff cannot be brought back by its owner; only an admin
   restores it.
 - Every decision is written to the audit log.
-- Known gap: join requests (ask to join) are not yet blocked for suspended
-  members, because that table arrives in a separate piece. Add it once ask to
-  join is merged.
+- Suspended members are also blocked from join requests, project comments and
+  collaboration requests. Project comments can be reported, and staff can
+  remove them.
 
 ## Badges
 - Each badge has a rule: what is counted and how many. The rules are in the table
