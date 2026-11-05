@@ -148,6 +148,44 @@ and forum (a thread has a title, replies stay one level deep).
 - Still to build: the small server program that asks GitHub (it uses
   `projects_to_sync` and `record_github_sync`) and search. Organization repositories are not supported yet.
 
+
+
+### Stars, comments and ask to collaborate
+- Stars: a signed-in member stars a listed project (once; tapping again changes
+  nothing). The count is public. Who starred is private, even to the owner. You
+  cannot star your own project. Stars pay no reward, so there is nothing to
+  farm. These are separate from GitHub's own star count.
+- Comments: on listed projects only, up to 1000 characters, 20 per hour per
+  member. Everyone can read them. The author edits or deletes their own; the
+  project owner can delete any comment on their project.
+- Ask to collaborate: a short message (up to 500 characters) to the owner.
+  Allowed only when the owner has "available to collaborate" switched on in
+  their profile. One waiting request per member per project, at most 10 waiting
+  per member and 20 per project, and a 7-day wait after a decline. The owner
+  accepts or declines; accepting adds the person to a public collaborator list
+  (at most 10 per project). A collaborator can leave, and the owner can remove
+  anyone. Collaborators get no extra rights yet: the list is for display.
+- Only the requester and the owner can see a request.
+- Known gap: suspended members (from the moderation piece) are not yet blocked
+  from commenting or sending requests, and staff-hidden projects are not yet
+  excluded. Both are small follow-ups once moderation is merged.
+
+## Souk (shop)
+- Three kinds of items: themes, avatar frames and status badges. Each has a
+  name, a price in Kopeks and a "look" (colours, label) that the app reads.
+- The shop is public. What a member owns is private. What a member wears (one
+  item per kind) is public, so it shows on their profile.
+- Buying goes through the same safe path as every other Kopek movement: it
+  cannot spend more than the balance, cannot charge twice for the same item,
+  and appears in the member's Kopek history. Purchases are final (no refunds in
+  the first version). Items are owned for good.
+- An item taken off sale stays with the people who already own it, and they can
+  still wear it.
+- Only the server adds or changes items for now. The six items in the database
+  are placeholders until Marie's designs are ready.
+- Not built yet: creator submissions, admin review, and the creator share
+  (`souk_creator_share_percent` is still undecided).
+
 ## Staff (admin and moderator)
 - Staff are normal member accounts that carry a role, kept in a private table.
   There is no separate kind of account. A separate back-office web address can
@@ -240,7 +278,7 @@ and forum (a thread has a title, replies stay one level deep).
 
 ## Next steps
 1. The GitHub checker program for projects
-2. Souk, then Jobs
+2. Souk creator submissions and review, then Jobs
 3. Back-office for writing quests, tests, hints and seasons
 4. Writing the real quest content (the largest job). Later, let community
    members propose quests, with an admin approving each one.
