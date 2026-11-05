@@ -1,0 +1,34 @@
+-- Schedules the GitHub checker to run every hour.
+--
+-- Run this ONCE in the Supabase SQL Editor, after replacing the two
+-- placeholders in capital letters. It is NOT a migration, because it contains
+-- your own secrets. Never save the filled-in version in the repository.
+--
+-- YOUR-PROJECT-REF  : the first part of your Supabase address (https://THIS.supabase.co)
+-- YOUR-CRON-SECRET  : the same CRON_SECRET you saved in the function's secrets
+
+create extension if not exists pg_cron;
+create extension if not exists pg_net;
+
+select vault.create_secret('https://YOUR-PROJECT-REF.supabase.co', 'project_url');
+select vault.create_secret('YOUR-CRON-SECRET', 'cron_secret');
+
+select cron.schedule(
+  'github-sync-hourly',
+  '7 * * * *',
+  $$
+  select net.http_post(
+    url := (select decrypted_secret from vault.decrypted_secrets where name = 'project_url') || '/functions/v1/github-sync',
+    headers := jsonb_build_object(
+      'Content-type', 'application/json',
+      'x-cron-secret', (select decrypted_secret from vault.decrypted_secrets where name = 'cron_secret')
+    ),
+    body := '{}'::jsonb
+  ) as request_id;
+  $$
+);
+
+-- To look at the last runs:
+--   select status, return_message, start_time from cron.job_run_details order by start_time desc limit 5;
+-- To stop the schedule:
+--   select cron.unschedule('github-sync-hourly');

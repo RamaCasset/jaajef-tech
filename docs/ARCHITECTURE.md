@@ -145,6 +145,15 @@ and forum (a thread has a title, replies stay one level deep).
 - The first confirmation of a repository pays a one-time XP reward (placeholder
   50 XP, TBC). The reward belongs to the repository, so deleting and listing it
   again pays nothing more.
+- The GitHub checker is a small Supabase Edge Function (`supabase/functions/github-sync`)
+  that runs every hour. It asks GitHub about each unchecked project and sends the
+  answer to the database. It hides a project only when GitHub says the repository
+  does not exist, is private or is blocked. A network error or a rate limit never
+  hides anything: the project waits for the next run. Setup guide:
+  `docs/GITHUB_CHECKER_SETUP.md`.
+- Still to build: project stars from other members, and search. Organization
+  repositories are not supported yet.
+
 - Still to build: the small server program that asks GitHub (it uses
   `projects_to_sync` and `record_github_sync`) and search. Organization repositories are not supported yet.
 
@@ -257,6 +266,10 @@ and forum (a thread has a title, replies stay one level deep).
 | Monthly big challenges | Not designed: solo or teams, length, and reward (XP, Kopeks or a badge) all TBC |
 
 ## Next steps
+1. Souk, then Jobs
+2. Back-office for writing quests, tests, hints and seasons
+3. Writing the real quest content (the largest job). Later, let community
+
 1. The GitHub checker program for projects
 2. Souk creator submissions and review, then Jobs
 3. Back-office for writing quests, tests, hints and seasons

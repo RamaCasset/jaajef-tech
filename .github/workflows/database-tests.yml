@@ -61,3 +61,11 @@ jobs:
             echo "Running $t"
             psql -v ON_ERROR_STOP=1 -q -f "$t"
           done
+
+      - name: Get Node.js (for the GitHub checker test)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Run the GitHub checker test (real database, pretend GitHub)
+        run: node --experimental-strip-types supabase/functions/github-sync/sync.test.mjs

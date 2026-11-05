@@ -12,7 +12,7 @@ tied together by XP and Kopeks. Designs by Marie (Figma).
 | Quest teaching (hints, explanations, order, languages) | Done and tested; sample lesson only |
 | Chat (communities, channels, forum, messages, invites, spam limit) | Done and tested |
 | Private messages and files (inbox, unread, blocking, file attachments) | Done and tested |
-| Projects from GitHub (database side: listing, ownership check, pending until verified) | Done and tested. The GitHub checker program is still to build |
+| Projects from GitHub (database side: listing, ownership check, pending until verified) | Done and tested |
 | Badges that unlock by themselves (3 automatic, 4 manual for now) | Done and tested |
 | Ask to join private communities (listed or hidden, requests, approval) | Done and tested |
 | Staff roles (admin, moderator, audit log) | Done and tested |
@@ -21,6 +21,7 @@ tied together by XP and Kopeks. Designs by Marie (Figma).
 | Souk (buy, own and wear themes, avatar frames and status badges with Kopeks) | Done and tested. Creator submissions and the creator share come later |
 | Jobs | Not started |
 | Project stars, comments and ask to collaborate | Done and tested |
+| GitHub checker (confirms projects against GitHub, hourly) | Built and tested; not yet merged. Setup guide: `docs/GITHUB_CHECKER_SETUP.md` |
 | Frontend | Waiting for Marie's confirmed screens |
 
 ## Stack (first version)
@@ -74,6 +75,7 @@ psql -v ON_ERROR_STOP=1 -f supabase/tests/quests.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/souk.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/staff.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/teaching.test.sql
+node --experimental-strip-types supabase/functions/github-sync/sync.test.mjs   # the GitHub checker, needs Node 22
 ```
 
 Never run `_stub_supabase.sql` on a real Supabase project.
