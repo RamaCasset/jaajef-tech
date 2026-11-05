@@ -270,6 +270,25 @@ and forum (a thread has a title, replies stay one level deep).
 - Members cannot award themselves badges or change the rules. Everyone can read
   badges and progress, so profiles can show them.
 
+## Notifications
+- Each member has a private in-app inbox. Notices are created only by the
+  database, automatically, when something happens. Nobody can create, edit or
+  delete one directly.
+- Kinds: a star, a comment, a project confirmed on GitHub or hidden by staff, a
+  collaboration request and its answer, a join request and its answer, a badge
+  unlocked, a warning, and a suspension.
+- Who is told: the project owner (stars, comments, collaboration requests); the
+  member who asked (answers); the community owner and moderators (join
+  requests). Nobody is told about their own actions. A person who reports
+  something is never told the outcome.
+- Starring, unstarring and starring again notifies once. A badge notifies once.
+- Members can mark one or all as read, see their unread count, and mute the
+  noisy kinds (for example stars). Warnings, suspensions and hidden-project
+  notices cannot be muted.
+- Updates arrive live, so an app can show a bell that changes by itself.
+- The server can tidy up: read notices after 30 days, any after 90.
+- Not included: emails and phone push notifications.
+
 ## Still to decide (TBC)
 | Item | Placeholder used meanwhile |
 |---|---|
@@ -284,12 +303,10 @@ and forum (a thread has a title, replies stay one level deep).
 | Monthly big challenges | Not designed: solo or teams, length, and reward (XP, Kopeks or a badge) all TBC |
 
 ## Next steps
-1. Souk, then Jobs
-2. Back-office for writing quests, tests, hints and seasons
-3. Writing the real quest content (the largest job). Later, let community
-
-1. The GitHub checker program for projects
-2. Souk creator submissions and review, then Jobs
-3. Back-office for writing quests, tests, hints and seasons
-4. Writing the real quest content (the largest job). Later, let community
+1. Set up the GitHub checker on the real project (see `docs/GITHUB_CHECKER_SETUP.md`)
+2. Back-office permissions (quest writer, shop manager) and shop owners, with
+   Souk creator submissions and review
+3. Back-office for writing quests, tests, hints and seasons; interactive quests
+4. Jobs
+5. Writing the real quest content (the largest job). Later, let community
    members propose quests, with an admin approving each one.
