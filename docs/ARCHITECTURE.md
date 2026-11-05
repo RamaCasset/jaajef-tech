@@ -34,7 +34,8 @@ database itself, and the tests check it.
 | Staff roles | You see your own; admins see all |
 | Audit log of staff actions | Admins only |
 
-A member can edit only their own name, avatar, banner, bio, location,
+The clan and mastery are chosen once during onboarding and cannot be changed
+afterwards (repeating the same choice is harmless). A member can edit only their own name, avatar, banner, bio, location,
 username and "available to collaborate". Clan and level changes go through
 `set_character()` and `set_onboarding_step()`.
 
@@ -72,6 +73,9 @@ Every quest exists to teach coding. Each one has:
 
 The hints and the explanation for La Malédiction du Loop are a sample of a
 finished lesson, written as a draft to be reviewed and edited.
+
+Every quest takes at most 10 minutes. Monthly big challenges are recorded as
+to be confirmed (solo or teams, length, reward).
 
 ### Honest limit of the first version
 Because the code runs in the browser, the server cannot re-run it. It refuses
@@ -204,12 +208,31 @@ and forum (a thread has a title, replies stay one level deep).
 - A suspended member cannot comment or ask to collaborate, and a project hidden
   by staff shows nothing and accepts nothing.
 
+## Badges
+- Each badge has a rule: what is counted and how many. The rules are in the table
+  `badge_rules` and can be changed without code.
+- Progress is tracked as members act (for example 42 out of 100). A badge unlocks
+  when the goal is reached. Progress never goes down, and an unlocked badge is
+  never taken back. Badges give no XP or Kopeks.
+- Three badges are automatic: Gardien du Baobab (quests solved), L'Architecte
+  (projects confirmed on GitHub) and Maitre Griot (contributions).
+- The other four are manual for now, awarded by the server: Champion du Sahel
+  (needs a ranking tier), Oeil du Saltigue (needs Data and AI challenges), Sceau
+  de Linguere (needs security audits) and Teranga legendaire (needs a karma score).
+- What counts as a contribution is TO BE CONFIRMED. For now: a forum thread or
+  reply, not deleted, in a community with at least 3 members. The minimum stops
+  anyone from farming the badge in their own empty community.
+- Members cannot award themselves badges or change the rules. Everyone can read
+  badges and progress, so profiles can show them.
+
 ## Still to decide (TBC)
 | Item | Placeholder used meanwhile |
 |---|---|
 | Level formula | 10 000 XP per level (`xp_per_level`) |
 | Souk creator share | not set (`souk_creator_share_percent`) |
 | Spelling of the 4th clan | stored as `buur_linguere`; display name set in the app |
+| What counts as a contribution (Maitre Griot) | Forum threads and replies in communities of 3 or more members |
+| The four manual badges | Awarded by hand until their rules exist |
 | Payment provider | none: Kopeks are earned only in the first version |
 | XP for a listed project | 50 XP (`project_publish_xp`) |
 | How mastery ranks relate to clans | Both kept for now; relation open |
