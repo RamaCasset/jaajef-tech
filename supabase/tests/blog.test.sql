@@ -139,6 +139,8 @@ begin
     raise exception 'FAIL: create with publish should publish';
   end if;
 
+  -- both were published in this one transaction, so give the second a later time
+  update public.blog_posts set published_at = now() + interval '1 minute' where id = q;
   perform blkit.as_anon();
   if not blkit.visible('Mon premier billet') then raise exception 'FAIL: visitors should read published posts'; end if;
   if (select count(*) from public.list_blog_posts()) <> 2 then raise exception 'FAIL: the feed should have 2 posts'; end if;
