@@ -77,6 +77,16 @@ finished lesson, written as a draft to be reviewed and edited.
 Every quest takes at most 10 minutes. Monthly big challenges are recorded as
 to be confirmed (solo or teams, length, reward).
 
+### Quest of the day
+One quest is shown to everyone each day (UTC, which is Senegal time), with its
+rewards, difficulty and the seconds left. An admin can schedule a quest for any
+day up to a year ahead; staff can look ahead 60 days. If nothing is scheduled,
+the database picks one by a fixed rule (the same for everyone all day), so the
+banner is never empty and no background job is needed. Quests scheduled for a
+later day are kept out of that pick. A signed-in member also sees whether they
+started or solved it. There is no extra reward yet: it pays the usual XP and
+Kopeks. Scheduling and clearing are written to the audit log.
+
 ### Honest limit of the first version
 Because the code runs in the browser, the server cannot re-run it. It refuses
 solves that are impossibly fast and pays only once per quest, but a determined
@@ -178,6 +188,40 @@ and forum (a thread has a title, replies stay one level deep).
 - A suspended member cannot comment or ask to collaborate, and a project hidden
   by staff shows nothing and accepts nothing.
 
+## Global search
+- One search for the header bar, across projects, members, communities and
+  quests. It works for visitors too. By default it returns up to 5 of each kind
+  (at most 10), with the best matches first: a name that starts with what you
+  typed comes before one that only contains it.
+- Only public things appear: projects listed for everyone (never pending,
+  private or hidden by staff, even for their owner), published quests, members,
+  and communities that are public or private-but-listed. A hidden private
+  community never shows.
+- A search needs at least 2 characters, ignores case and surrounding spaces,
+  and treats symbols such as % and _ as plain characters.
+- It looks at names, titles, repository names, tags and descriptions.
+- Not included: chat messages (private to their communities), the blog (not
+  built), and tuning for very large numbers of members (an index will be added
+  if searches become slow).
+
+### Project discovery
+- Anyone, even a visitor, can search the listed projects by text (title,
+  summary, repository, owner), language, tag, and the owner's clan. Results are
+  sorted by newest, most starred, trending this week (stars and comments in the
+  last 7 days) or name. Each result carries its star, comment and collaborator
+  counts and the owner's name, clan and picture.
+- Only projects listed for everyone ever appear: nothing pending, private or
+  hidden by staff, not even for their owner.
+- Featured projects: an admin picks them, up to 6, for the "project of the
+  week" spot. Logged in the audit log. A featured project that staff hide
+  disappears from the featured list too.
+- Filter menus fill themselves: a list of languages in use and popular tags.
+- Trending creators: members with the most contributions in the last days (7 by
+  default). A contribution is the same as for the badge: a forum thread or
+  reply, not deleted, in a community with at least 3 members. To be confirmed.
+- Not built: region filter (region is not a structured field on profiles yet),
+  and "good first issues" (needs GitHub issues).
+
 ## Souk (shop)
 - Three kinds of items: themes, avatar frames and status badges. Each has a
   name, a price in Kopeks and a "look" (colours, label) that the app reads.
@@ -272,6 +316,25 @@ and the report button for posts.
 - Members cannot award themselves badges or change the rules. Everyone can read
   badges and progress, so profiles can show them.
 
+## Notifications
+- Each member has a private in-app inbox. Notices are created only by the
+  database, automatically, when something happens. Nobody can create, edit or
+  delete one directly.
+- Kinds: a star, a comment, a project confirmed on GitHub or hidden by staff, a
+  collaboration request and its answer, a join request and its answer, a badge
+  unlocked, a warning, and a suspension.
+- Who is told: the project owner (stars, comments, collaboration requests); the
+  member who asked (answers); the community owner and moderators (join
+  requests). Nobody is told about their own actions. A person who reports
+  something is never told the outcome.
+- Starring, unstarring and starring again notifies once. A badge notifies once.
+- Members can mark one or all as read, see their unread count, and mute the
+  noisy kinds (for example stars). Warnings, suspensions and hidden-project
+  notices cannot be muted.
+- Updates arrive live, so an app can show a bell that changes by itself.
+- The server can tidy up: read notices after 30 days, any after 90.
+- Not included: emails and phone push notifications.
+
 ## Still to decide (TBC)
 | Item | Placeholder used meanwhile |
 |---|---|
@@ -286,12 +349,10 @@ and the report button for posts.
 | Monthly big challenges | Not designed: solo or teams, length, and reward (XP, Kopeks or a badge) all TBC |
 
 ## Next steps
-1. Souk, then Jobs
-2. Back-office for writing quests, tests, hints and seasons
-3. Writing the real quest content (the largest job). Later, let community
-
-1. The GitHub checker program for projects
-2. Souk creator submissions and review, then Jobs
-3. Back-office for writing quests, tests, hints and seasons
-4. Writing the real quest content (the largest job). Later, let community
+1. Set up the GitHub checker on the real project (see `docs/GITHUB_CHECKER_SETUP.md`)
+2. Back-office permissions (quest writer, shop manager) and shop owners, with
+   Souk creator submissions and review
+3. Back-office for writing quests, tests, hints and seasons; interactive quests
+4. Jobs
+5. Writing the real quest content (the largest job). Later, let community
    members propose quests, with an admin approving each one.

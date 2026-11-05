@@ -19,6 +19,10 @@ tied together by XP and Kopeks. Designs by Marie (Figma).
 | Reports and moderation (reports, warnings, suspensions, hiding content) | Done and tested |
 | Character locked after first choice; quests capped at 10 minutes | Done and tested |
 | Souk (buy, own and wear themes, avatar frames and status badges with Kopeks) | Done and tested. Creator submissions and the creator share come later |
+| Notifications (in-app inbox: stars, comments, requests, badges, warnings; mute and read state) | Done and tested; not yet merged |
+| Project discovery (search, filters, sorting, featured projects, trending creators) | Done and tested; not yet merged |
+| Global search (projects, members, communities, quests) | Done and tested; not yet merged |
+| Quest of the day (one quest for everyone, scheduled by admins or picked automatically) | Done and tested |
 | Blog (posts and drafts, likes, comments, staff hiding, daily limit) | Done and tested. Notices and search for posts come after those pieces merge |
 | Jobs | Not started |
 | Project stars, comments and ask to collaborate | Done and tested |
@@ -69,10 +73,14 @@ psql -v ON_ERROR_STOP=1 -f supabase/tests/chat.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/dm.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/fixes.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/foundation.test.sql
+psql -v ON_ERROR_STOP=1 -f supabase/tests/global_search.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/moderation.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/moderation_followup.test.sql
+psql -v ON_ERROR_STOP=1 -f supabase/tests/project_discovery.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/project_social.test.sql
+psql -v ON_ERROR_STOP=1 -f supabase/tests/notifications.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/projects.test.sql
+psql -v ON_ERROR_STOP=1 -f supabase/tests/quest_of_the_day.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/quests.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/souk.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/staff.test.sql
