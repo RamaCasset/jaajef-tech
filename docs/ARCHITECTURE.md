@@ -168,6 +168,22 @@ and forum (a thread has a title, replies stay one level deep).
   from commenting or sending requests, and staff-hidden projects are not yet
   excluded. Both are small follow-ups once moderation is merged.
 
+## Souk (shop)
+- Three kinds of items: themes, avatar frames and status badges. Each has a
+  name, a price in Kopeks and a "look" (colours, label) that the app reads.
+- The shop is public. What a member owns is private. What a member wears (one
+  item per kind) is public, so it shows on their profile.
+- Buying goes through the same safe path as every other Kopek movement: it
+  cannot spend more than the balance, cannot charge twice for the same item,
+  and appears in the member's Kopek history. Purchases are final (no refunds in
+  the first version). Items are owned for good.
+- An item taken off sale stays with the people who already own it, and they can
+  still wear it.
+- Only the server adds or changes items for now. The six items in the database
+  are placeholders until Marie's designs are ready.
+- Not built yet: creator submissions, admin review, and the creator share
+  (`souk_creator_share_percent` is still undecided).
+
 ## Staff (admin and moderator)
 - Staff are normal member accounts that carry a role, kept in a private table.
   There is no separate kind of account. A separate back-office web address can
@@ -241,7 +257,7 @@ and forum (a thread has a title, replies stay one level deep).
 
 ## Next steps
 1. The GitHub checker program for projects
-2. Souk, then Jobs
+2. Souk creator submissions and review, then Jobs
 3. Back-office for writing quests, tests, hints and seasons
 4. Writing the real quest content (the largest job). Later, let community
    members propose quests, with an admin approving each one.
