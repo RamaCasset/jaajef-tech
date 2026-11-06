@@ -7,6 +7,10 @@ export function friendlyError(error: unknown): string {
   if (m.includes('invalid login credentials')) return fr.errors.invalidCredentials
   if (m.includes('already registered') || m.includes('already been registered')) return fr.errors.emailTaken
   if (m.includes('password should be at least') || m.includes('weak password')) return fr.errors.weakPassword
+  if (m.includes('submitting too fast')) return fr.errors.soukTooFast
+  if (m.includes('waiting for review as allowed')) return fr.errors.soukTooMany
+  if (m.includes('give the item a name')) return fr.errors.soukName
+  if (m.includes('price must be between')) return fr.errors.soukPrice
   if (m.includes('already chosen')) return fr.errors.characterLocked
   if (m.includes('not enough kopeks')) return fr.errors.notEnoughKopeks
   if (m.includes('already own')) return fr.errors.alreadyOwned
