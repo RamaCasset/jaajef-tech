@@ -7,7 +7,7 @@ export function friendlyError(error: unknown): string {
   if (m.includes('invalid login credentials')) return fr.errors.invalidCredentials
   if (m.includes('already registered') || m.includes('already been registered')) return fr.errors.emailTaken
   if (m.includes('password should be at least') || m.includes('weak password')) return fr.errors.weakPassword
-  if (m.includes('duplicate key') || m.includes('communities_slug_key')) return fr.errors.slugTaken
+  if (m.includes('communities_slug_key')) return fr.errors.slugTaken
   if (m.includes('communities_slug_check')) return fr.errors.slugInvalid
   if (m.includes('limit of communities')) return fr.errors.communityLimit
   if (m.includes('community is private')) return fr.errors.privateCommunity
