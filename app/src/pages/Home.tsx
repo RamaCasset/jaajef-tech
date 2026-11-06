@@ -22,7 +22,8 @@ export function Home() {
           <div><dt>{fr.clan.kopeks}</dt><dd>{member?.kopeks ?? 0}</dd></div>
           <div><dt>@</dt><dd style={{ fontSize: 14 }}>{p?.username}</dd></div>
         </dl>
-        <p style={{ margin: '20px 0 8px' }}><Link to="/projets">{fr.nav.projects} →</Link></p>
+        {p && <p style={{ margin: '20px 0 0' }}><Link to={`/profil/${p.username}`}>{fr.profile.myProfile} →</Link></p>}
+        <p style={{ margin: '8px 0 8px' }}><Link to="/projets">{fr.nav.projects} →</Link></p>
         <p className="muted" style={{ margin: '0 0 20px' }}>{fr.home.soon}</p>
         <button className="btn" type="button" onClick={() => void signOut()}>{fr.home.signOut}</button>
       </section>

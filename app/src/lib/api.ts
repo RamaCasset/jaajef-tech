@@ -158,3 +158,81 @@ export async function myEquippedIds(userId: string): Promise<string[]> {
   if (error) throw new Error(error.message)
   return (data ?? []).map((r) => r.item_id as string)
 }
+
+// ---------------------------------------------------------------------
+// Public profile
+// ---------------------------------------------------------------------
+export type PublicProfile = {
+  id: string
+  username: string
+  display_name: string
+  avatar_url: string | null
+  banner_url: string | null
+  bio: string | null
+  location: string | null
+  github_username: string | null
+  clan: ClanKey | null
+  mastery: MasteryKey | null
+  xp: number
+  available_to_collab: boolean
+  is_verified: boolean
+  created_at: string
+}
+
+export type ProfileBadge = { slug: string; name: string; description: string | null; tier: 'common' | 'rare' | 'legendary' }
+export type ProfileProject = {
+  id: string
+  github_owner: string
+  github_repo: string
+  title: string
+  summary: string | null
+  language: string | null
+  github_stars: number
+  build_status: BuildStatus | null
+}
+
+export type ProfileData = {
+  profile: PublicProfile
+  xpPerLevel: number
+  badges: ProfileBadge[]
+  projects: ProfileProject[]
+  /** Only known for your own profile (attempts are private). */
+  questsSolved: number | null
+}
+
+/** Everything the profile page shows. Returns null when no member has this username. */
+export async function loadProfile(username: string, viewerId: string): Promise<ProfileData | null> {
+  const found = await supabase
+    .from('profiles')
+    .select('id, username, display_name, avatar_url, banner_url, bio, location, github_username, clan, mastery, xp, available_to_collab, is_verified, created_at')
+    .eq('username', username)
+    .maybeSingle()
+  if (found.error) throw new Error(found.error.message)
+  if (!found.data) return null
+  const profile = found.data as PublicProfile
+  const mine = profile.id === viewerId
+
+  const [config, badges, projects, quests] = await Promise.all([
+    supabase.from('game_config').select('value').eq('key', 'xp_per_level').maybeSingle(),
+    supabase.from('user_badges').select('unlocked_at, badges(slug, name, description, tier)').eq('user_id', profile.id).not('unlocked_at', 'is', null),
+    supabase.from('projects').select('id, github_owner, github_repo, title, summary, language, github_stars, build_status')
+      .eq('owner_id', profile.id).eq('is_public', true).not('verified_at', 'is', null).order('github_stars', { ascending: false }),
+    mine
+      ? supabase.from('quest_attempts').select('id', { count: 'exact', head: true }).eq('user_id', profile.id).eq('status', 'solved')
+      : Promise.resolve({ count: null, error: null }),
+  ])
+  for (const r of [config, badges, projects, quests]) if (r.error) throw new Error(r.error.message)
+
+  const per = Number(config.data?.value ?? 10000) || 10000
+  type BadgeRow = { badges: ProfileBadge | ProfileBadge[] | null }
+  const badgeList = ((badges.data ?? []) as unknown as BadgeRow[])
+    .map((r) => (Array.isArray(r.badges) ? r.badges[0] : r.badges))
+    .filter((b): b is ProfileBadge => !!b)
+  return {
+    profile,
+    xpPerLevel: per,
+    badges: badgeList,
+    projects: (projects.data ?? []) as ProfileProject[],
+    questsSolved: mine ? (quests.count ?? 0) : null,
+  }
+}

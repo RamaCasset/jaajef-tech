@@ -8,6 +8,7 @@ import { Signup } from './pages/Signup'
 import { ChooseClan } from './pages/ChooseClan'
 import { Home } from './pages/Home'
 import { Projects } from './pages/Projects'
+import { Profile } from './pages/Profile'
 import { Souk } from './pages/Souk'
 import { Setup } from './pages/Setup'
 
@@ -49,6 +50,7 @@ export function AppRoutes() {
       <Route path="/cite" element={<RequireAuth><RequireCharacter><Home /></RequireCharacter></RequireAuth>} />
       <Route path="/projets" element={<RequireAuth><RequireCharacter><Projects /></RequireCharacter></RequireAuth>} />
       <Route path="/souk" element={<RequireAuth><RequireCharacter><Souk /></RequireCharacter></RequireAuth>} />
+      <Route path="/profil/:username" element={<RequireAuth><RequireCharacter><Profile /></RequireCharacter></RequireAuth>} />
       <Route path="*" element={<Navigate to="/cite" replace />} />
     </Routes>
   )
