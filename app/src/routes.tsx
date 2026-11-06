@@ -8,6 +8,7 @@ import { Signup } from './pages/Signup'
 import { ChooseClan } from './pages/ChooseClan'
 import { Home } from './pages/Home'
 import { Quests } from './pages/Quests'
+import { Quest } from './pages/Quest'
 import { Projects } from './pages/Projects'
 import { Jobs } from './pages/Jobs'
 import { Profile } from './pages/Profile'
@@ -51,6 +52,7 @@ export function AppRoutes() {
       <Route path="/inscription/clan" element={<RequireAuth><ChooseClan /></RequireAuth>} />
       <Route path="/cite" element={<RequireAuth><RequireCharacter><Home /></RequireCharacter></RequireAuth>} />
       <Route path="/quetes" element={<RequireAuth><RequireCharacter><Quests /></RequireCharacter></RequireAuth>} />
+      <Route path="/quetes/:slug" element={<RequireAuth><RequireCharacter><Quest /></RequireCharacter></RequireAuth>} />
       <Route path="/projets" element={<RequireAuth><RequireCharacter><Projects /></RequireCharacter></RequireAuth>} />
       <Route path="/souk" element={<RequireAuth><RequireCharacter><Souk /></RequireCharacter></RequireAuth>} />
       <Route path="/profil/:username" element={<RequireAuth><RequireCharacter><Profile /></RequireCharacter></RequireAuth>} />

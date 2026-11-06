@@ -354,3 +354,80 @@ export async function listMyQuestProgress(userId: string): Promise<MyQuestProgre
   if (error) throw new Error(error.message)
   return (data ?? []) as MyQuestProgress[]
 }
+
+// ---------------------------------------------------------------------
+// One quest: reading it, starting it, hints, running code
+// ---------------------------------------------------------------------
+export type QuestDetail = QuestSummary & { statement_md: string | null; starter_code: string | null; min_seconds: number }
+
+/** One published quest by its address name, or null when there is none. */
+export async function getQuest(slug: string): Promise<QuestDetail | null> {
+  const { data, error } = await supabase
+    .from('quests')
+    .select('id, slug, title, summary, clan, mastery, language, topic, est_minutes, xp_reward, kopek_reward, daily_on, statement_md, starter_code, min_seconds')
+    .eq('slug', slug)
+    .maybeSingle()
+  if (error) throw new Error(error.message)
+  return (data as QuestDetail | null) ?? null
+}
+
+export type QuestAttempt = { status: 'in_progress' | 'solved'; code: string | null; tests_passed: number; tests_total: number; started_at: string }
+/** Opens the member's attempt (creates it the first time, returns the saved one afterwards). */
+export const startQuest = (questId: string) => rpc<QuestAttempt>('start_quest', { p_quest_id: questId })
+
+export type Hint = { level: number; body: string }
+export const getUnlockedHints = (questId: string) => rpc<Hint[]>('get_unlocked_hints', { p_quest_id: questId })
+
+export type HintResult = { level?: number; body?: string; no_more_hints?: boolean; hints_used: number; hints_total: number }
+export const useHint = (questId: string) => rpc<HintResult>('use_hint', { p_quest_id: questId })
+
+/** The explanation only opens after the quest is solved; before that the database returns nothing. */
+export async function getExplanation(questId: string): Promise<string | null> {
+  const { data, error } = await supabase.from('quest_explanations').select('explanation_md').eq('quest_id', questId).maybeSingle()
+  if (error) throw new Error(error.message)
+  return (data?.explanation_md as string | undefined) ?? null
+}
+
+export const saveDraft = (questId: string, code: string, testsPassed: number) =>
+  rpc<void>('save_attempt', { p_quest_id: questId, p_code: code, p_tests_passed: testsPassed })
+
+export type TestOutcome = { name: string; passed: boolean; message?: string }
+export type RunOutcome = {
+  tests: TestOutcome[]
+  tests_passed: number
+  tests_total: number
+  solved: boolean
+  already_solved?: boolean
+  reason?: 'tests_not_passed' | 'too_fast'
+  min_seconds?: number
+  xp?: number
+  kopeks?: number
+  streak_days?: number
+  duration_ms?: number
+  daily_quest?: boolean
+  bonus_xp?: number
+  bonus_kopeks?: number
+}
+
+/** The grading service refused or failed. `code` is its short reason, such as 'runner_unavailable'. */
+export class RunError extends Error {
+  code: string
+  constructor(code: string) {
+    super(code)
+    this.code = code
+  }
+}
+
+/** Sends the code to be graded on the server. The expected answers never reach the browser. */
+export async function runQuest(questId: string, code: string): Promise<RunOutcome> {
+  const { data, error } = await supabase.functions.invoke('run-quest', { body: { quest_id: questId, code } })
+  if (error) {
+    let reason = 'unknown'
+    const context = (error as { context?: unknown }).context
+    if (context instanceof Response) {
+      try { reason = String((await context.json())?.error ?? 'unknown') } catch { /* keep unknown */ }
+    }
+    throw new RunError(reason)
+  }
+  return data as RunOutcome
+}

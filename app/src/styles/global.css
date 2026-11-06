@@ -186,3 +186,21 @@ select { background: var(--panel); color: var(--fg); border: 1px solid var(--lin
 .quest-card { padding: 16px; display: flex; flex-direction: column; gap: 8px; }
 .quest-card h3, .quest-card p { margin: 0; }
 .quest-card .quest-foot { margin-top: auto; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+
+/* Quest page */
+.quest-page { display: grid; gap: 16px; }
+.quest-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+.quest-statement { padding: 16px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.quest-editor { display: grid; gap: 8px; }
+.quest-code { width: 100%; min-height: 320px; box-sizing: border-box; padding: 12px; background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-radius: var(--radius); font-family: var(--font-mono); font-size: 13px; line-height: 1.5; tab-size: 2; resize: vertical; }
+.quest-code:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.quest-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.test-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.test-list li { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.test-ok { color: var(--accent); }
+.test-ko { color: var(--danger); }
+.quest-win { padding: 16px; border-color: var(--accent); display: grid; gap: 4px; }
+.quest-win h2, .quest-win p { margin: 0; }
+.hint-list { margin: 0; padding-left: 20px; display: grid; gap: 8px; }
+.quest-side { display: grid; gap: 16px; }
+@media (max-width: 900px) { .quest-cols { grid-template-columns: 1fr; } }
