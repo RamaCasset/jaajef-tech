@@ -12,6 +12,11 @@ export function friendlyError(error: unknown): string {
   if (m.includes('already own')) return fr.errors.alreadyOwned
   if (m.includes('not for sale')) return fr.errors.notForSale
   if (m.includes('saved as many offers')) return fr.errors.saveLimit
+  if (m.includes('connect your github')) return fr.errors.needGithub
+  if (m.includes('another member')) return fr.errors.githubTaken
+  if (m.includes('your own github name')) return fr.errors.notYourRepo
+  if (m.includes('already listed')) return fr.errors.alreadyListed
+  if (m.includes('limit of projects')) return fr.errors.projectLimit
   if (m.includes('sign in first') || m.includes('not authenticated')) return fr.errors.notSignedIn
   return fr.common.unknownError
 }
