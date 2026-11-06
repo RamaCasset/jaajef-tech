@@ -305,3 +305,52 @@ export type MyApplication = {
   has_cv: boolean
 }
 export const listMyApplications = () => rpc<MyApplication[]>('list_my_applications')
+
+// ---------------------------------------------------------------------
+// Quests
+// ---------------------------------------------------------------------
+export type QuestSummary = {
+  id: string
+  slug: string
+  title: string
+  summary: string | null
+  clan: ClanKey
+  mastery: MasteryKey
+  language: 'python' | 'javascript' | null
+  topic: string | null
+  est_minutes: number
+  xp_reward: number
+  kopek_reward: number
+  daily_on: string | null
+}
+
+export type QuestFilters = { clan: ClanKey | ''; mastery: MasteryKey | ''; language: 'python' | 'javascript' | ''; query: string }
+
+/** Published quests, newest first. The database only ever shows published ones. */
+export async function listQuests(f: QuestFilters): Promise<QuestSummary[]> {
+  let q = supabase
+    .from('quests')
+    .select('id, slug, title, summary, clan, mastery, language, topic, est_minutes, xp_reward, kopek_reward, daily_on')
+    .order('created_at', { ascending: false })
+    .limit(100)
+  if (f.clan) q = q.eq('clan', f.clan)
+  if (f.mastery) q = q.eq('mastery', f.mastery)
+  if (f.language) q = q.eq('language', f.language)
+  const text = f.query.trim().replace(/[%,()]/g, ' ')
+  if (text) q = q.or(`title.ilike.%${text}%,topic.ilike.%${text}%`)
+  const { data, error } = await q
+  if (error) throw new Error(error.message)
+  return (data ?? []) as QuestSummary[]
+}
+
+export type MyQuestProgress = { quest_id: string; status: 'in_progress' | 'solved'; tests_passed: number; tests_total: number }
+
+/** The signed-in member's own attempts (the database only returns their own). */
+export async function listMyQuestProgress(userId: string): Promise<MyQuestProgress[]> {
+  const { data, error } = await supabase
+    .from('quest_attempts')
+    .select('quest_id, status, tests_passed, tests_total')
+    .eq('user_id', userId)
+  if (error) throw new Error(error.message)
+  return (data ?? []) as MyQuestProgress[]
+}

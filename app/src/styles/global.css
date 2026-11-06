@@ -177,3 +177,12 @@ select { background: var(--panel); color: var(--fg); border: 1px solid var(--lin
 .job-main { flex: 1; min-width: 0; display: grid; gap: 6px; }
 .job-main h3, .job-main p { margin: 0; }
 .job-card > .btn, .job-card > .tag { margin-left: auto; flex: none; }
+
+/* Quests */
+.quest-filters { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; }
+.quest-filters label { display: grid; gap: 4px; font-size: 12px; color: var(--fg-muted); }
+.quest-filters input[type="search"] { flex: 1 1 240px; }
+.quest-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+.quest-card { padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+.quest-card h3, .quest-card p { margin: 0; }
+.quest-card .quest-foot { margin-top: auto; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
