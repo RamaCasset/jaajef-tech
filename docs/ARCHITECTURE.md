@@ -76,6 +76,21 @@ Every quest exists to teach coding. Each one has:
 The hints and the explanation for La Malédiction du Loop are a sample of a
 finished lesson, written as a draft to be reviewed and edited.
 
+### Grading happens on the server
+Players do not report their own results. The hidden tests of every quest are private
+(only the server can read them). When a player presses "Run", the app calls the
+`run-quest` Edge Function, which checks who the player is, asks the database for the
+hidden tests (this also checks that the quest was started, not yet solved, and that the
+player is within the run limit: 6 per minute and 150 per day, placeholders to confirm),
+sends the code and tests to a sandbox "runner", and records the result itself through
+`record_graded_attempt`. The player only sees pass or fail per test, never the expected
+values. If the runner is down, nothing is recorded and the player sees a clear error.
+
+The runner is a plug-in point with a small fixed contract (see the top of
+`supabase/functions/run-quest/index.ts`), so any code-execution service can sit behind it.
+**The runner provider is not chosen yet**, so until it is connected nobody can solve a quest
+in the real app. Reward, time-measuring and one-payment rules are unchanged.
+
 Every quest takes at most 10 minutes. Monthly big challenges are recorded as
 to be confirmed (solo or teams, length, reward).
 

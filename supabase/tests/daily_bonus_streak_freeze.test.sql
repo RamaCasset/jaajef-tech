@@ -4,6 +4,16 @@
 --
 -- People: ana (1), bara (2), coumba (3), dame (4), eli (5). Quests: db-today (the quest of the day),
 -- db-other (not the quest of the day).
+-- Stand-in for the old browser report: players can no longer call submit_quest, so the tests grade
+-- through the server-only function, as the server would, for the signed-in test player.
+create schema if not exists tg;
+create or replace function tg.submit_quest(p_quest uuid, p_code text, p_passed integer, p_total integer)
+returns jsonb language plpgsql security definer set search_path = public as $$
+begin return public.record_graded_attempt(auth.uid(), p_quest, p_code, p_passed, p_total); end $$;
+grant usage on schema tg to authenticated, anon, service_role;
+grant execute on function tg.submit_quest(uuid, text, integer, integer) to authenticated, anon, service_role;
+
+
 
 create schema dbk;
 grant usage on schema dbk to public;
@@ -71,7 +81,7 @@ begin
   reset role;
   update public.quest_attempts set started_at = now() - interval '2 minutes' where user_id = dbk.uid(p_n) and quest_id = q;
   perform dbk.as_user(p_n);
-  r := public.submit_quest(q, 'solution', 1, 1);
+  r := tg.submit_quest(q, 'solution', 1, 1);
   reset role;
   return r;
 end $$;
@@ -143,7 +153,7 @@ begin
 
   -- solving the same quest again pays nothing more
   perform dbk.as_user(2);
-  r := public.submit_quest(dbk.quest('db-today'), 'again', 1, 1);
+  r := tg.submit_quest(dbk.quest('db-today'), 'again', 1, 1);
   reset role;
   if not (r ->> 'already_solved')::boolean then raise exception 'FAIL: already solved'; end if;
   if dbk.xp(2) <> xp0 + 130 then raise exception 'FAIL: no second payment'; end if;

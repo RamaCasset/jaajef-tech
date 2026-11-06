@@ -2,6 +2,16 @@
 -- psql -v ON_ERROR_STOP=1 -f quests.test.sql
 -- Each rewarded step is its own DO block on purpose: the server measures time
 -- with now(), which is frozen inside a single transaction.
+-- Stand-in for the old browser report: players can no longer call submit_quest, so the tests grade
+-- through the server-only function, as the server would, for the signed-in test player.
+create schema if not exists tg;
+create or replace function tg.submit_quest(p_quest uuid, p_code text, p_passed integer, p_total integer)
+returns jsonb language plpgsql security definer set search_path = public as $$
+begin return public.record_graded_attempt(auth.uid(), p_quest, p_code, p_passed, p_total); end $$;
+grant usage on schema tg to authenticated, anon, service_role;
+grant execute on function tg.submit_quest(uuid, text, integer, integer) to authenticated, anon, service_role;
+
+
 
 -- ---- Setup (as the database owner) ----------------------------------
 insert into auth.users (id, email, raw_app_meta_data, raw_user_meta_data) values
@@ -27,14 +37,18 @@ begin
   if exists (select 1 from public.quests where slug = 'un-peu-de-code-beaucoup-de-racines') then
     raise exception 'FAIL: a draft quest is visible';
   end if;
-  select count(*) into n from public.quest_tests t join public.quests q on q.id = t.quest_id
-   where q.slug = 'la-malediction-du-loop';
-  if n <> 4 then raise exception 'FAIL: expected 4 tests, anon sees %', n; end if;
-  select count(*) into n from public.quest_tests t join public.quests q on q.id = t.quest_id
-   where q.slug = 'le-gardien-des-mots-de-passe';
-  if n <> 0 then raise exception 'FAIL: tests of a draft quest are visible'; end if;
+  begin
+    perform count(*) from public.quest_tests;
+    raise exception 'FAIL: a visitor can read the hidden tests';
+  exception when insufficient_privilege then null; end;
+  set local role authenticated;
+  begin
+    perform count(*) from public.quest_tests;
+    raise exception 'FAIL: a member can read the hidden tests';
+  exception when insufficient_privilege then null; end;
+  set local role anon;
   reset role;
-  raise notice 'OK 1: only published quests and their tests are public';
+  raise notice 'OK 1: only published quests are public; the tests are private';
 end $$;
 
 -- ---- 2. Members cannot write quest tables directly ---------------------
@@ -110,12 +124,12 @@ begin
   set local role authenticated;
   perform set_config('request.jwt.claim.sub', 'bbbbbbbb-0000-0000-0000-000000000001', true);
 
-  r := public.submit_quest(q, 'partial', 3, 4);
+  r := tg.submit_quest(q, 'partial', 3, 4);
   if (r ->> 'solved')::boolean then raise exception 'FAIL: 3 of 4 tests counted as solved'; end if;
   if r ->> 'reason' <> 'tests_not_passed' then raise exception 'FAIL: reason %', r ->> 'reason'; end if;
 
   -- a report that does not cover every test is refused too
-  r := public.submit_quest(q, 'sneaky', 1, 1);
+  r := tg.submit_quest(q, 'sneaky', 1, 1);
   if (r ->> 'solved')::boolean then raise exception 'FAIL: partial report counted as solved'; end if;
   reset role;
 
@@ -132,7 +146,7 @@ begin
   select id into q from public.quests where slug = 'la-malediction-du-loop';
   set local role authenticated;
   perform set_config('request.jwt.claim.sub', 'bbbbbbbb-0000-0000-0000-000000000001', true);
-  r := public.submit_quest(q, 'cheat', 4, 4);
+  r := tg.submit_quest(q, 'cheat', 4, 4);
   reset role;
   if (r ->> 'solved')::boolean then raise exception 'FAIL: instant solve accepted'; end if;
   if r ->> 'reason' <> 'too_fast' then raise exception 'FAIL: reason %', r ->> 'reason'; end if;
@@ -151,7 +165,7 @@ begin
   select id into q from public.quests where slug = 'la-malediction-du-loop';
   set local role authenticated;
   perform set_config('request.jwt.claim.sub', 'bbbbbbbb-0000-0000-0000-000000000001', true);
-  r := public.submit_quest(q, 'solution', 4, 4);
+  r := tg.submit_quest(q, 'solution', 4, 4);
   reset role;
 
   if not (r ->> 'solved')::boolean then raise exception 'FAIL: valid solve refused: %', r; end if;
@@ -177,8 +191,8 @@ begin
   select id into q from public.quests where slug = 'la-malediction-du-loop';
   set local role authenticated;
   perform set_config('request.jwt.claim.sub', 'bbbbbbbb-0000-0000-0000-000000000001', true);
-  r := public.submit_quest(q, 'again', 4, 4);
-  r := public.submit_quest(q, 'and again', 4, 4);
+  r := tg.submit_quest(q, 'again', 4, 4);
+  r := tg.submit_quest(q, 'and again', 4, 4);
   reset role;
   if not (r ->> 'already_solved')::boolean then raise exception 'FAIL: not flagged already solved'; end if;
   if (select xp from public.profiles where id = 'bbbbbbbb-0000-0000-0000-000000000001') <> 250 then
@@ -202,7 +216,7 @@ begin
   set local role authenticated;
   perform set_config('request.jwt.claim.sub', 'bbbbbbbb-0000-0000-0000-000000000001', true);
   perform public.start_quest(q);
-  r := public.submit_quest(q, 'x', 1, 1);
+  r := tg.submit_quest(q, 'x', 1, 1);
   reset role;
   if not (r ->> 'solved')::boolean then raise exception 'FAIL: quest 2 not solved: %', r; end if;
   if (r ->> 'streak_days')::int <> 7 then raise exception 'FAIL: streak %', r ->> 'streak_days'; end if;
@@ -223,7 +237,7 @@ begin
   set local role authenticated;
   perform set_config('request.jwt.claim.sub', 'bbbbbbbb-0000-0000-0000-000000000001', true);
   perform public.start_quest(q);
-  r := public.submit_quest(q, 'x', 1, 1);
+  r := tg.submit_quest(q, 'x', 1, 1);
   reset role;
   if (r ->> 'streak_days')::int <> 7 then raise exception 'FAIL: same-day streak %', r ->> 'streak_days'; end if;
   if (select count(*) from public.kopek_transactions
@@ -244,7 +258,7 @@ begin
   set local role authenticated;
   perform set_config('request.jwt.claim.sub', 'bbbbbbbb-0000-0000-0000-000000000002', true);
   perform public.start_quest(q);
-  r := public.submit_quest(q, 'x', 1, 1);
+  r := tg.submit_quest(q, 'x', 1, 1);
   reset role;
   if (r ->> 'streak_days')::int <> 1 then raise exception 'FAIL: streak after a gap %', r ->> 'streak_days'; end if;
   raise notice 'OK 9: a gap resets the streak to 1';
@@ -312,14 +326,14 @@ begin
   -- never started this quest
   perform set_config('request.jwt.claim.sub', 'bbbbbbbb-0000-0000-0000-000000000003', true);
   ok := false;
-  begin perform public.submit_quest(q, 'x', 4, 4);
+  begin perform tg.submit_quest(q, 'x', 4, 4);
   exception when raise_exception then ok := true; end;
   if not ok then raise exception 'FAIL: submit without starting was accepted'; end if;
 
   -- oversized code
   perform set_config('request.jwt.claim.sub', 'bbbbbbbb-0000-0000-0000-000000000002', true);
   ok := false;
-  begin perform public.submit_quest(q, repeat('x', 50001), 4, 4);
+  begin perform tg.submit_quest(q, repeat('x', 50001), 4, 4);
   exception when raise_exception then ok := true; end;
   if not ok then raise exception 'FAIL: oversized code accepted'; end if;
   reset role;
