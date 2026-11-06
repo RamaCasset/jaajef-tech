@@ -341,7 +341,21 @@ Not in part 1 (part 2 is below): the application file, applying,
 the opt-in talent directory, and reporting an offer from the report button.
 
 
-##### Saved offers, saved searches and alerts (part 4)
+###### Talent directory (part 5)
+- Opt-in: a member joins with `join_talent_directory` (needs a headline, an
+  availability other than "not looking", and a completion of at least
+  `talent_min_completion`, 60, to confirm with Marie) and leaves with
+  `leave_talent_directory`.
+- The listing shows the member's application file as it is now. The CV is never
+  part of it. Portfolio and links are in the full profile (`get_talent`).
+- Only owners of an approved company or hiring profile can browse
+  (`search_talent`, `get_talent`). Contact goes through direct messages.
+- Not shown: members who left, "not looking", suspended, hidden by staff.
+- Staff hide a listing with `set_talent_hidden` (reason required, audit log).
+  Leaving only switches the listing off, so rejoining does not undo a staff hide.
+- Deleting the application file removes the listing.
+
+## Saved offers, saved searches and alerts (part 4)
 - A member saves offers (limit `saved_offers_max`, 200) and searches (limit
   `saved_searches_max`, 10). Both are private. A saved offer stays in the list
   when it closes (marked not listed) and leaves it if the company deletes it.
