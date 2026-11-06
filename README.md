@@ -30,7 +30,8 @@ tied together by XP and Kopeks. Designs by Marie (Figma).
 | Jobs, part 1 (employers, job offers, staff review, search) | Done and tested |
 | Jobs, part 2 (private application file: skills, portfolio, CV upload, completion percentage) | Done and tested |
 | Jobs, part 3 (applying, statuses, 90-day CV access for the company) | Done and tested |
-| Jobs, next parts (saved offers and alerts, email summary, talent directory) | Not started |
+| Jobs, part 4 (saved offers, saved searches, in-app job alerts, data for the daily email) | Done and tested |
+| Jobs, next parts (sending the daily email, talent directory) | Not started |
 | Project stars, comments and ask to collaborate | Done and tested |
 | GitHub checker (confirms projects against GitHub, hourly) | Built and tested; not yet merged. Setup guide: `docs/GITHUB_CHECKER_SETUP.md` |
 | Frontend | Waiting for Marie's confirmed screens |
@@ -82,6 +83,7 @@ psql -v ON_ERROR_STOP=1 -f supabase/tests/foundation.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/jobs_application_file.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/jobs_applying.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/jobs_employers.test.sql
+psql -v ON_ERROR_STOP=1 -f supabase/tests/jobs_saved_alerts.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/global_search.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/moderation.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/moderation_followup.test.sql

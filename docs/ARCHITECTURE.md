@@ -341,7 +341,25 @@ Not in part 1 (part 2 is below): the application file, applying,
 the opt-in talent directory, and reporting an offer from the report button.
 
 
-#### Applying (part 3)
+##### Saved offers, saved searches and alerts (part 4)
+- A member saves offers (limit `saved_offers_max`, 200) and searches (limit
+  `saved_searches_max`, 10). Both are private. A saved offer stays in the list
+  when it closes (marked not listed) and leaves it if the company deletes it.
+- A saved search holds the same filters as the job board (words, kind, type,
+  remote, place, tag, minimum pay with its unit) and needs at least one.
+  `run_saved_search` gives the board results for it.
+- With alerts on, when an offer becomes published and listed, each matching
+  member gets one in-app notice (`job_alert`), even if several of their searches
+  match, and the same offer never alerts twice. Not alerted: the poster, a
+  suspended member, a search with alerts off, drafts.
+- Daily email: the database keeps who has unsent matches (`job_alert_matches`).
+  `job_digest_pending` (service role only) gives the email address and the offers
+  still listed from the last 3 days, for members who have the email on
+  (default on, `set_job_alert_email`). The email sender calls
+  `mark_job_digest_sent` afterwards. Sending the email is not built yet (needs an
+  email service).
+
+## Applying (part 3)
 A signed-in member applies to a listed offer with `apply_to_offer`. One
 application per offer (applying again is possible only after withdrawing), not
 to your own offer, with a daily limit (`job_applications_max_per_day`, 20) and
