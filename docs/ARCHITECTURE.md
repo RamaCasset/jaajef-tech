@@ -386,6 +386,25 @@ a moderator. These roles give no moderation or admin power (tested).
   streak right now. `list_my_streak_freezes` is the history. `top_streaks` still lists only members
   who were really active today or yesterday.
 
+## Build passing and good first issues
+- **Build passing:** each listed project can show a build status: passing, failing, running or
+  none (no builds yet). It comes from the project's GitHub Actions on its main branch. Other build
+  services are not read. A cancelled or skipped run says nothing, so the last status stays.
+- **Good first issues:** up to 10 open GitHub issues carrying the standard label "good first issue"
+  are kept for each listed project (pull requests are left out). `list_good_first_issues` is the
+  public list for the discovery screen, newest first, filterable by language and by the owner's clan
+  and paged. `project_good_first_issues` gives one project's issues. Both are readable by visitors.
+- **Opt out:** the owner can switch their project out of the list with `set_project_newcomer_friendly`.
+  Hidden, unconfirmed or private projects never appear.
+- **Who writes it:** only the GitHub checker (service role). Nothing is typed by members. The database
+  checks that each issue link points to an issue of that same repository, and drops anything else.
+- **Safety:** if GitHub fails or is out of calls, the last known status and issues stay. Each project is
+  refreshed about every 6 hours, and one that keeps failing still moves to the back of the line so it
+  cannot block the others. The checker runs this as a second pass after its normal hourly check, and a
+  problem there never fails the main check.
+- Needs the checker to be running. Without a GitHub access token GitHub allows only about 60 calls an
+  hour, which is too few for this second pass, so use the token (see `docs/GITHUB_CHECKER_SETUP.md`).
+
 ## Jobs (part 1: employers and offers)
 Working decisions (from the project coordinator, to confirm with Marie): offers
 can be published by registered companies and by people who hire freelancers;

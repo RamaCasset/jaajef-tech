@@ -13,7 +13,7 @@
 import assert from 'node:assert/strict'
 import { execFileSync } from 'node:child_process'
 import http from 'node:http'
-import { handler, runSync } from './index.ts'
+import { handler, runExtras, runSync } from './index.ts'
 
 // ---- helpers -------------------------------------------------------------------
 
@@ -59,6 +59,17 @@ const server = http.createServer((req, res) => {
             p_language := j ->> 'p_language',
             p_stars := (j ->> 'p_stars')::int)
           from (select :'payload'::jsonb as j) x;`
+      } else if (name === 'projects_for_extras') {
+        sql = `set role service_role;
+          select coalesce(jsonb_agg(t), '[]'::jsonb)
+            from public.projects_for_extras(p_limit := (:'payload'::jsonb ->> 'p_limit')::int) t;`
+      } else if (name === 'record_github_extras') {
+        sql = `set role service_role;
+          select public.record_github_extras(
+            p_project := (j ->> 'p_project')::uuid,
+            p_build_status := j ->> 'p_build_status',
+            p_issues := j -> 'p_issues')
+          from (select :'payload'::jsonb as j) x;`
       } else {
         return answer(404, { message: 'unknown function' })
       }
@@ -79,10 +90,18 @@ const SUPABASE_URL = `http://127.0.0.1:${server.address().port}`
 const githubCalls = []
 let githubScript = {}
 let githubSequence = null
+let extrasScript = {}
 function fakeFetch(url, init = {}) {
   const u = String(url)
   if (!u.startsWith('https://api.github.com/')) return fetch(url, init) // the stand-in for Supabase
   githubCalls.push({ url: u, headers: init.headers ?? {} })
+  const sub = u.match(/^https:\/\/api\.github\.com\/repos\/([^/]+\/[^/]+)\/(issues|actions\/runs)\?/)
+  if (sub) {
+    const extra = extrasScript[decodeURIComponent(sub[1]).toLowerCase()]?.[sub[2] === 'issues' ? 'issues' : 'runs']
+    if (!extra) return Promise.resolve(new Response('{}', { status: 404 }))
+    if (extra === 'network_error') return Promise.reject(new Error('network down'))
+    return Promise.resolve(new Response(JSON.stringify(extra.body ?? {}), { status: extra.status, headers: extra.headers ?? {} }))
+  }
   const key = decodeURIComponent(u.replace('https://api.github.com/repos/', '')).toLowerCase()
   // A sequence answers call by call, whatever the repository (the order of unchecked projects is not guaranteed).
   const script = githubSequence ? githubSequence[githubCalls.length - 1] : githubScript[key]
@@ -229,6 +248,149 @@ try {
   assert.ok(slow.checked < 3, 'the run must stop before doing everything')
   ok('a run that takes too long stops cleanly')
 
+  // ---- 10b. Build status and good first issues --------------------------------------------------------------
+  const due = (...repos) =>
+    psql(`update public.projects set extras_synced_at = now(); update public.projects set extras_synced_at = null where github_repo in (${repos.map((r) => `'${r}'`).join(',')});`)
+  const build = (repo) => psql(`select coalesce(build_status, 'unknown') from public.projects where github_repo = '${repo}';`)
+  const issueNumbers = (repo) => psql(`select coalesce(string_agg(issue_number::text, ',' order by issue_number), '') from public.project_issues i join public.projects p on p.id = i.project_id where p.github_repo = '${repo}';`)
+  const synced = (repo) => psql(`select extras_synced_at is not null from public.projects where github_repo = '${repo}';`)
+  const issue = (n, extra = {}) => ({ number: n, title: `Issue ${n}`, comments: 1, html_url: `https://github.com/sync-ama/found-repo/issues/${n}`, created_at: '2026-01-01T00:00:00Z', ...extra })
+  const runs = (status, conclusion) => ({ status: 200, body: { workflow_runs: status === null ? [] : [{ status, conclusion }] } })
+
+  githubScript['sync-ama/found-repo'] = found('sync-ama', { default_branch: 'main' })
+  githubScript['sync-ama/weird.name_v2'] = found('sync-ama', { default_branch: 'trunk' })
+  extrasScript = {
+    'sync-ama/found-repo': {
+      issues: { status: 200, body: [issue(5), issue(6, { pull_request: {} }), issue(7)] },
+      runs: runs('completed', 'success'),
+    },
+    'sync-ama/weird.name_v2': { issues: { status: 200, body: [] }, runs: runs(null) },
+  }
+  due('found-repo', 'weird.name_v2')
+  githubCalls.length = 0
+  const x1 = await runExtras(env({ githubToken: 'tok-9' }), fakeFetch)
+  assert.equal(x1.checked, 2)
+  assert.equal(x1.stopped, null)
+  assert.equal(build('found-repo'), 'passing')
+  assert.equal(build('weird.name_v2'), 'none', 'a project with no runs is "none"')
+  assert.equal(issueNumbers('found-repo'), '5,7', 'pull requests are not issues')
+  assert.equal(issueNumbers('weird.name_v2'), '')
+  assert.ok(githubCalls.some((c) => c.url.includes('/actions/runs?branch=main&per_page=1&exclude_pull_requests=true')), 'the main branch is asked about')
+  assert.ok(githubCalls.some((c) => c.url.includes('/actions/runs?branch=trunk')), 'each project uses its own main branch')
+  assert.ok(githubCalls.some((c) => c.url.includes('labels=good%20first%20issue') && c.url.includes('state=open')), 'only open issues with the standard label')
+  assert.equal(githubCalls.filter((c) => c.url.includes('/issues?')).length, 2)
+  ok('the second pass reads the build status and the open good first issues, without pull requests')
+
+  // Other build results
+  for (const [status, conclusion, expected] of [
+    ['completed', 'failure', 'failing'], ['completed', 'success', 'passing'], ['completed', 'timed_out', 'failing'],
+    ['completed', 'success', 'passing'], ['completed', 'startup_failure', 'failing'],
+    ['in_progress', null, 'running'], ['completed', 'success', 'passing'], ['queued', null, 'running'], ['completed', 'success', 'passing'],
+  ]) {
+    extrasScript['sync-ama/found-repo'].runs = runs(status, conclusion)
+    due('found-repo')
+    await runExtras(env(), fakeFetch)
+    assert.equal(build('found-repo'), expected, `${status}/${conclusion}`)
+  }
+  extrasScript['sync-ama/found-repo'].runs = runs('completed', 'failure')
+  due('found-repo')
+  await runExtras(env(), fakeFetch)
+  extrasScript['sync-ama/found-repo'].runs = runs('completed', 'cancelled')
+  due('found-repo')
+  await runExtras(env(), fakeFetch)
+  assert.equal(build('found-repo'), 'failing', 'a cancelled run says nothing, so the last value stays')
+  ok('success is passing, failure is failing, a run in progress is running, and a cancelled run changes nothing')
+
+  // GitHub trouble leaves what is there, but the project is still marked as looked at
+  extrasScript['sync-ama/found-repo'] = { issues: { status: 500 }, runs: { status: 502 } }
+  due('found-repo')
+  const x2 = await runExtras(env(), fakeFetch)
+  assert.equal(x2.skipped, 1)
+  assert.equal(build('found-repo'), 'failing', 'the build status stays on an error')
+  assert.equal(issueNumbers('found-repo'), '5,7', 'the issues stay on an error')
+  assert.equal(synced('found-repo'), 't', 'the project is marked as looked at, so it does not block the others')
+  extrasScript['sync-ama/found-repo'] = { issues: 'network_error', runs: 'network_error' }
+  due('found-repo')
+  await runExtras(env(), fakeFetch)
+  assert.equal(issueNumbers('found-repo'), '5,7', 'a network failure keeps the issues too')
+  ok('on a GitHub error nothing is erased, and the project still moves to the back of the line')
+
+  // The repository itself is gone or private: nothing is stored from it
+  extrasScript['sync-ama/found-repo'] = { issues: { status: 200, body: [issue(9)] }, runs: runs('completed', 'success') }
+  githubScript['sync-ama/found-repo'] = found('sync-ama', { default_branch: 'main', private: true })
+  due('found-repo')
+  githubCalls.length = 0
+  await runExtras(env(), fakeFetch)
+  assert.equal(githubCalls.length, 1, 'a private repository is not asked any further question')
+  assert.equal(issueNumbers('found-repo'), '5,7', 'nothing is taken from a private repository')
+  githubScript['sync-ama/found-repo'] = found('sync-ama', { default_branch: 'main' })
+
+  // A link pointing elsewhere is dropped by the database
+  extrasScript['sync-ama/found-repo'] = {
+    issues: { status: 200, body: [issue(12), issue(13, { html_url: 'https://evil.example/x' })] },
+    runs: runs('completed', 'success'),
+  }
+  due('found-repo')
+  await runExtras(env(), fakeFetch)
+  assert.equal(issueNumbers('found-repo'), '12', 'a link to another site is dropped')
+  ok('a private repository gives nothing, and a link that does not point to the project is dropped')
+
+  // Rate limit: stop, write nothing, the rest waits
+  githubScript['sync-ama/weird.name_v2'] = { status: 403, headers: { 'x-ratelimit-remaining': '0' } }
+  due('found-repo', 'weird.name_v2')
+  psql(`update public.projects set extras_synced_at = now() - interval '9 hours' where github_repo = 'found-repo'; update public.projects set extras_synced_at = null where github_repo = 'weird.name_v2';`)
+  githubCalls.length = 0
+  const x3 = await runExtras(env(), fakeFetch)
+  assert.equal(x3.stopped, 'github_rate_limit')
+  assert.equal(synced('weird.name_v2'), 'f', 'the rate-limited project stays on the list')
+  ok('on a rate limit the second pass stops and writes nothing for that project')
+  githubScript['sync-ama/weird.name_v2'] = found('sync-ama', { default_branch: 'trunk' })
+
+  // Three problems in a row stop the pass
+  extrasScript['sync-ama/found-repo'] = { issues: { status: 500 }, runs: { status: 500 } }
+  extrasScript['sync-ama/weird.name_v2'] = { issues: { status: 500 }, runs: { status: 500 } }
+  psql(`update public.projects set extras_synced_at = now(); update public.projects set extras_synced_at = null where github_repo in ('found-repo','weird.name_v2','flaky-repo','limit-1','limit-2');`)
+  githubScript['sync-ama/flaky-repo'] = found('sync-ama', { default_branch: 'main' })
+  githubScript['sync-ama/limit-1'] = found('sync-ama', { default_branch: 'main' })
+  githubScript['sync-ama/limit-2'] = found('sync-ama', { default_branch: 'main' })
+  extrasScript['sync-ama/flaky-repo'] = { issues: { status: 500 }, runs: { status: 500 } }
+  extrasScript['sync-ama/limit-1'] = { issues: { status: 500 }, runs: { status: 500 } }
+  extrasScript['sync-ama/limit-2'] = { issues: { status: 500 }, runs: { status: 500 } }
+  const x4 = await runExtras(env(), fakeFetch)
+  assert.equal(x4.stopped, 'github_errors')
+  assert.equal(x4.skipped, 3)
+  ok('three problems in a row stop the second pass')
+
+  // Time budget
+  psql(`update public.projects set extras_synced_at = null where github_repo in ('found-repo','weird.name_v2','flaky-repo');`)
+  let clock2 = 0
+  const x5 = await runExtras(env(), fakeFetch, () => (clock2 += 30_000))
+  assert.equal(x5.stopped, 'time_budget')
+  ok('a second pass that takes too long stops cleanly')
+
+  // The main handler runs both passes, and a broken second pass never breaks the first
+  psql(`update public.projects set extras_synced_at = null where github_repo = 'weird.name_v2';`)
+  extrasScript['sync-ama/weird.name_v2'] = { issues: { status: 200, body: [] }, runs: runs('completed', 'success') }
+  const both = await handler(
+    new Request('http://localhost/', { method: 'POST', headers: { 'x-cron-secret': CRON_SECRET } }),
+    (name) => ({ CRON_SECRET, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY: SERVICE_KEY })[name],
+    fakeFetch,
+  )
+  assert.equal(both.status, 200)
+  assert.ok('extras' in (await both.json()))
+  psql(`update public.projects set github_synced_at = now(); update public.projects set extras_synced_at = null where github_repo = 'weird.name_v2';`)
+  const thrower = (url, init) => (String(url).includes('projects_for_extras') ? Promise.resolve(new Response('{}', { status: 500 })) : fakeFetch(url, init))
+  const partial = await handler(
+    new Request('http://localhost/', { method: 'POST', headers: { 'x-cron-secret': CRON_SECRET } }),
+    (name) => ({ CRON_SECRET, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY: SERVICE_KEY })[name],
+    thrower,
+  )
+  assert.equal(partial.status, 200, 'a broken second pass does not fail the run')
+  const partialBody = await partial.json()
+  assert.ok(partialBody.extras.error, 'but it is reported')
+  assert.ok(!JSON.stringify(partialBody).includes(SERVICE_KEY))
+  ok('the run does both passes; a failing second pass is reported but never fails the first')
+
   // ---- 11. Who may start a run --------------------------------------------------------------------------------------------------
   psql(`update public.projects set github_synced_at = now();`)
   const getEnv = (extra = {}) => (name) =>
@@ -242,7 +404,9 @@ try {
   assert.equal((await handler(post({ 'x-cron-secret': CRON_SECRET }), getEnv({ SUPABASE_URL: '' }), fakeFetch)).status, 500, 'missing configuration')
   const good = await handler(post({ 'x-cron-secret': CRON_SECRET }), getEnv(), fakeFetch)
   assert.equal(good.status, 200)
-  assert.deepEqual(Object.keys(await good.json()).sort(), ['checked', 'hidden', 'skipped', 'stopped', 'verified'])
+  const goodBody = await good.json()
+  assert.deepEqual(Object.keys(goodBody).sort(), ['checked', 'extras', 'hidden', 'skipped', 'stopped', 'verified'])
+  assert.deepEqual(Object.keys(goodBody.extras).sort(), ['checked', 'skipped', 'stopped'], 'the second pass reports a short summary too')
   ok('only a caller with the secret can start a run; the answer is a short summary')
 
   // ---- 11b. Projects on newer Supabase versions provide the key as a list ----------------------------------------------------------

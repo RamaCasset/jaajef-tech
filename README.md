@@ -34,6 +34,7 @@ tied together by XP and Kopeks. Designs by Marie (Figma).
 | Souk submission images (private upload, review, shown with the item) | Done and tested |
 | Souk reports and taking items off sale | Done and tested |
 | Quest-of-the-day bonus (placeholder amounts) and streak freezes | Done and tested |
+| "Build passing" badge and "Good first issues" (database and checker; shows data once the checker is running) | Done and tested |
 | Jobs, part 1 (employers, job offers, staff review, search) | Done and tested |
 | Jobs, part 2 (private application file: skills, portfolio, CV upload, completion percentage) | Done and tested |
 | Jobs, part 3 (applying, statuses, 90-day CV access for the company) | Done and tested |
@@ -90,6 +91,7 @@ psql -v ON_ERROR_STOP=1 -f supabase/tests/daily_bonus_streak_freeze.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/dm.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/fixes.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/foundation.test.sql
+psql -v ON_ERROR_STOP=1 -f supabase/tests/github_badges.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/jobs_application_file.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/jobs_applying.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/jobs_employers.test.sql
