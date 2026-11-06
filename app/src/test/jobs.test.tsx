@@ -47,7 +47,7 @@ describe('Jobs page', () => {
     expect(screen.getByText('2 offres')).toBeInTheDocument()
     expect(screen.getByText(/900\s?000 - 1\s?400\s?000 FCFA \/ mois/)).toBeInTheDocument()
     expect(screen.getAllByText('CDI / temps plein').some((el) => el.className === 'tag')).toBe(true)
-    expect(screen.getByText('React')).toBeInTheDocument()
+    expect(screen.getAllByText('React').length).toBe(2)
     expect(screen.getByText('Salaire à négocier')).toBeInTheDocument()
   })
 
