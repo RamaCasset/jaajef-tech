@@ -319,13 +319,26 @@ moderation staff, so a quest writer must never land in that table.
 | Role | Can do now | Coming |
 |---|---|---|
 | Quest writer | Schedule the quest of the day | Quest writing tools |
-| Shop manager | Choose the featured item of the week | Review creator submissions |
+| Shop manager | Choose the featured item of the week; review creator submissions | |
 | Shop owner | Everything a shop manager can | Creator share and earnings |
 
 Admins can do all of it. Only an admin grants or removes a role
 (`set_back_office_role`, logged once per real change); `my_back_office_access`
 tells the app which menus to show. A member can hold several roles and also be
 a moderator. These roles give no moderation or admin power (tested).
+
+### Creator submissions
+- Any signed-in member can submit an item (theme, avatar frame or status badge)
+  with a name, description, look (`data`) and proposed price (1 to 1,000,000 Kopeks).
+  Limits: `souk_submissions_max_per_day` (3) and `souk_submissions_max_pending` (5).
+  Suspended members cannot submit.
+- The creator can edit or withdraw while it is waiting.
+- A shop manager, shop owner or admin approves (optionally changing the price)
+  or rejects (a reason is required). Nobody reviews their own submission.
+  Approving creates a normal shop item with `creator_id`; both outcomes notify the creator.
+- The item look is shown to other members, so staff review is the guard.
+- Deleting a creator keeps the item (creator becomes empty), so owners keep what they bought.
+- The creator share of sales comes in the next piece.
 
 ## Jobs (part 1: employers and offers)
 Working decisions (from the project coordinator, to confirm with Marie): offers
