@@ -9,7 +9,9 @@
 //   5. Answers with pass/fail per test. The expected values of the hidden tests are never sent back.
 //
 // The runner is a plug-in point. It must accept a POST with
-//   { language, code, tests: [{ name, input, expected }], time_limit_ms }
+//   { language, entry_point, code, tests: [{ name, input, expected }], time_limit_ms }
+// entry_point is the name of the function the player wrote; each test calls it with "input" as its single
+// argument and compares what it returns with "expected".
 // and answer
 //   { results: [{ name, passed, error? }] }        (error = a crash or a timeout, short text)
 // Any service can be used behind this contract through a small adapter.
@@ -78,18 +80,18 @@ function databaseError(message: string): Response {
   if (m.includes('start the quest first')) return jsonResponse({ error: 'not_started' }, 409)
   if (m.includes('already solved')) return jsonResponse({ error: 'already_solved' }, 409)
   if (m.includes('quest not available')) return jsonResponse({ error: 'quest_not_found' }, 404)
-  if (m.includes('has no tests')) return jsonResponse({ error: 'quest_not_ready' }, 409)
+  if (m.includes('has no tests') || m.includes('no entry point')) return jsonResponse({ error: 'quest_not_ready' }, 409)
   return jsonResponse({ error: 'database_error' }, 502)
 }
 
-async function runInSandbox(language: string, code: string, tests: TestSpec[], env: Env, fetchFn: typeof fetch): Promise<RunnerResult[] | null> {
+async function runInSandbox(language: string, entryPoint: string, code: string, tests: TestSpec[], env: Env, fetchFn: typeof fetch): Promise<RunnerResult[] | null> {
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), env.runnerTimeoutMs ?? DEFAULT_RUNNER_TIMEOUT_MS)
   try {
     const response = await fetchFn(env.runnerUrl, {
       method: 'POST',
       headers: { 'content-type': 'application/json', authorization: `Bearer ${env.runnerKey}` },
-      body: JSON.stringify({ language, code, tests, time_limit_ms: TIME_LIMIT_MS }),
+      body: JSON.stringify({ language, entry_point: entryPoint, code, tests, time_limit_ms: TIME_LIMIT_MS }),
       signal: controller.signal,
     })
     if (!response.ok) return null
@@ -124,7 +126,7 @@ export async function runQuest(request: Request, env: Env, fetchFn: typeof fetch
   if (!begun.body?.allowed) return jsonResponse({ error: 'too_many_runs' }, 429)
 
   const tests: TestSpec[] = Array.isArray(begun.body.tests) ? begun.body.tests : []
-  const results = await runInSandbox(String(begun.body.language), code, tests, env, fetchFn)
+  const results = await runInSandbox(String(begun.body.language), String(begun.body.entry_point), code, tests, env, fetchFn)
   if (!results) return jsonResponse({ error: 'runner_unavailable' }, 502)
 
   // Missing or malformed answers count as failures, so a faulty runner can never mark a test as passed.
