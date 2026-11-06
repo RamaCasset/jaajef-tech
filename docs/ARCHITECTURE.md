@@ -252,6 +252,23 @@ and forum (a thread has a title, replies stay one level deep).
 - Not built yet: creator submissions, admin review, and the creator share
   (`souk_creator_share_percent` is still undecided).
 
+## Safety audit
+`supabase/tests/schema_audit.test.sql` looks at the finished database, not at one
+feature, and fails when it finds a common security mistake in any piece, old or
+new: a table without row level security, a server function without a fixed
+search path, a function open to everyone by default, functions or tables that
+visitors can reach, writes straight into tables (only a member's own profile text
+is allowed), policies that allow writing, member functions that never check who
+is calling, tables sent live to the browser, views that skip row level security,
+and an audit log that is not admin-only and append-only.
+
+Some things are allowed on purpose and are listed inside the test (for example the
+public functions visitors may run). When a new piece needs one of them, the test
+fails and says what to review; if the choice is right, add the name to the list in
+the same change. Known and accepted: the expected answers of quest tests are
+readable by everyone, because quests run in the browser (see the honest limit
+under Quests).
+
 
 ### Ratings and theme of the week
 A member who owns an item can rate it from 1 to 5 stars, change the rating, or

@@ -26,6 +26,7 @@ tied together by XP and Kopeks. Designs by Marie (Figma).
 | Blog (posts and drafts, likes, comments, staff hiding, daily limit) | Done and tested. Notices and search for posts come after those pieces merge |
 | Souk extras (ratings by owners, theme of the week) | Done and tested |
 | Streak extras (real streak today, longest streak, activity calendar, top streaks) | Done and tested |
+| Safety audit (checks the whole database for common security mistakes, on every push) | Done |
 | Jobs | Not started |
 | Project stars, comments and ask to collaborate | Done and tested |
 | GitHub checker (confirms projects against GitHub, hourly) | Built and tested; not yet merged. Setup guide: `docs/GITHUB_CHECKER_SETUP.md` |
@@ -84,6 +85,7 @@ psql -v ON_ERROR_STOP=1 -f supabase/tests/notifications.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/projects.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/quest_of_the_day.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/quests.test.sql
+psql -v ON_ERROR_STOP=1 -f supabase/tests/schema_audit.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/souk.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/souk_extras.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/staff.test.sql
