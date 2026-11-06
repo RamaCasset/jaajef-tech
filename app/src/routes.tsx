@@ -14,6 +14,8 @@ import { ImportProject } from './pages/ImportProject'
 import { Jobs } from './pages/Jobs'
 import { Profile } from './pages/Profile'
 import { Souk } from './pages/Souk'
+import { Messages } from './pages/Messages'
+import { Conversation } from './pages/Conversation'
 import { Setup } from './pages/Setup'
 
 function Loading() {
@@ -56,6 +58,8 @@ export function AppRoutes() {
       <Route path="/quetes/:slug" element={<RequireAuth><RequireCharacter><Quest /></RequireCharacter></RequireAuth>} />
       <Route path="/projets/ajouter" element={<RequireAuth><RequireCharacter><ImportProject /></RequireCharacter></RequireAuth>} />
       <Route path="/projets" element={<RequireAuth><RequireCharacter><Projects /></RequireCharacter></RequireAuth>} />
+      <Route path="/messages" element={<RequireAuth><RequireCharacter><Messages /></RequireCharacter></RequireAuth>} />
+      <Route path="/messages/:id" element={<RequireAuth><RequireCharacter><Conversation /></RequireCharacter></RequireAuth>} />
       <Route path="/souk" element={<RequireAuth><RequireCharacter><Souk /></RequireCharacter></RequireAuth>} />
       <Route path="/profil/:username" element={<RequireAuth><RequireCharacter><Profile /></RequireCharacter></RequireAuth>} />
       <Route path="/jobs" element={<RequireAuth><RequireCharacter><Jobs /></RequireCharacter></RequireAuth>} />

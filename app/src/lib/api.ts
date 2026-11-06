@@ -570,3 +570,46 @@ export async function listMyProjects(userId: string): Promise<MyProject[]> {
 
 export const publishProject = (repoUrl: string, title: string, summary: string | null) =>
   rpc<string>('publish_project', { p_repo_url: repoUrl, p_title: title, p_summary: summary, p_tags: [] })
+
+// ---- Private messages ----------------------------------------------------------------------------------
+export type Conversation = {
+  conversation_id: string
+  other_user_id: string
+  other_username: string
+  other_display_name: string
+  other_avatar_url: string | null
+  last_message_preview: string | null
+  last_message_at: string | null
+  unread_count: number
+}
+export const listMyConversations = () => rpc<Conversation[]>('list_my_conversations')
+export const startConversation = (userId: string) => rpc<string>('start_conversation', { p_user: userId })
+
+export type DirectMessage = {
+  id: number
+  sender_id: string
+  body: string
+  file_name: string | null
+  created_at: string
+  deleted_at: string | null
+}
+export async function listDirectMessages(conversationId: string, limit = 100): Promise<DirectMessage[]> {
+  const { data, error } = await supabase
+    .from('direct_messages')
+    .select('id, sender_id, body, file_name, created_at, deleted_at')
+    .eq('conversation_id', conversationId)
+    .order('created_at', { ascending: false })
+    .limit(limit)
+  if (error) throw new Error(error.message)
+  return ((data ?? []) as DirectMessage[]).reverse()
+}
+export const sendDirectMessage = (conversationId: string, body: string) => rpc<number>('send_direct_message', { p_conversation: conversationId, p_body: body })
+export const deleteDirectMessage = (id: number) => rpc<void>('delete_direct_message', { p_message: id })
+export const markConversationRead = (conversationId: string) => rpc<void>('mark_conversation_read', { p_conversation: conversationId })
+export const blockUser = (userId: string) => rpc<void>('block_user', { p_user: userId })
+export const unblockUser = (userId: string) => rpc<void>('unblock_user', { p_user: userId })
+export async function isBlockedByMe(userId: string): Promise<boolean> {
+  const { data, error } = await supabase.from('blocks').select('blocked_id').eq('blocked_id', userId).limit(1)
+  if (error) throw new Error(error.message)
+  return (data ?? []).length > 0
+}
