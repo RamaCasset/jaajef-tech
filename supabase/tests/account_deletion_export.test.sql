@@ -161,9 +161,13 @@ begin
   if r.delete_on <> d1 then raise exception 'FAIL: dates disagree'; end if;
   if d1 < now() + interval '13 days 23 hours' or d1 > now() + interval '14 days 1 hour' then raise exception 'FAIL: waiting period is not 14 days: %', d1; end if;
 
-  -- asking again does not push the date back
+  -- asking again later does not push the date back
+  reset role;
+  update public.profiles set deletion_requested_at = now() - interval '2 hours' where id = adkit.uid(1);
+  perform adkit.as_user(1);
   d2 := public.request_account_deletion();
-  if d2 <> d1 then raise exception 'FAIL: asking twice moved the date'; end if;
+  if d2 <> (select deletion_requested_at + interval '14 days' from public.profiles where id = adkit.uid(1)) then raise exception 'FAIL: wrong date after asking twice'; end if;
+  if d2 > now() + interval '13 days 23 hours' then raise exception 'FAIL: asking twice moved the date back to a fresh 14 days'; end if;
 
   perform public.cancel_account_deletion();
   select * into r from public.my_account_deletion();
