@@ -178,6 +178,24 @@ and forum (a thread has a title, replies stay one level deep).
 - A suspended member cannot comment or ask to collaborate, and a project hidden
   by staff shows nothing and accepts nothing.
 
+### Project discovery
+- Anyone, even a visitor, can search the listed projects by text (title,
+  summary, repository, owner), language, tag, and the owner's clan. Results are
+  sorted by newest, most starred, trending this week (stars and comments in the
+  last 7 days) or name. Each result carries its star, comment and collaborator
+  counts and the owner's name, clan and picture.
+- Only projects listed for everyone ever appear: nothing pending, private or
+  hidden by staff, not even for their owner.
+- Featured projects: an admin picks them, up to 6, for the "project of the
+  week" spot. Logged in the audit log. A featured project that staff hide
+  disappears from the featured list too.
+- Filter menus fill themselves: a list of languages in use and popular tags.
+- Trending creators: members with the most contributions in the last days (7 by
+  default). A contribution is the same as for the badge: a forum thread or
+  reply, not deleted, in a community with at least 3 members. To be confirmed.
+- Not built: region filter (region is not a structured field on profiles yet),
+  and "good first issues" (needs GitHub issues).
+
 ## Souk (shop)
 - Three kinds of items: themes, avatar frames and status badges. Each has a
   name, a price in Kopeks and a "look" (colours, label) that the app reads.
