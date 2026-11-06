@@ -379,7 +379,7 @@ export type Hint = { level: number; body: string }
 export const getUnlockedHints = (questId: string) => rpc<Hint[]>('get_unlocked_hints', { p_quest_id: questId })
 
 export type HintResult = { level?: number; body?: string; no_more_hints?: boolean; hints_used: number; hints_total: number }
-export const useHint = (questId: string) => rpc<HintResult>('use_hint', { p_quest_id: questId })
+export const revealHint = (questId: string) => rpc<HintResult>('use_hint', { p_quest_id: questId })
 
 /** The explanation only opens after the quest is solved; before that the database returns nothing. */
 export async function getExplanation(questId: string): Promise<string | null> {

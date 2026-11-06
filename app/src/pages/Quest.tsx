@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
 import { useAuth } from '../auth/AuthContext'
 import {
-  getExplanation, getQuest, getUnlockedHints, RunError, runQuest, saveDraft, startQuest, useHint as askHint,
+  getExplanation, getQuest, getUnlockedHints, RunError, runQuest, saveDraft, startQuest, revealHint,
   type Hint, type QuestAttempt, type QuestDetail, type RunOutcome,
 } from '../lib/api'
 import { friendlyError } from '../lib/errors'
@@ -101,7 +101,7 @@ export function Quest() {
     setHintBusy(true)
     setError(null)
     try {
-      const r = await askHint(data.quest.id)
+      const r = await revealHint(data.quest.id)
       if (r.no_more_hints || r.level === undefined || r.body === undefined) setNoMoreHints(true)
       else {
         const hint: Hint = { level: r.level, body: r.body }
