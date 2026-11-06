@@ -1,32 +1,162 @@
-import { useAuth } from '../auth/AuthContext'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Logo } from '../components/Logo'
+import { AppShell } from '../components/AppShell'
+import { useAuth } from '../auth/AuthContext'
+import {
+  getDailyQuest, getMyStreak, getRecentBadges, getXpPerLevel,
+  type DailyQuest, type ProfileBadge, type StreakInfo,
+} from '../lib/api'
 import { fr } from '../i18n/fr'
 
-export function Home() {
-  const { member, signOut } = useAuth()
-  const p = member?.profile
+type Loaded<T> = { state: 'loading' } | { state: 'failed' } | { state: 'ready'; value: T }
+
+/** Loads one block of the page on its own, so one failure does not blank the rest. */
+function useBlock<T>(load: () => Promise<T>, key: string): Loaded<T> {
+  const [block, setBlock] = useState<Loaded<T>>({ state: 'loading' })
+  useEffect(() => {
+    let alive = true
+    setBlock({ state: 'loading' })
+    load().then((value) => { if (alive) setBlock({ state: 'ready', value }) }).catch(() => { if (alive) setBlock({ state: 'failed' }) })
+    return () => { alive = false }
+    // `key` stands for the inputs of `load`.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key])
+  return block
+}
+
+function QuestCard({ block }: { block: Loaded<DailyQuest | null> }) {
+  const t = fr.home.quest
   return (
-    <main className="center-page">
-      <section className="panel auth-card" style={{ width: 'min(100%, 520px)' }}>
-        <Logo />
-        <h1 style={{ marginTop: 24 }}>{fr.home.welcome}{p ? `, ${p.display_name}` : ''}</h1>
-        {p?.clan && p.mastery && (
-          <p style={{ margin: '12px 0' }}>
-            <span className="tag">{fr.clans[p.clan].name}</span>{' '}
-            <span className="muted">{fr.masteries[p.mastery].name}</span>
-          </p>
-        )}
-        <dl className="stats">
-          <div><dt>{fr.clan.xp}</dt><dd>{p?.xp ?? 0}</dd></div>
-          <div><dt>{fr.clan.kopeks}</dt><dd>{member?.kopeks ?? 0}</dd></div>
-          <div><dt>@</dt><dd style={{ fontSize: 14 }}>{p?.username}</dd></div>
-        </dl>
-        {p && <p style={{ margin: '20px 0 0' }}><Link to={`/profil/${p.username}`}>{fr.profile.myProfile} →</Link></p>}
-        <p style={{ margin: '8px 0 8px' }}><Link to="/projets">{fr.nav.projects} →</Link></p>
-        <p className="muted" style={{ margin: '0 0 20px' }}>{fr.home.soon}</p>
-        <button className="btn" type="button" onClick={() => void signOut()}>{fr.home.signOut}</button>
-      </section>
-    </main>
+    <section className="panel home-card home-quest" aria-label={t.title}>
+      <h2>{t.title}</h2>
+      {block.state === 'loading' ? <p className="muted">{fr.common.loading}</p> : null}
+      {block.state === 'failed' ? <p role="alert" className="alert">{t.error}</p> : null}
+      {block.state === 'ready' && !block.value ? <p className="muted">{t.none}</p> : null}
+      {block.state === 'ready' && block.value ? (() => {
+        const q = block.value
+        const hours = Math.floor(q.seconds_left / 3600)
+        const minutes = Math.floor((q.seconds_left % 3600) / 60)
+        return (
+          <>
+            <div className="project-tags">
+              <span className="tag">{fr.clans[q.clan].name}</span>
+              <span className="tag">{fr.masteries[q.mastery].name}</span>
+              {q.language ? <span className="tag">{fr.quests.languages[q.language]}</span> : null}
+            </div>
+            <h3 style={{ margin: 0 }}>{q.title}</h3>
+            {q.summary ? <p className="muted">{q.summary}</p> : null}
+            <p className="mono tiny">{fr.quests.minutes(q.est_minutes)} · {fr.quests.reward(q.xp_reward, q.kopek_reward)} · {t.timeLeft(hours, minutes)}</p>
+            {q.status === 'solved' ? <p>{t.solved}</p> : null}
+            <p>
+              <Link className={q.status === 'solved' ? 'btn' : 'btn btn-cta'} to={`/quetes/${q.slug}`}>
+                {q.status === 'solved' ? t.review : q.status === 'in_progress' ? t.resume : t.start}
+              </Link>
+            </p>
+          </>
+        )
+      })() : null}
+    </section>
+  )
+}
+
+function StreakCard({ block }: { block: Loaded<StreakInfo | null> }) {
+  const t = fr.home.streak
+  return (
+    <section className="panel home-card" aria-label={t.title}>
+      <h2>{t.title}</h2>
+      {block.state === 'loading' ? <p className="muted">{fr.common.loading}</p> : null}
+      {block.state === 'failed' ? <p role="alert" className="alert">{t.error}</p> : null}
+      {block.state === 'ready' && block.value ? (() => {
+        const s = block.value
+        return (
+          <>
+            <p className="home-big">{t.days(s.current_streak)}</p>
+            {s.current_streak === 0 ? <p className="muted">{t.none}</p> : null}
+            {s.done_today ? <p>{t.doneToday}</p> : null}
+            {!s.done_today && s.protected_by_freeze ? <p>{t.protectedByFreeze}</p> : null}
+            {!s.done_today && !s.protected_by_freeze && s.at_risk ? <p>{t.atRisk}</p> : null}
+            <p className="muted tiny">{t.longest(s.longest_streak)}</p>
+            {s.next_chest_in !== null && s.chest_kopeks > 0 ? <p className="muted tiny">{t.chest(s.next_chest_in, s.chest_kopeks)}</p> : null}
+            {s.freeze_max > 0 ? <p className="muted tiny">{t.freezes(s.freezes, s.freeze_max)}</p> : null}
+          </>
+        )
+      })() : null}
+    </section>
+  )
+}
+
+export function Home() {
+  const { member } = useAuth()
+  const p = member?.profile
+  const userId = p?.id ?? ''
+  const quest = useBlock(getDailyQuest, 'quest')
+  const streak = useBlock(getMyStreak, 'streak')
+  const per = useBlock(getXpPerLevel, 'per')
+  const badges = useBlock<ProfileBadge[]>(() => getRecentBadges(userId), userId)
+
+  const xp = p?.xp ?? 0
+  const perLevel = per.state === 'ready' ? per.value : null
+  const level = perLevel ? 1 + Math.floor(xp / perLevel) : null
+  const inLevel = perLevel ? xp % perLevel : 0
+
+  return (
+    <AppShell>
+      <main className="page">
+        <header className="page-head">
+          <h1 className="page-title">{p ? fr.home.greeting(p.display_name) : fr.home.welcome}</h1>
+          {p?.clan && p.mastery ? (
+            <p>
+              <span className="tag">{fr.clans[p.clan].name}</span>{' '}
+              <span className="muted">{fr.masteries[p.mastery].name}</span>
+            </p>
+          ) : null}
+        </header>
+
+        <div className="home-grid">
+          <QuestCard block={quest} />
+
+          <section className="panel home-card" aria-label={fr.home.level(level ?? 1)}>
+            {per.state === 'failed' ? <p role="alert" className="alert">{fr.home.levelError}</p> : null}
+            {level !== null && perLevel ? (
+              <>
+                <h2>{fr.home.level(level)}</h2>
+                <div className="xp-track" role="progressbar" aria-valuemin={0} aria-valuemax={perLevel} aria-valuenow={inLevel} aria-label={fr.home.xpProgress(inLevel, perLevel)}>
+                  <div className="xp-fill" style={{ width: `${Math.min(100, (inLevel / perLevel) * 100)}%` }} />
+                </div>
+                <p className="mono tiny">{fr.home.xpProgress(inLevel, perLevel)}</p>
+                <p className="muted tiny">{fr.home.toNext(perLevel - inLevel, level + 1)}</p>
+              </>
+            ) : per.state === 'loading' ? <p className="muted">{fr.common.loading}</p> : null}
+            <p className="home-big">{member?.kopeks ?? 0} <span className="muted tiny">{fr.home.kopeks}</span></p>
+          </section>
+
+          <StreakCard block={streak} />
+
+          <section className="panel home-card" aria-label={fr.home.badges.title}>
+            <h2>{fr.home.badges.title}</h2>
+            {badges.state === 'loading' ? <p className="muted">{fr.common.loading}</p> : null}
+            {badges.state === 'failed' ? <p role="alert" className="alert">{fr.home.badges.error}</p> : null}
+            {badges.state === 'ready' && badges.value.length === 0 ? <p className="muted">{fr.home.badges.none}</p> : null}
+            {badges.state === 'ready' && badges.value.length > 0 ? (
+              <ul className="home-badges">
+                {badges.value.map((b) => <li key={b.slug} className="tag" title={b.description ?? undefined}>{b.name}</li>)}
+              </ul>
+            ) : null}
+            {p ? <p><Link to={`/profil/${p.username}`}>{fr.home.badges.all} →</Link></p> : null}
+          </section>
+        </div>
+
+        <section aria-label={fr.home.shortcuts}>
+          <h2>{fr.home.shortcuts}</h2>
+          <div className="home-shortcuts">
+            <Link className="btn" to="/quetes">{fr.nav.quests}</Link>
+            <Link className="btn" to="/projets">{fr.nav.projects}</Link>
+            <Link className="btn" to="/souk">{fr.nav.souk}</Link>
+            <Link className="btn" to="/jobs">{fr.nav.jobs}</Link>
+            {p ? <Link className="btn" to={`/profil/${p.username}`}>{fr.profile.myProfile}</Link> : null}
+          </div>
+        </section>
+      </main>
+    </AppShell>
   )
 }
