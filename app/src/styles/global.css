@@ -213,3 +213,13 @@ select { background: var(--panel); color: var(--fg); border: 1px solid var(--lin
 .home-quest { grid-column: 1 / -1; }
 .home-shortcuts { display: flex; flex-wrap: wrap; gap: 8px; }
 .home-badges { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* Import a project */
+.import-page { display: grid; gap: 16px; }
+.import-connect { padding: 24px; display: grid; gap: 12px; justify-items: start; }
+.import-connect h2, .import-connect p { margin: 0; }
+.repo-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.repo-row { display: flex; gap: 16px; align-items: center; padding: 16px; }
+.repo-main { flex: 1; min-width: 0; display: grid; gap: 6px; }
+.repo-main h3, .repo-main p { margin: 0; }
+.repo-row > .btn, .repo-row > .tag { flex: none; }

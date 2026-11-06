@@ -18,6 +18,7 @@ export type Profile = {
   mastery: MasteryKey | null
   xp: number
   onboarding_step: number
+  github_username: string | null
 }
 
 export type MemberState = { profile: Profile; kopeks: number }
@@ -27,7 +28,7 @@ export async function loadMember(userId: string): Promise<MemberState> {
   const [profile, wallet] = await Promise.all([
     supabase
       .from('profiles')
-      .select('id, username, display_name, avatar_url, location, clan, mastery, xp, onboarding_step')
+      .select('id, username, display_name, avatar_url, location, clan, mastery, xp, onboarding_step, github_username')
       .eq('id', userId)
       .single(),
     supabase.from('wallets').select('kopeks').eq('user_id', userId).single(),
@@ -500,3 +501,72 @@ export async function getRecentBadges(userId: string, limit = 4): Promise<Profil
     .map((r) => (Array.isArray(r.badges) ? r.badges[0] : r.badges))
     .filter((b): b is ProfileBadge => !!b)
 }
+
+// Importing projects from GitHub
+// ---------------------------------------------------------------------
+
+/** Copies the GitHub name from the member's verified GitHub login onto their profile. */
+export const linkGithubAccount = () => rpc<string>('link_github_account')
+
+/** Sends the member to GitHub to connect their account, then back to the import page. */
+export async function connectGithub(): Promise<void> {
+  const { error } = await supabase.auth.linkIdentity({
+    provider: 'github',
+    options: { redirectTo: `${window.location.origin}/projets/ajouter` },
+  })
+  if (error) throw new Error(error.message)
+}
+
+export type GithubRepo = {
+  name: string
+  description: string | null
+  fork: boolean
+  archived: boolean
+  stargazers_count: number
+  language: string | null
+  html_url: string
+}
+
+/** GitHub refused or failed. `code` is 'rate_limited', 'not_found' or 'failed'. */
+export class GithubError extends Error {
+  code: 'rate_limited' | 'not_found' | 'failed'
+  constructor(code: 'rate_limited' | 'not_found' | 'failed') {
+    super(code)
+    this.code = code
+  }
+}
+
+/** The member's PUBLIC repositories, straight from GitHub (no sign-in token needed, private ones are never visible). */
+export async function listPublicRepos(githubName: string, fetchFn: typeof fetch = fetch): Promise<GithubRepo[]> {
+  let response: Response
+  try {
+    response = await fetchFn(`https://api.github.com/users/${encodeURIComponent(githubName)}/repos?per_page=100&sort=updated`, {
+      headers: { accept: 'application/vnd.github+json' },
+    })
+  } catch {
+    throw new GithubError('failed')
+  }
+  if (response.status === 403 || response.status === 429) throw new GithubError('rate_limited')
+  if (response.status === 404) throw new GithubError('not_found')
+  if (!response.ok) throw new GithubError('failed')
+  const list = (await response.json()) as GithubRepo[]
+  return list.map((r) => ({
+    name: r.name, description: r.description, fork: r.fork, archived: r.archived,
+    stargazers_count: r.stargazers_count, language: r.language, html_url: r.html_url,
+  }))
+}
+
+export type MyProject = { id: string; github_owner: string; github_repo: string; verified_at: string | null }
+
+/** The member's own listed projects, including the ones still waiting to be confirmed. */
+export async function listMyProjects(userId: string): Promise<MyProject[]> {
+  const { data, error } = await supabase
+    .from('projects')
+    .select('id, github_owner, github_repo, verified_at')
+    .eq('owner_id', userId)
+  if (error) throw new Error(error.message)
+  return (data ?? []) as MyProject[]
+}
+
+export const publishProject = (repoUrl: string, title: string, summary: string | null) =>
+  rpc<string>('publish_project', { p_repo_url: repoUrl, p_title: title, p_summary: summary, p_tags: [] })
