@@ -96,6 +96,17 @@ code { background: var(--code-bg); padding: 0 4px; border-radius: 3px; font-size
         <input id="cron" type="password" placeholder="the long password you invented" autocomplete="off">
       </div>
     </div>
+    <div class="grid3" style="margin-top:12px">
+      <div>
+        <label for="fnSync">Name of the GitHub checker function</label>
+        <input id="fnSync" value="github-sync" autocomplete="off">
+      </div>
+      <div>
+        <label for="fnClean">Name of the file cleanup function</label>
+        <input id="fnClean" value="file-cleanup" autocomplete="off">
+      </div>
+    </div>
+    <p class="muted">Supabase may have given your functions random names such as bright-action. Type the real names here (see Edge Functions in Supabase). The name is the last part of the function's address.</p>
     <p class="muted" style="margin-bottom:0">In Supabase: Project Settings, then API. For quick testing, turn off "Confirm email" under Authentication, then Sign In / Providers, then Email. Turn it back on before launch.</p>
   </div>
 
@@ -415,7 +426,7 @@ async function runStep(s) {
     } else if (s.type === 'fn') {
       const secret = $('cron').value;
       if (!secret) throw new Error('Fill in the checker password at the top first.');
-      const res = await fetch(base() + '/functions/v1/' + s.fn, { method: 'POST', headers: { apikey: anon(), authorization: 'Bearer ' + anon(), 'x-cron-secret': secret, 'content-type': 'application/json' }, body: '{}' });
+      const res = await fetch(base() + '/functions/v1/' + (s.fn === 'github-sync' ? $('fnSync').value.trim() : s.fn === 'file-cleanup' ? $('fnClean').value.trim() : s.fn), { method: 'POST', headers: { apikey: anon(), authorization: 'Bearer ' + anon(), 'x-cron-secret': secret, 'content-type': 'application/json' }, body: '{}' });
       const t = await res.text(); let d; try { d = JSON.parse(t); } catch (e) { d = t; }
       if (!res.ok) throw new Error('HTTP ' + res.status + ': ' + (typeof d === 'string' ? d : JSON.stringify(d)));
       result = d;
