@@ -570,3 +570,122 @@ export async function listMyProjects(userId: string): Promise<MyProject[]> {
 
 export const publishProject = (repoUrl: string, title: string, summary: string | null) =>
   rpc<string>('publish_project', { p_repo_url: repoUrl, p_title: title, p_summary: summary, p_tags: [] })
+
+// ---- Communities and chat ------------------------------------------------------------------------------
+export type Community = {
+  id: string
+  slug: string
+  name: string
+  description: string | null
+  is_private: boolean
+  is_listed: boolean
+  owner_id: string
+}
+export type CommunityRole = 'owner' | 'moderator' | 'member'
+
+const COMMUNITY_COLUMNS = 'id, slug, name, description, is_private, is_listed, owner_id'
+
+/** Communities the member belongs to, with their role. */
+export async function listMyCommunities(userId: string): Promise<(Community & { role: CommunityRole })[]> {
+  const { data, error } = await supabase
+    .from('community_members')
+    .select(`role, communities(${COMMUNITY_COLUMNS})`)
+    .eq('user_id', userId)
+  if (error) throw new Error(error.message)
+  type Row = { role: CommunityRole; communities: Community | null }
+  return ((data ?? []) as unknown as Row[])
+    .filter((r) => r.communities)
+    .map((r) => ({ ...(r.communities as Community), role: r.role }))
+    .sort((a, b) => a.name.localeCompare(b.name))
+}
+
+/** Communities anyone can see: public ones, and private ones that chose to be listed. */
+export async function listDiscoverCommunities(): Promise<Community[]> {
+  const { data, error } = await supabase
+    .from('communities')
+    .select(COMMUNITY_COLUMNS)
+    .or('is_private.eq.false,is_listed.eq.true')
+    .order('created_at', { ascending: false })
+    .limit(50)
+  if (error) throw new Error(error.message)
+  return (data ?? []) as Community[]
+}
+
+export const communityMemberCount = (id: string) => rpc<number | null>('community_member_count', { p_community: id })
+export const createCommunity = (slug: string, name: string, description: string, isPrivate: boolean, isListed: boolean) =>
+  rpc<string>('create_community', { p_slug: slug, p_name: name, p_description: description.trim() || null, p_is_private: isPrivate, p_is_listed: isListed })
+export const joinCommunity = (id: string) => rpc<void>('join_community', { p_community: id })
+export const requestToJoin = (id: string, message: string) => rpc<string>('request_to_join', { p_community: id, p_message: message.trim() || null })
+export const leaveCommunity = (id: string) => rpc<void>('leave_community', { p_community: id })
+
+export async function getCommunityBySlug(slug: string): Promise<Community | null> {
+  const { data, error } = await supabase.from('communities').select(COMMUNITY_COLUMNS).eq('slug', slug).maybeSingle()
+  if (error) throw new Error(error.message)
+  return (data as Community | null) ?? null
+}
+
+export type Channel = { id: string; slug: string; name: string; kind: 'chat' | 'announcement' | 'forum' }
+export async function listChannels(communityId: string): Promise<Channel[]> {
+  const { data, error } = await supabase.from('channels').select('id, slug, name, kind').eq('community_id', communityId).order('created_at')
+  if (error) throw new Error(error.message)
+  return (data ?? []) as Channel[]
+}
+
+export type ChatMessage = {
+  id: number
+  author_id: string
+  body: string
+  created_at: string
+  edited_at: string | null
+  deleted_at: string | null
+  author_username: string
+  author_name: string
+}
+export async function listChannelMessages(channelId: string, limit = 100): Promise<ChatMessage[]> {
+  const { data, error } = await supabase
+    .from('messages')
+    .select('id, author_id, body, created_at, edited_at, deleted_at, profiles:author_id(username, display_name)')
+    .eq('channel_id', channelId)
+    .is('parent_id', null)
+    .order('created_at', { ascending: false })
+    .limit(limit)
+  if (error) throw new Error(error.message)
+  type Row = Omit<ChatMessage, 'author_username' | 'author_name'> & { profiles: { username: string; display_name: string } | null }
+  return ((data ?? []) as unknown as Row[])
+    .map(({ profiles, ...m }) => ({ ...m, author_username: profiles?.username ?? '', author_name: profiles?.display_name ?? '' }))
+    .reverse()
+}
+export const sendMessage = (channelId: string, body: string) => rpc<number>('send_message', { p_channel: channelId, p_body: body })
+export const deleteMessage = (id: number) => rpc<void>('delete_message', { p_message: id })
+
+export type CommunityMember = { user_id: string; role: CommunityRole; username: string; display_name: string }
+export async function listCommunityMembers(communityId: string): Promise<CommunityMember[]> {
+  const { data, error } = await supabase
+    .from('community_members')
+    .select('user_id, role, profiles:user_id(username, display_name)')
+    .eq('community_id', communityId)
+    .order('joined_at')
+    .limit(200)
+  if (error) throw new Error(error.message)
+  type Row = { user_id: string; role: CommunityRole; profiles: { username: string; display_name: string } | null }
+  return ((data ?? []) as unknown as Row[]).map((r) => ({ user_id: r.user_id, role: r.role, username: r.profiles?.username ?? '', display_name: r.profiles?.display_name ?? '' }))
+}
+
+export type JoinRequest = { id: string; user_id: string; message: string | null; username: string }
+export async function listPendingJoinRequests(communityId: string): Promise<JoinRequest[]> {
+  const { data, error } = await supabase
+    .from('join_requests')
+    .select('id, user_id, message, profiles:user_id(username)')
+    .eq('community_id', communityId)
+    .eq('status', 'pending')
+    .order('created_at')
+  if (error) throw new Error(error.message)
+  type Row = { id: string; user_id: string; message: string | null; profiles: { username: string } | null }
+  return ((data ?? []) as unknown as Row[]).map((r) => ({ id: r.id, user_id: r.user_id, message: r.message, username: r.profiles?.username ?? '' }))
+}
+export const decideJoinRequest = (id: string, approve: boolean) => rpc<void>('decide_join_request', { p_request: id, p_approve: approve })
+export const removeCommunityMember = (communityId: string, userId: string) => rpc<void>('remove_member', { p_community: communityId, p_user: userId })
+export const setMemberRole = (communityId: string, userId: string, role: 'moderator' | 'member') =>
+  rpc<void>('set_member_role', { p_community: communityId, p_user: userId, p_role: role })
+export const transferCommunity = (communityId: string, userId: string) => rpc<void>('transfer_community', { p_community: communityId, p_user: userId })
+export const deleteCommunity = (communityId: string, confirmSlug: string) => rpc<void>('delete_community', { p_community: communityId, p_confirm_slug: confirmSlug })

@@ -7,6 +7,22 @@ export function friendlyError(error: unknown): string {
   if (m.includes('invalid login credentials')) return fr.errors.invalidCredentials
   if (m.includes('already registered') || m.includes('already been registered')) return fr.errors.emailTaken
   if (m.includes('password should be at least') || m.includes('weak password')) return fr.errors.weakPassword
+  if (m.includes('duplicate key') || m.includes('communities_slug_key')) return fr.errors.slugTaken
+  if (m.includes('communities_slug_check')) return fr.errors.slugInvalid
+  if (m.includes('limit of communities')) return fr.errors.communityLimit
+  if (m.includes('community is private')) return fr.errors.privateCommunity
+  if (m.includes('community is public')) return fr.errors.publicCommunity
+  if (m.includes('already asked to join')) return fr.errors.alreadyAsked
+  if (m.includes('too many pending')) return fr.errors.askedTooMuch
+  if (m.includes('last request was declined')) return fr.errors.declinedRecently
+  if (m.includes('slow down')) return fr.errors.slowDown
+  if (m.includes('announcement channel')) return fr.errors.announcementOnlyError
+  if (m.includes('not in this community')) return fr.errors.notInCommunity
+  if (m.includes('owner cannot leave')) return fr.errors.ownerMustHandOver
+  if (m.includes('maximum number of communities')) return fr.errors.ownerLimit
+  if (m.includes('only the owner')) return fr.errors.onlyOwner
+  if (m.includes('community address name')) return fr.errors.typeSlug
+  if (m.includes('message is too long')) return fr.errors.messageTooLong
   if (m.includes('already chosen')) return fr.errors.characterLocked
   if (m.includes('not enough kopeks')) return fr.errors.notEnoughKopeks
   if (m.includes('already own')) return fr.errors.alreadyOwned
