@@ -320,7 +320,7 @@ moderation staff, so a quest writer must never land in that table.
 |---|---|---|
 | Quest writer | Schedule the quest of the day | Quest writing tools |
 | Shop manager | Choose the featured item of the week; review creator submissions | |
-| Shop owner | Everything a shop manager can | Creator share and earnings |
+| Shop owner | Everything a shop manager can; set the creator share; see earnings per creator | |
 
 Admins can do all of it. Only an admin grants or removes a role
 (`set_back_office_role`, logged once per real change); `my_back_office_access`
@@ -338,7 +338,18 @@ a moderator. These roles give no moderation or admin power (tested).
   Approving creates a normal shop item with `creator_id`; both outcomes notify the creator.
 - The item look is shown to other members, so staff review is the guard.
 - Deleting a creator keeps the item (creator becomes empty), so owners keep what they bought.
-- The creator share of sales comes in the next piece.
+
+### Creator share
+- Buying a creator's item pays the creator `souk_creator_share_percent` (default 70,
+  to confirm with Marie) of the price in Kopeks, rounded down. The buyer pays the full
+  price; the remainder leaves circulation, so no Kopeks are created.
+- No share for buying your own item or items with no creator. Each sale stores the
+  percentage used, so changing the setting never changes past sales.
+- Both wallets are locked in a fixed order, so two members buying from each other at
+  once cannot block each other.
+- Creators see their sales (never the buyer) and a summary; the creator is told of each
+  sale. Only the shop owner or an admin sets the share (logged) and sees totals per creator.
+- These are in-app Kopeks only. Real money (buying Kopeks, paying creators out in FCFA) is not built.
 
 ## Jobs (part 1: employers and offers)
 Working decisions (from the project coordinator, to confirm with Marie): offers

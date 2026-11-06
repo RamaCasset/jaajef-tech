@@ -30,6 +30,7 @@ tied together by XP and Kopeks. Designs by Marie (Figma).
 | Blog hooks (notices for comments, likes and hiding; posts in search; reports on posts, comments and job offers) | Done and tested |
 | Quest writer, shop manager and shop owner roles | Done and tested |
 | Souk creator submissions (submit, review, approve into the shop) | Done and tested |
+| Souk creator share (Kopek payout on sales, sales list, owner overview) | Done and tested |
 | Jobs, part 1 (employers, job offers, staff review, search) | Done and tested |
 | Jobs, part 2 (private application file: skills, portfolio, CV upload, completion percentage) | Done and tested |
 | Jobs, part 3 (applying, statuses, 90-day CV access for the company) | Done and tested |
@@ -102,6 +103,7 @@ psql -v ON_ERROR_STOP=1 -f supabase/tests/quests.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/schema_audit.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/souk.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/shop_quest_roles.test.sql
+psql -v ON_ERROR_STOP=1 -f supabase/tests/souk_creator_share.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/souk_extras.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/souk_submissions.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/staff.test.sql
