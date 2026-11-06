@@ -78,6 +78,9 @@ jobs:
       - name: Run the E2B runner test (real python and node, pretend E2B)
         run: node --experimental-strip-types supabase/functions/e2b-runner/runner.test.mjs
 
+      - name: Run the job-alert e-mail test (pretend database, pretend e-mail service)
+        run: node --experimental-strip-types supabase/functions/job-digest/digest.test.mjs
+
   app:
     runs-on: ubuntu-latest
     defaults:
