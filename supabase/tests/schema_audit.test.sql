@@ -64,7 +64,7 @@ end $$;
 do $$
 declare
   visitor_functions text[] := array[
-    'activity_calendar', 'audit_log_is_append_only', 'blog_post_is_listed', 'can_read_dm_file', 'chat_setting',
+    'activity_calendar', 'audit_log_is_append_only', 'blog_post_is_listed', 'can_read_dm_file', 'can_read_souk_image', 'chat_setting',
     'clean_tags', 'community_member_count', 'featured_item', 'in_conversation', 'is_member', 'job_offer_is_listed', 'level_for_xp',
     'list_blog_posts', 'member_role', 'notification_kinds', 'notification_kinds_locked', 'popular_project_tags',
     'project_is_listed', 'project_languages', 'quest_leaderboard', 'quest_of_the_day', 'search_everything',

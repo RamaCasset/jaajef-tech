@@ -351,6 +351,19 @@ a moderator. These roles give no moderation or admin power (tested).
   sale. Only the shop owner or an admin sets the share (logged) and sees totals per creator.
 - These are in-app Kopeks only. Real money (buying Kopeks, paying creators out in FCFA) is not built.
 
+### Submission images
+- One image per submission (PNG or WebP, 500 KB at most, no SVG because it can carry code),
+  uploaded into a private bucket `souk-images`, in a folder named after the creator.
+- Avatar frames need an image to be approved; badges and themes may have one.
+- During review the creator and shop staff can open it; nobody else.
+- Approved: the item's look gets `image_path` pointing at that same file (anything the creator
+  typed under `image_path` is dropped). Everyone, visitors too, can open the image while the item
+  is on sale; owners and the creator keep access after it is taken off sale.
+- A creator cannot delete an image that is waiting for review or used by an item.
+  `list_unused_souk_images` lists the rest so the app can delete them.
+- The app opens images with signed links (the bucket is private).
+- Not checked: what the picture shows. Staff review is the guard.
+
 ## Jobs (part 1: employers and offers)
 Working decisions (from the project coordinator, to confirm with Marie): offers
 can be published by registered companies and by people who hire freelancers;
