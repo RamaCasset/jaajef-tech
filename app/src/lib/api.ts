@@ -123,3 +123,38 @@ export async function buildStatuses(ids: string[]): Promise<Record<string, Build
   for (const row of data ?? []) out[row.id as string] = (row.build_status as BuildStatus | null) ?? null
   return out
 }
+
+// ---------------------------------------------------------------------
+// Souk
+// ---------------------------------------------------------------------
+export type SoukKind = 'theme' | 'avatar_frame' | 'status_badge'
+export type SoukSort = 'new' | 'rating' | 'price_asc' | 'price_desc'
+
+export type SoukItem = {
+  id: string
+  slug: string
+  kind: SoukKind
+  name: string
+  description: string | null
+  price_kopeks: number
+  data: Record<string, unknown>
+  avg_rating: number | null
+  rating_count: number
+  owned: boolean
+  my_rating: number | null
+  created_at: string
+}
+
+export const soukShop = (kind: SoukKind | null, sort: SoukSort) =>
+  rpc<SoukItem[]>('souk_shop', { p_kind: kind, p_sort: sort, p_limit: 50, p_offset: 0 })
+
+export const buyItem = (id: string) => rpc<void>('buy_item', { p_item: id })
+export const equipItem = (id: string) => rpc<void>('equip_item', { p_item: id })
+export const unequipItem = (kind: SoukKind) => rpc<void>('unequip_item', { p_kind: kind })
+
+/** Ids of the items the member currently wears. */
+export async function myEquippedIds(userId: string): Promise<string[]> {
+  const { data, error } = await supabase.from('equipped_items').select('item_id').eq('user_id', userId)
+  if (error) throw new Error(error.message)
+  return (data ?? []).map((r) => r.item_id as string)
+}

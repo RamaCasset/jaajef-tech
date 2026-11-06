@@ -130,3 +130,18 @@ select { background: var(--panel); color: var(--fg); border: 1px solid var(--lin
 .issue-list { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 14px; }
 .issue-list li { display: grid; gap: 2px; }
 @media (max-width: 900px) { .projects-layout { grid-template-columns: 1fr; } .featured { grid-template-columns: 1fr; } .featured-art { min-height: 100px; } }
+
+/* Souk */
+.souk-bar { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center; margin: 24px 0 16px; }
+.souk-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.souk-sort { display: flex; align-items: center; gap: 8px; }
+.souk-count { margin: 0 0 12px; }
+.souk-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+.souk-card { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+.souk-preview { height: 96px; display: grid; place-items: center; border: 1px dashed var(--line-strong); border-radius: var(--radius); font-family: var(--font-mono); font-size: 24px; }
+.souk-head { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.souk-head h3 { margin: 0; font-size: 16px; }
+.souk-foot { display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
+.souk-price { font-family: var(--font-mono); color: var(--accent); font-size: 13px; }
+.souk-card .tag { position: absolute; top: 8px; right: 8px; }
+@media (max-width: 600px) { .souk-grid { grid-template-columns: 1fr; } }
