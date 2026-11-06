@@ -311,6 +311,22 @@ is `list_blog_posts` (filter by tag or author, newest first).
   (the owner is told, cannot be muted) or deletes the comment.
 - Souk items cannot be reported yet: they have no author until creators can submit them.
 
+## Back-office roles: quest writer, shop manager, shop owner
+Three roles kept in their own table (`back_office_roles`), separate from admin
+and moderator on purpose: many moderation tools treat "has a staff role" as
+moderation staff, so a quest writer must never land in that table.
+
+| Role | Can do now | Coming |
+|---|---|---|
+| Quest writer | Schedule the quest of the day | Quest writing tools |
+| Shop manager | Choose the featured item of the week | Review creator submissions |
+| Shop owner | Everything a shop manager can | Creator share and earnings |
+
+Admins can do all of it. Only an admin grants or removes a role
+(`set_back_office_role`, logged once per real change); `my_back_office_access`
+tells the app which menus to show. A member can hold several roles and also be
+a moderator. These roles give no moderation or admin power (tested).
+
 ## Jobs (part 1: employers and offers)
 Working decisions (from the project coordinator, to confirm with Marie): offers
 can be published by registered companies and by people who hire freelancers;
