@@ -14,6 +14,10 @@ import { ImportProject } from './pages/ImportProject'
 import { Jobs } from './pages/Jobs'
 import { Profile } from './pages/Profile'
 import { Souk } from './pages/Souk'
+import { Blog } from './pages/Blog'
+import { BlogPost } from './pages/BlogPost'
+import { BlogEditor } from './pages/BlogEditor'
+import { BlogMine } from './pages/BlogMine'
 import { Setup } from './pages/Setup'
 
 function Loading() {
@@ -56,6 +60,11 @@ export function AppRoutes() {
       <Route path="/quetes/:slug" element={<RequireAuth><RequireCharacter><Quest /></RequireCharacter></RequireAuth>} />
       <Route path="/projets/ajouter" element={<RequireAuth><RequireCharacter><ImportProject /></RequireCharacter></RequireAuth>} />
       <Route path="/projets" element={<RequireAuth><RequireCharacter><Projects /></RequireCharacter></RequireAuth>} />
+      <Route path="/blog" element={<RequireAuth><RequireCharacter><Blog /></RequireCharacter></RequireAuth>} />
+      <Route path="/blog/ecrire" element={<RequireAuth><RequireCharacter><BlogEditor /></RequireCharacter></RequireAuth>} />
+      <Route path="/blog/mes-articles" element={<RequireAuth><RequireCharacter><BlogMine /></RequireCharacter></RequireAuth>} />
+      <Route path="/blog/modifier/:id" element={<RequireAuth><RequireCharacter><BlogEditor /></RequireCharacter></RequireAuth>} />
+      <Route path="/blog/:slug" element={<RequireAuth><RequireCharacter><BlogPost /></RequireCharacter></RequireAuth>} />
       <Route path="/souk" element={<RequireAuth><RequireCharacter><Souk /></RequireCharacter></RequireAuth>} />
       <Route path="/profil/:username" element={<RequireAuth><RequireCharacter><Profile /></RequireCharacter></RequireAuth>} />
       <Route path="/jobs" element={<RequireAuth><RequireCharacter><Jobs /></RequireCharacter></RequireAuth>} />
