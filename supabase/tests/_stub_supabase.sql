@@ -14,6 +14,14 @@ create table auth.users (
   raw_user_meta_data jsonb not null default '{}'::jsonb
 );
 
+-- Linked sign-in accounts (GitHub, Google). Supabase fills this when a member signs in or links an account.
+create table auth.identities (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  provider text not null,
+  identity_data jsonb not null default '{}'::jsonb
+);
+
 create function auth.uid() returns uuid
 language sql stable
 as $$
