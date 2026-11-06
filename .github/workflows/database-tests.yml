@@ -69,3 +69,6 @@ jobs:
 
       - name: Run the GitHub checker test (real database, pretend GitHub)
         run: node --experimental-strip-types supabase/functions/github-sync/sync.test.mjs
+
+      - name: Run the file cleanup test (real database, pretend Storage)
+        run: node --experimental-strip-types supabase/functions/file-cleanup/cleanup.test.mjs

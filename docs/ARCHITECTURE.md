@@ -405,6 +405,21 @@ a moderator. These roles give no moderation or admin power (tested).
 - Needs the checker to be running. Without a GitHub access token GitHub allows only about 60 calls an
   hour, which is too few for this second pass, so use the token (see `docs/GITHUB_CHECKER_SETUP.md`).
 
+## Cleaning up unused files
+- CV uploads and Souk images can be left behind (uploaded but never used, or no longer used). Members
+  could already list their own leftovers; now a daily job removes them for everyone.
+- `files_to_clean` (service role only) lists them. A file is "in use" if it is a member's current CV, the
+  CV sent with an application, the image of a waiting Souk submission, or the image of a shop item.
+- Only files older than `file_cleanup_grace_hours` (24, at least 1) are listed, so a file just uploaded and
+  about to be attached is never taken away. The 24 is a default to confirm with Marie.
+- The job is a small Edge Function, `file-cleanup`: it deletes through Supabase Storage (never by editing
+  tables), works in chunks of 50, stops after 3 failures in a row, and leaves files in place on any error so
+  they are listed again next time. Only the CV and Souk image buckets can be touched. Private message files
+  are never touched.
+- One small gap: a file that becomes used in the seconds between the list and the delete could be removed.
+  The 24 hour wait makes this extremely unlikely, since a file only becomes "old" if nobody attached it.
+- Setup: `docs/FILE_CLEANUP_SETUP.md`. It reuses the GitHub checker's password.
+
 ## Jobs (part 1: employers and offers)
 Working decisions (from the project coordinator, to confirm with Marie): offers
 can be published by registered companies and by people who hire freelancers;
