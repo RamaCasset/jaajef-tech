@@ -1,4 +1,5 @@
 import { useAuth } from '../auth/AuthContext'
+import { Link } from 'react-router-dom'
 import { Logo } from '../components/Logo'
 import { fr } from '../i18n/fr'
 
@@ -21,7 +22,8 @@ export function Home() {
           <div><dt>{fr.clan.kopeks}</dt><dd>{member?.kopeks ?? 0}</dd></div>
           <div><dt>@</dt><dd style={{ fontSize: 14 }}>{p?.username}</dd></div>
         </dl>
-        <p className="muted" style={{ margin: '20px 0' }}>{fr.home.soon}</p>
+        <p style={{ margin: '20px 0 8px' }}><Link to="/projets">{fr.nav.projects} →</Link></p>
+        <p className="muted" style={{ margin: '0 0 20px' }}>{fr.home.soon}</p>
         <button className="btn" type="button" onClick={() => void signOut()}>{fr.home.signOut}</button>
       </section>
     </main>
