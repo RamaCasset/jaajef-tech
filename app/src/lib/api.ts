@@ -570,3 +570,8 @@ export async function listMyProjects(userId: string): Promise<MyProject[]> {
 
 export const publishProject = (repoUrl: string, title: string, summary: string | null) =>
   rpc<string>('publish_project', { p_repo_url: repoUrl, p_title: title, p_summary: summary, p_tags: [] })
+
+// ---- Search everything ---------------------------------------------------------------------------------
+export type SearchKind = 'project' | 'member' | 'community' | 'quest'
+export type SearchHit = { kind: SearchKind; pos: number; id: string; slug: string; title: string; subtitle: string | null; image_url: string | null }
+export const searchEverything = (query: string) => rpc<SearchHit[]>('search_everything', { p_query: query.trim(), p_limit_each: 8 })
