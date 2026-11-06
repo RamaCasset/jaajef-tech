@@ -2,6 +2,16 @@
 -- Run AFTER migrations 1, 2 and 3. psql -v ON_ERROR_STOP=1 -f teaching.test.sql
 -- Steps that depend on the server clock are separate DO blocks on purpose:
 -- now() is frozen inside one transaction.
+-- Stand-in for the old browser report: players can no longer call submit_quest, so the tests grade
+-- through the server-only function, as the server would, for the signed-in test player.
+create schema if not exists tg;
+create or replace function tg.submit_quest(p_quest uuid, p_code text, p_passed integer, p_total integer)
+returns jsonb language plpgsql security definer set search_path = public as $$
+begin return public.record_graded_attempt(auth.uid(), p_quest, p_code, p_passed, p_total); end $$;
+grant usage on schema tg to authenticated, anon, service_role;
+grant execute on function tg.submit_quest(uuid, text, integer, integer) to authenticated, anon, service_role;
+
+
 
 insert into auth.users (id, email, raw_app_meta_data, raw_user_meta_data) values
   ('eeeeeeee-0000-0000-0000-000000000001', 'learner-a@exemple.sn', '{"provider":"email"}', '{}'),
@@ -150,7 +160,7 @@ begin
   select id into q from public.quests where slug = 'la-malediction-du-loop';
   set local role authenticated;
   perform set_config('request.jwt.claim.sub', 'eeeeeeee-0000-0000-0000-000000000001', true);
-  r := public.submit_quest(q, 'solution', 4, 4);
+  r := tg.submit_quest(q, 'solution', 4, 4);
   if not (r ->> 'solved')::boolean then raise exception 'FAIL: solve refused %', r; end if;
   if (r ->> 'hints_used')::int <> 3 then raise exception 'FAIL: hints_used in result %', r; end if;
 

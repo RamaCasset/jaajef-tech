@@ -143,7 +143,7 @@ declare
   public_tables text[] := array[
     'badge_rules', 'badges', 'blog_comments', 'blog_posts', 'blog_stats', 'communities', 'employers',
     'equipped_items', 'featured_projects', 'job_offers', 'game_config', 'member_activity_days', 'profiles', 'project_collaborators',
-    'project_comments', 'project_stats', 'projects', 'quest_tests', 'quests', 'seasons', 'souk_featured',
+    'project_comments', 'project_stats', 'projects', 'quests', 'seasons', 'souk_featured',
     'souk_item_stats', 'souk_items', 'user_badges'
   ];
   bad text;
