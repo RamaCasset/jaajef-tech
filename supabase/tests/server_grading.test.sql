@@ -5,9 +5,9 @@ insert into auth.users (id, email, raw_app_meta_data, raw_user_meta_data) values
   ('ee000000-0000-0000-0000-000000000001', 'sg1@exemple.sn', '{"provider":"email"}', '{}'),
   ('ee000000-0000-0000-0000-000000000002', 'sg2@exemple.sn', '{"provider":"email"}', '{}');
 
-insert into public.quests (slug, title, clan, mastery, language, est_minutes, xp_reward, kopek_reward, min_seconds, published)
-values ('sg-quest', 'SG', 'griot_du_code', 'ndongo', 'python', 5, 100, 10, 0, true),
-       ('sg-draft', 'SG draft', 'griot_du_code', 'ndongo', 'python', 5, 100, 10, 0, false);
+insert into public.quests (slug, title, clan, mastery, language, entry_point, est_minutes, xp_reward, kopek_reward, min_seconds, published)
+values ('sg-quest', 'SG', 'griot_du_code', 'ndongo', 'python', 'solve', 5, 100, 10, 0, true),
+       ('sg-draft', 'SG draft', 'griot_du_code', 'ndongo', 'python', 'solve', 5, 100, 10, 0, false);
 insert into public.quest_tests (quest_id, position, name, input, expected)
 select id, 2, 'second', '[2]'::jsonb, '2'::jsonb from public.quests where slug = 'sg-quest';
 insert into public.quest_tests (quest_id, position, name, input, expected)
@@ -62,6 +62,7 @@ begin
   reset role;
   if not (r ->> 'allowed')::boolean then raise exception 'FAIL: run refused: %', r; end if;
   if r ->> 'language' <> 'python' then raise exception 'FAIL: language %', r ->> 'language'; end if;
+  if r ->> 'entry_point' <> 'solve' then raise exception 'FAIL: entry point %', r ->> 'entry_point'; end if;
   if jsonb_array_length(r -> 'tests') <> 2 or r -> 'tests' -> 0 ->> 'name' <> 'first' then
     raise exception 'FAIL: tests missing or out of order: %', r -> 'tests';
   end if;
@@ -118,6 +119,27 @@ begin
   begin perform public.begin_quest_run(u1, q); exception when raise_exception then ok := true; end;
   if not ok then raise exception 'FAIL: a solved quest can be run again'; end if;
   raise notice 'OK 4: grading pays once and a solved quest cannot be run again';
+end $$;
+
+-- ---- 5. A code quest with no entry point cannot be run, and the refused request is not counted ---------------------
+do $$
+declare u2 uuid := 'ee000000-0000-0000-0000-000000000002'; q uuid; ok boolean := false; n_before integer; n_after integer;
+begin
+  select id into q from public.quests where slug = 'sg-quest';
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', u2::text, true);
+  perform public.start_quest(q);
+  reset role;
+  update public.quests set entry_point = null where id = q;
+  select count(*) into n_before from public.quest_runs where user_id = u2;
+  set local role service_role;
+  begin perform public.begin_quest_run(u2, q); exception when raise_exception then ok := true; end;
+  reset role;
+  if not ok then raise exception 'FAIL: a quest without an entry point could be run'; end if;
+  select count(*) into n_after from public.quest_runs where user_id = u2;
+  if n_after <> n_before then raise exception 'FAIL: the refused request was counted as a run'; end if;
+  update public.quests set entry_point = 'solve' where id = q;
+  raise notice 'OK 5: no entry point, no run';
 end $$;
 
 -- ---- Clean up ---------------------------------------------------------------------------------------------------

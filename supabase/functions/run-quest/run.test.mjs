@@ -98,8 +98,8 @@ try {
     insert into auth.users (id, email, raw_app_meta_data, raw_user_meta_data) values
       ('${U1}', 'rq1@exemple.sn', '{"provider":"email"}', '{}'),
       ('${U2}', 'rq2@exemple.sn', '{"provider":"email"}', '{}');
-    insert into public.quests (slug, title, clan, mastery, language, est_minutes, xp_reward, kopek_reward, min_seconds, published)
-      values ('rq-quest', 'RQ', 'griot_du_code', 'ndongo', 'python', 5, 100, 10, 0, true);
+    insert into public.quests (slug, title, clan, mastery, language, entry_point, est_minutes, xp_reward, kopek_reward, min_seconds, published)
+      values ('rq-quest', 'RQ', 'griot_du_code', 'ndongo', 'python', 'solve', 5, 100, 10, 0, true);
     insert into public.quest_tests (quest_id, position, name, input, expected)
       select id, g, 't' || g, to_jsonb(g), to_jsonb(g * 7) from public.quests, generate_series(1, 3) g where slug = 'rq-quest';
   `)
@@ -140,6 +140,7 @@ try {
   assert.equal(xp(U1), xp0)
   assert.equal(runnerCalls[0].tests[0].expected, 7, 'the runner does get the hidden tests')
   assert.equal(runnerCalls[0].language, 'python')
+  assert.equal(runnerCalls[0].entry_point, 'solve', 'the runner is told which function to call')
   ok('a partial run pays nothing, shows pass/fail per test and hides expected values')
 
   // ---- 5. A crash is reported briefly ----------------------------------------------------------------------
@@ -193,6 +194,16 @@ try {
   const other = await call('token-two', { quest_id: Q, code: 'HALF' })
   assert.equal(other.body.tests_passed, 1)
   ok('players are independent')
+
+  // ---- 10b. A quest without an entry point is not ready: refused, nothing sent to the runner -------------------------------
+  psql(`update public.quests set entry_point = null where id = '${Q}';`)
+  const callsBefore = runnerCalls.length
+  const notReady = await call('token-two', { quest_id: Q, code: 'GOOD' })
+  assert.equal(notReady.status, 409)
+  assert.equal(notReady.body.error, 'quest_not_ready')
+  assert.equal(runnerCalls.length, callsBefore)
+  psql(`update public.quests set entry_point = 'solve' where id = '${Q}';`)
+  ok('a quest with no entry point is refused before the runner is called')
 
   // ---- 11. Setup and CORS ------------------------------------------------------------------------------------------------------
   const unconfigured = await handler(new Request('http://x', { method: 'POST' }), () => undefined, fetch)
