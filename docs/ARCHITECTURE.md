@@ -309,7 +309,7 @@ is `list_blog_posts` (filter by tag or author, newest first).
 - Reports can target a blog post, a blog comment or a job offer (not your own,
   not hidden or draft ones). Staff "remove content" hides the post or the offer
   (the owner is told, cannot be muted) or deletes the comment.
-- Souk items cannot be reported yet: they have no author until creators can submit them.
+- Souk items made by members can be reported (see Souk reports below).
 
 ## Back-office roles: quest writer, shop manager, shop owner
 Three roles kept in their own table (`back_office_roles`), separate from admin
@@ -363,6 +363,14 @@ a moderator. These roles give no moderation or admin power (tested).
   `list_unused_souk_images` lists the rest so the app can delete them.
 - The app opens images with signed links (the bucket is private).
 - Not checked: what the picture shows. Staff review is the guard.
+
+### Souk reports and taking items off sale
+- Members can report an item made by another member (not their own, not one with no creator, not one
+  already off sale). Staff "remove content" takes it off sale; people who own it keep it.
+- Shop managers, shop owners and admins can take any item off sale or put it back
+  (`set_souk_item_on_sale`; a reason is required to take one off; logged once per real change).
+  An item off sale stops being featured.
+- The creator is told when their item is taken off sale (either route). This notice cannot be switched off.
 
 ## Jobs (part 1: employers and offers)
 Working decisions (from the project coordinator, to confirm with Marie): offers
