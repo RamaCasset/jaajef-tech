@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
 import { BuildBadge, ClanTag } from '../components/ProjectCard'
 import { useAuth } from '../auth/AuthContext'
@@ -35,14 +35,14 @@ export function Profile() {
         ) : data === null ? (
           <p role="status">{fr.profile.notFound}</p>
         ) : (
-          <ProfileView data={data} />
+          <ProfileView data={data} viewerId={viewerId} />
         )}
       </main>
     </AppShell>
   )
 }
 
-function ProfileView({ data }: { data: ProfileData }) {
+function ProfileView({ data, viewerId }: { data: ProfileData; viewerId: string }) {
   const { profile: p, xpPerLevel, badges, projects, questsSolved } = data
   const level = 1 + Math.floor(p.xp / xpPerLevel)
   const inLevel = p.xp % xpPerLevel
@@ -67,6 +67,7 @@ function ProfileView({ data }: { data: ProfileData }) {
               {[p.location, fr.profile.since(since)].filter(Boolean).join(' · ')}
               {p.github_username ? <> · <a href={`https://github.com/${p.github_username}`} target="_blank" rel="noreferrer">github.com/{p.github_username}</a></> : null}
             </p>
+            {p.id === viewerId && <p><Link className="btn" to="/parametres/profil">{fr.editProfile.edit}</Link></p>}
             {p.available_to_collab ? <span className="build build-passing">{fr.profile.available}</span> : null}
           </div>
         </div>

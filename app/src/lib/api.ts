@@ -570,3 +570,23 @@ export async function listMyProjects(userId: string): Promise<MyProject[]> {
 
 export const publishProject = (repoUrl: string, title: string, summary: string | null) =>
   rpc<string>('publish_project', { p_repo_url: repoUrl, p_title: title, p_summary: summary, p_tags: [] })
+
+// ---- Edit my profile ---------------------------------------------------------------------------------
+export type ProfileEdit = { display_name: string; bio: string; location: string; available_to_collab: boolean }
+export async function updateMyProfile(userId: string, e: ProfileEdit): Promise<void> {
+  const { error } = await supabase
+    .from('profiles')
+    .update({
+      display_name: e.display_name.trim(),
+      bio: e.bio.trim() || null,
+      location: e.location.trim() || null,
+      available_to_collab: e.available_to_collab,
+    })
+    .eq('id', userId)
+  if (error) throw new Error(error.message)
+}
+export async function loadMyProfileFields(userId: string): Promise<ProfileEdit> {
+  const { data, error } = await supabase.from('profiles').select('display_name, bio, location, available_to_collab').eq('id', userId).single()
+  if (error) throw new Error(error.message)
+  return { display_name: data.display_name, bio: data.bio ?? '', location: data.location ?? '', available_to_collab: data.available_to_collab }
+}
