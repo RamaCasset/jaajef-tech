@@ -238,6 +238,26 @@ and forum (a thread has a title, replies stay one level deep).
 - Not built yet: creator submissions, admin review, and the creator share
   (`souk_creator_share_percent` is still undecided).
 
+## Blog
+Members write posts (title, summary, body, optional https cover image, up to 5
+tags). A post starts as a private draft; publishing makes it public. Anyone can
+read published posts and their comments; members can like and comment. Authors
+edit, unpublish and delete their own posts, and can delete comments on them.
+
+Rules enforced on the server: at most 5 first publications per member per day
+and 20 comments per hour (both in `game_config`); suspended members cannot
+write; tags are cleaned (lower case, no repeats). Staff (admin or moderator)
+can hide a post with a reason and bring it back. A hidden post is visible only
+to its author and staff, and the author can neither edit nor publish it. Hiding
+and unhiding are written to the audit log, once per real change.
+
+Posts, comments, likes and counts can only change through functions. The feed
+is `list_blog_posts` (filter by tag or author, newest first).
+
+Still to add after the notifications and global search pieces are merged:
+notices to the author for likes and comments, posts inside the global search,
+and the report button for posts.
+
 ## Staff (admin and moderator)
 - Staff are normal member accounts that carry a role, kept in a private table.
   There is no separate kind of account. A separate back-office web address can
