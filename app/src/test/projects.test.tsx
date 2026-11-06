@@ -51,6 +51,7 @@ describe('Projects page', () => {
     expect(await screen.findByRole('heading', { name: 'ndar / open-city' })).toBeInTheDocument()
     expect(await screen.findByText('repo-1')).toBeInTheDocument()
     expect(screen.getByText('repo-2')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'repo-1' })).toHaveAttribute('href', '/projets/p1')
     expect(screen.getByText(/2 projets/)).toBeInTheDocument()
     expect(await screen.findByText('Build OK')).toBeInTheDocument()
     const trending = screen.getByRole('heading', { name: 'Créateurs en tendance' }).closest('section')!
