@@ -91,6 +91,10 @@ code { background: var(--code-bg); padding: 0 4px; border-radius: 3px; font-size
         <label for="key">Public key (anon or publishable)</label>
         <input id="key" placeholder="eyJ... or sb_publishable_..." autocomplete="off">
       </div>
+      <div>
+        <label for="cron">Checker password (CRON_SECRET), only for sections 10 and 11</label>
+        <input id="cron" type="password" placeholder="the long password you invented" autocomplete="off">
+      </div>
     </div>
     <p class="muted" style="margin-bottom:0">In Supabase: Project Settings, then API. For quick testing, turn off "Confirm email" under Authentication, then Sign In / Providers, then Email. Turn it back on before launch.</p>
   </div>
@@ -116,7 +120,7 @@ const WHO = {
   C: { name: 'Coumba', role: 'applicant and buyer' }
 };
 const S = { A: {}, B: {}, C: {} };            // session per account: token, uid, email
-const V = { rand: Math.random().toString(36).slice(2, 7) }; // saved values
+const V = { rand: Math.random().toString(36).slice(2, 7), today: new Date().toISOString().slice(0, 10) }; // saved values
 const LOG = [];                                // every step run, for the report
 
 const $ = (id) => document.getElementById(id);
@@ -307,10 +311,35 @@ const FLOWS = [
     { who: 'B', label: 'Bara reads her notices', type: 'get', path: '/rest/v1/notifications?select=kind,data,created_at&order=created_at.desc&limit=20', expect: 'A list of notices that matches the steps above.' },
     { who: 'B', label: 'Bara marks all as read', rpc: 'mark_all_notifications_read', args: {}, expect: 'Works.' },
     { who: 'C', label: 'Coumba searches everything for "Test"', rpc: 'search_everything', args: { p_query: 'Test' }, expect: 'Matches across members, projects, communities, offers.' },
-    { who: 'C', label: 'Coumba reads the quest of the day', rpc: 'quest_of_the_day', args: {}, expect: 'A quest, or an empty answer if none is scheduled yet.' },
-    { who: 'C', label: 'Coumba reads her streak', rpc: 'my_streak', args: {}, expect: 'Streak 0, with freeze information.' },
-    { who: 'C', label: 'Coumba lists some quests', type: 'get', path: '/rest/v1/quests?select=id,slug,title&limit=3', save: { quest: '$.0.id' }, expect: 'Quests, if any have been added yet.' },
-    { who: 'C', label: 'Coumba submits that quest', rpc: 'submit_quest', args: { p_quest_id: '{{quest}}', p_code: 'print(1)', p_tests_passed: 1, p_tests_total: 1 }, expect: 'A result with XP and Kopeks. May be refused if the quest is not valid for her.' }
+    { who: 'C', label: 'Coumba lists the published quests', type: 'get', path: '/rest/v1/quests?select=id,slug,title,xp_reward,kopek_reward&published=eq.true&limit=3', save: { quest: '$.0.id' }, expect: 'One published quest: "La Malediction du Loop".' },
+    { who: 'A', label: 'Ama makes it the quest of the day', rpc: 'schedule_daily_quest', args: { p_quest: '{{quest}}', p_day: '{{today}}' }, expect: 'Works.' },
+    { who: 'C', label: 'Coumba reads the quest of the day', rpc: 'quest_of_the_day', args: {}, expect: 'That quest.' },
+    { who: 'C', label: 'Coumba starts it', rpc: 'start_quest', args: { p_quest_id: '{{quest}}' }, expect: 'Works. Now wait 20 seconds before the next step (a quest cannot be solved faster than its minimum time).' },
+    { who: 'C', label: 'Coumba submits her solution (all 4 tests pass)', rpc: 'submit_quest', args: { p_quest_id: '{{quest}}', p_code: 'def first_repeat(xs):\n    seen = set()\n    for x in xs:\n        if x in seen:\n            return x\n        seen.add(x)\n', p_tests_passed: 4, p_tests_total: 4 }, expect: 'XP and Kopeks are paid, the streak starts at 1. Doing it a second time pays nothing more.' },
+    { who: 'C', label: 'Coumba reads her streak', rpc: 'my_streak', args: {}, expect: 'Streak 1, done today.' },
+    { who: 'C', label: 'Coumba reads her profile', type: 'get', path: '/rest/v1/profiles?select=*&id=eq.{{uidC}}', expect: 'XP is now above 0.' },
+    { who: 'C', label: 'Coumba lists her badges', type: 'get', path: '/rest/v1/user_badges?select=*', expect: 'A badge for the first quest, if one is defined for it.' },
+  ] },
+  { title: '10. GitHub checker: confirming a project, build status, good first issues', intro: 'First make a small PUBLIC test repository on your GitHub (instructions in the chat), then run the steps one by one, in order. The checker must be deployed in Supabase with its password (see docs/GITHUB_CHECKER_SETUP.md).', steps: [
+    { type: 'sql', label: 'List your test repository as a pending project owned by Bara', sql: "insert into public.projects (owner_id, github_owner, github_repo, title, summary)\nvalues ('{{uidB}}', 'YOUR-GITHUB-NAME', 'YOUR-TEST-REPO', 'Depot de test', 'Pour tester le verificateur');", expect: 'Replace YOUR-GITHUB-NAME and YOUR-TEST-REPO with the real ones, then run it. The project is pending: nobody but Bara sees it.' },
+    { who: 'C', label: 'Coumba cannot see the pending project', type: 'get', path: '/rest/v1/projects?select=id,title&title=eq.Depot%20de%20test', expect: 'An empty list (nothing public yet).' },
+    { type: 'fn', fn: 'github-sync', label: 'Run the GitHub checker', expect: 'An answer like {"checked":1,"verified":1,...,"extras":{"checked":..}}. "verified":1 means it confirmed your repository.' },
+    { who: 'B', label: 'Bara reads her project', type: 'get', path: '/rest/v1/projects?select=title,github_repo,verified_at,github_stars,language,build_status,build_checked_at&order=created_at.desc&limit=3', save: { ghproject: '$.0.id' }, expect: 'The test project now has a confirmation date. After the second run below it also has a build status.' },
+    { who: 'B', label: 'Bara\'s XP (reward for the confirmed repository)', type: 'get', path: '/rest/v1/profiles?select=xp&id=eq.{{uidB}}', expect: '50 XP more than before.' },
+    { type: 'fn', fn: 'github-sync', label: 'Run the checker again (the second pass needs a confirmed project)', expect: 'extras shows 1 checked. Running it a third time right away checks 0 (a project is looked at every 6 hours).' },
+    { who: 'C', label: 'Coumba reads the project\'s build status', type: 'get', path: '/rest/v1/projects?select=title,build_status,build_checked_at&id=eq.{{ghproject}}', expect: 'passing, failing, running or none, matching your test repository\'s latest run.' },
+    { who: 'C', label: 'Coumba lists good first issues', rpc: 'list_good_first_issues', args: {}, expect: 'The open issue(s) you labelled "good first issue" on your test repository.' },
+    { who: 'C', label: 'Coumba reads that project\'s issues', rpc: 'project_good_first_issues', args: { p_project: '{{ghproject}}' }, expect: 'The same issue(s), with their GitHub links.' }
+  ] },
+  { title: '11. File cleanup', intro: 'Leftover CV files and Souk images are deleted by a daily job. Files must be older than 24 hours, so a SQL step ages them for the test. Run the steps one by one, in order. The cleanup function must be deployed (docs/FILE_CLEANUP_SETUP.md).', steps: [
+    { who: 'C', label: 'Coumba uploads a second CV that nothing uses', type: 'upload', kind: 'pdf', bucket: 'cv-files', saveAs: 'cvLeft', expect: 'Uploaded.' },
+    { who: 'B', label: 'Bara uploads a second image that nothing uses', type: 'upload', kind: 'png', bucket: 'souk-images', saveAs: 'imgLeft', expect: 'Uploaded.' },
+    { who: 'C', label: 'Coumba lists her unused CV files', rpc: 'list_unused_cv_files', args: {}, expect: 'Only the second CV (the first is her current CV).' },
+    { type: 'sql', label: 'Make the leftover files look 2 days old', sql: "update storage.objects set created_at = now() - interval '2 days'\nwhere name in ('{{cvLeft}}', '{{imgLeft}}', '{{imgPath}}');", expect: 'Updates 2 or 3 rows. (The first image belongs to an approved item, so it must survive.)' },
+    { type: 'fn', fn: 'file-cleanup', label: 'Run the file cleanup', expect: '{"found":1,"deleted":1,...} or found 2 if the first image is also unused. Anything used must not be touched.' },
+    { who: 'C', label: 'Coumba lists her unused CV files again', rpc: 'list_unused_cv_files', args: {}, expect: 'Empty.' },
+    { who: 'C', label: 'Coumba\'s current CV still opens', rpc: 'my_application_file', args: {}, expect: 'Still shows the CV (it was not deleted).' },
+    { type: 'sql', label: 'Check which files remain', sql: "select bucket_id, name, created_at from storage.objects order by created_at;", expect: 'The leftover CV and the leftover image are gone; the current CV and the approved item\'s image remain.' }
   ] }
 ];
 
@@ -319,7 +348,7 @@ let stepCount = 0, passCount = 0, failCount = 0;
 function sqlText(s) { return sub(s); }
 function refreshSql() {
   document.querySelectorAll('[data-sql]').forEach((pre) => {
-    try { pre.textContent = sqlText(pre.getAttribute('data-sql')); } catch (e) { pre.textContent = 'Sign in all three accounts first to fill in their ids.'; }
+    try { pre.textContent = sqlText(pre.getAttribute('data-sql')); } catch (e) { pre.textContent = 'This fills in by itself once the accounts are signed in and the earlier steps have run.'; }
   });
 }
 
@@ -342,6 +371,7 @@ function render() {
       const id = 's' + fi + '_' + si;
       let left = '<div class="what"><div>' + (s.who ? '<span class="pill">' + s.who + ': ' + WHO[s.who].name + '</span> ' : '') + '<strong>' + s.label + '</strong>' + (s.expectError ? ' <span class="pill">expected to be refused</span>' : '') + '</div><div class="expect">Expect: ' + s.expect + '</div>';
       if (s.type === 'sql') left += '<div class="sql"><pre data-sql="' + s.sql.replace(/&/g, '&amp;').replace(/"/g, '&quot;') + '"></pre></div>';
+      else if (s.type === 'fn') left += '<div class="expect">Calls the deployed function in your Supabase project, with the checker password.</div>';
       else if (s.type === 'upload') left += '<div class="expect">Sends a small ' + (s.kind === 'png' ? 'PNG image' : 'PDF') + ' made by this page.</div>';
       else {
         const a = s.type === 'get' ? s.path : JSON.stringify(s.args, null, 2);
@@ -380,6 +410,13 @@ async function runStep(s) {
       const t = await res.text(); let d; try { d = JSON.parse(t); } catch (e) { d = t; }
       if (!res.ok) { const e = new Error((d && (d.message || d.error)) || 'HTTP ' + res.status); throw e; }
       V[s.saveAs] = path; V[s.saveAs + 'Size'] = blob.size; result = { path, size: blob.size };
+    } else if (s.type === 'fn') {
+      const secret = $('cron').value;
+      if (!secret) throw new Error('Fill in the checker password at the top first.');
+      const res = await fetch(base() + '/functions/v1/' + s.fn, { method: 'POST', headers: { apikey: anon(), authorization: 'Bearer ' + anon(), 'x-cron-secret': secret, 'content-type': 'application/json' }, body: '{}' });
+      const t = await res.text(); let d; try { d = JSON.parse(t); } catch (e) { d = t; }
+      if (!res.ok) throw new Error('HTTP ' + res.status + ': ' + (typeof d === 'string' ? d : JSON.stringify(d)));
+      result = d;
     } else if (s.type === 'get') {
       const path = sub(document.getElementById('a_' + id).value);
       result = await http('GET', path, s.who);
@@ -396,10 +433,11 @@ async function runStep(s) {
   tag.textContent = good ? (s.expectError ? 'Refused, as expected' : 'OK') : (s.expectError ? 'Was NOT refused' : 'Failed');
   out.innerHTML = '<pre></pre><label class="mark"><input type="checkbox" id="m_' + id + '"> The result matches what I expected</label>';
   out.querySelector('pre').textContent = shown.length > 6000 ? shown.slice(0, 6000) + '\n... (cut)' : shown;
-  const entry = { section: FLOWS.find((f) => f.steps.includes(s)).title, label: s.label, who: s.who, call: s.rpc || s.path || s.bucket, ok: good, result: shown.slice(0, 700), id };
+  const entry = { section: FLOWS.find((f) => f.steps.includes(s)).title, label: s.label, who: s.who, call: s.rpc || s.path || s.fn || s.bucket, ok: good, result: shown.slice(0, 700), id };
   const i = LOG.findIndex((x) => x.id === id); if (i >= 0) LOG[i] = entry; else LOG.push(entry);
   setTimeout(() => { const cb = document.getElementById('m_' + id); if (cb) cb.onchange = () => { entry.mark = cb.checked ? 'yes' : 'no'; }; });
   btn.disabled = false; btn.textContent = 'Run again';
+  refreshSql();
   updateSummary();
   return good;
 }

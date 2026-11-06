@@ -152,6 +152,9 @@ try {
   // ---- 7. Who may start a run ------------------------------------------------------------------------------------------------
   const getEnv = (extra = {}) => (name) => ({ CRON_SECRET, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY: SERVICE_KEY, ...extra })[name]
   const post = (headers = {}, method = 'POST') => new Request('http://localhost/', { method, headers })
+  const preflight = await handler(post({}, 'OPTIONS'), getEnv())
+  assert.equal(preflight.status, 204, 'a browser check before the call is answered')
+  assert.match(preflight.headers.get('access-control-allow-headers'), /x-cron-secret/)
   assert.equal((await handler(post(), getEnv())).status, 401, 'no secret')
   assert.equal((await handler(post({ 'x-cron-secret': 'wrong-secret-0123456789' }), getEnv())).status, 401, 'wrong secret')
   assert.equal((await handler(post({ 'x-cron-secret': CRON_SECRET }, 'GET'), getEnv())).status, 405, 'GET is refused')

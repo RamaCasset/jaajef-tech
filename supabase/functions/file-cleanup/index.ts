@@ -24,8 +24,15 @@ const MAX_CONSECUTIVE_FAILURES = 3
 const TIME_BUDGET_MS = 100_000
 const ALLOWED_BUCKETS = new Set(['cv-files', 'souk-images'])
 
+// Lets the private test page call this from a browser. Starting a run still needs the password.
+const CORS_HEADERS = {
+  'access-control-allow-origin': '*',
+  'access-control-allow-headers': 'x-cron-secret, content-type, authorization, apikey',
+  'access-control-allow-methods': 'POST, OPTIONS',
+}
+
 function jsonResponse(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } })
+  return new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json', ...CORS_HEADERS } })
 }
 
 function sameSecret(a: string, b: string): boolean {
@@ -113,6 +120,7 @@ function firstSecretKey(raw: string | undefined): string {
 }
 
 export async function handler(request: Request, getEnv: (name: string) => string | undefined, fetchFn: typeof fetch = fetch): Promise<Response> {
+  if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS_HEADERS })
   if (request.method !== 'POST') return jsonResponse({ error: 'use POST' }, 405)
 
   const cronSecret = getEnv('CRON_SECRET') ?? ''
