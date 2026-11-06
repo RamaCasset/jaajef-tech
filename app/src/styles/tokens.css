@@ -1,0 +1,27 @@
+/* Design tokens. Taken from the screens shared on 1 November; replace with Marie's final Figma values. */
+:root {
+  --bg: #080e1c;
+  --bg-glow: #0d1a33;
+  --panel: #0c1730;
+  --panel-raised: #10203f;
+  --line: #1c3b5c;
+  --line-strong: #2a6a93;
+  --fg: #f1f4fa;
+  --fg-muted: #8a97b0;
+  --accent: #3fb8f0;
+  --accent-soft: rgba(63, 184, 240, 0.12);
+  --cta: #c8410a;
+  --cta-hover: #e0500f;
+  --cta-fg: #ffffff;
+  --ok: #3ddba7;
+  --danger: #ff8a7a;
+  --danger-bg: rgba(255, 138, 122, 0.1);
+
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --radius: 12px;
+  --radius-pill: 999px;
+  color-scheme: dark;
+}

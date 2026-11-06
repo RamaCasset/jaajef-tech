@@ -29,6 +29,15 @@ tied together by XP and Kopeks. Designs by Marie (Figma).
 | Safety audit (checks the whole database for common security mistakes, on every push) | Done |
 | Blog hooks (notices for comments, likes and hiding; posts in search; reports on posts, comments and job offers) | Done and tested |
 | Quest writer, shop manager and shop owner roles | Done and tested |
+| Souk creator submissions (submit, review, approve into the shop) | Done and tested |
+| Souk creator share (Kopek payout on sales, sales list, owner overview) | Done and tested |
+| Souk submission images (private upload, review, shown with the item) | Done and tested |
+| Souk reports and taking items off sale | Done and tested |
+| Quest-of-the-day bonus (placeholder amounts) and streak freezes | Done and tested |
+| The app (foundation, sign-in, sign-up, character creation) in `app/` | Started |
+| Test console (a private page to test the real database with three accounts: `tools/test-console.html`) | Done |
+| Cleanup of unused CV files and Souk images (daily job; needs deploying) | Done and tested |
+| "Build passing" badge and "Good first issues" (database and checker; shows data once the checker is running) | Done and tested |
 | Jobs, part 1 (employers, job offers, staff review, search) | Done and tested |
 | Jobs, part 2 (private application file: skills, portfolio, CV upload, completion percentage) | Done and tested |
 | Jobs, part 3 (applying, statuses, 90-day CV access for the company) | Done and tested |
@@ -81,9 +90,12 @@ psql -v ON_ERROR_STOP=1 -f supabase/tests/badges.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/blog.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/blog_hooks.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/chat.test.sql
+psql -v ON_ERROR_STOP=1 -f supabase/tests/daily_bonus_streak_freeze.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/dm.test.sql
+psql -v ON_ERROR_STOP=1 -f supabase/tests/file_cleanup.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/fixes.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/foundation.test.sql
+psql -v ON_ERROR_STOP=1 -f supabase/tests/github_badges.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/jobs_application_file.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/jobs_applying.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/jobs_employers.test.sql
@@ -101,11 +113,16 @@ psql -v ON_ERROR_STOP=1 -f supabase/tests/quests.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/schema_audit.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/souk.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/shop_quest_roles.test.sql
+psql -v ON_ERROR_STOP=1 -f supabase/tests/souk_creator_share.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/souk_extras.test.sql
+psql -v ON_ERROR_STOP=1 -f supabase/tests/souk_images.test.sql
+psql -v ON_ERROR_STOP=1 -f supabase/tests/souk_reports.test.sql
+psql -v ON_ERROR_STOP=1 -f supabase/tests/souk_submissions.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/staff.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/streaks.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/teaching.test.sql
 node --experimental-strip-types supabase/functions/github-sync/sync.test.mjs   # the GitHub checker, needs Node 22
+node --experimental-strip-types supabase/functions/file-cleanup/cleanup.test.mjs   # the file cleanup, needs Node 22
 ```
 
 Never run `_stub_supabase.sql` on a real Supabase project.

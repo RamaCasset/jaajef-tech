@@ -76,6 +76,21 @@ Every quest exists to teach coding. Each one has:
 The hints and the explanation for La Malédiction du Loop are a sample of a
 finished lesson, written as a draft to be reviewed and edited.
 
+### Grading happens on the server
+Players do not report their own results. The hidden tests of every quest are private
+(only the server can read them). When a player presses "Run", the app calls the
+`run-quest` Edge Function, which checks who the player is, asks the database for the
+hidden tests (this also checks that the quest was started, not yet solved, and that the
+player is within the run limit: 6 per minute and 150 per day, placeholders to confirm),
+sends the code and tests to a sandbox "runner", and records the result itself through
+`record_graded_attempt`. The player only sees pass or fail per test, never the expected
+values. If the runner is down, nothing is recorded and the player sees a clear error.
+
+The runner is a plug-in point with a small fixed contract (see the top of
+`supabase/functions/run-quest/index.ts`), so any code-execution service can sit behind it.
+**The runner provider is not chosen yet**, so until it is connected nobody can solve a quest
+in the real app. Reward, time-measuring and one-payment rules are unchanged.
+
 Every quest takes at most 10 minutes. Monthly big challenges are recorded as
 to be confirmed (solo or teams, length, reward).
 
@@ -309,7 +324,7 @@ is `list_blog_posts` (filter by tag or author, newest first).
 - Reports can target a blog post, a blog comment or a job offer (not your own,
   not hidden or draft ones). Staff "remove content" hides the post or the offer
   (the owner is told, cannot be muted) or deletes the comment.
-- Souk items cannot be reported yet: they have no author until creators can submit them.
+- Souk items made by members can be reported (see Souk reports below).
 
 ## Back-office roles: quest writer, shop manager, shop owner
 Three roles kept in their own table (`back_office_roles`), separate from admin
@@ -319,13 +334,106 @@ moderation staff, so a quest writer must never land in that table.
 | Role | Can do now | Coming |
 |---|---|---|
 | Quest writer | Schedule the quest of the day | Quest writing tools |
-| Shop manager | Choose the featured item of the week | Review creator submissions |
-| Shop owner | Everything a shop manager can | Creator share and earnings |
+| Shop manager | Choose the featured item of the week; review creator submissions | |
+| Shop owner | Everything a shop manager can; set the creator share; see earnings per creator | |
 
 Admins can do all of it. Only an admin grants or removes a role
 (`set_back_office_role`, logged once per real change); `my_back_office_access`
 tells the app which menus to show. A member can hold several roles and also be
 a moderator. These roles give no moderation or admin power (tested).
+
+### Creator submissions
+- Any signed-in member can submit an item (theme, avatar frame or status badge)
+  with a name, description, look (`data`) and proposed price (1 to 1,000,000 Kopeks).
+  Limits: `souk_submissions_max_per_day` (3) and `souk_submissions_max_pending` (5).
+  Suspended members cannot submit.
+- The creator can edit or withdraw while it is waiting.
+- A shop manager, shop owner or admin approves (optionally changing the price)
+  or rejects (a reason is required). Nobody reviews their own submission.
+  Approving creates a normal shop item with `creator_id`; both outcomes notify the creator.
+- The item look is shown to other members, so staff review is the guard.
+- Deleting a creator keeps the item (creator becomes empty), so owners keep what they bought.
+
+### Creator share
+- Buying a creator's item pays the creator `souk_creator_share_percent` (default 70,
+  to confirm with Marie) of the price in Kopeks, rounded down. The buyer pays the full
+  price; the remainder leaves circulation, so no Kopeks are created.
+- No share for buying your own item or items with no creator. Each sale stores the
+  percentage used, so changing the setting never changes past sales.
+- Both wallets are locked in a fixed order, so two members buying from each other at
+  once cannot block each other.
+- Creators see their sales (never the buyer) and a summary; the creator is told of each
+  sale. Only the shop owner or an admin sets the share (logged) and sees totals per creator.
+- These are in-app Kopeks only. Real money (buying Kopeks, paying creators out in FCFA) is not built.
+
+### Submission images
+- One image per submission (PNG or WebP, 500 KB at most, no SVG because it can carry code),
+  uploaded into a private bucket `souk-images`, in a folder named after the creator.
+- Avatar frames need an image to be approved; badges and themes may have one.
+- During review the creator and shop staff can open it; nobody else.
+- Approved: the item's look gets `image_path` pointing at that same file (anything the creator
+  typed under `image_path` is dropped). Everyone, visitors too, can open the image while the item
+  is on sale; owners and the creator keep access after it is taken off sale.
+- A creator cannot delete an image that is waiting for review or used by an item.
+  `list_unused_souk_images` lists the rest so the app can delete them.
+- The app opens images with signed links (the bucket is private).
+- Not checked: what the picture shows. Staff review is the guard.
+
+### Souk reports and taking items off sale
+- Members can report an item made by another member (not their own, not one with no creator, not one
+  already off sale). Staff "remove content" takes it off sale; people who own it keep it.
+- Shop managers, shop owners and admins can take any item off sale or put it back
+  (`set_souk_item_on_sale`; a reason is required to take one off; logged once per real change).
+  An item off sale stops being featured.
+- The creator is told when their item is taken off sale (either route). This notice cannot be switched off.
+
+## Quest-of-the-day bonus and streak freezes
+- **Bonus:** solving the quest of the day on its day can pay extra XP and Kopeks, once.
+  The amounts (`daily_quest_bonus_xp`, `daily_quest_bonus_kopeks`) are placeholders at 0 until
+  Marie decides, so nothing extra is paid yet. `submit_quest` reports `daily_quest`,
+  `bonus_xp` and `bonus_kopeks`.
+- **Freezes:** a member earns one each time the streak reaches a multiple of
+  `streak_freeze_every_days` (7), keeps at most `streak_freeze_max` (2). When the member comes
+  back after missing days, stored freezes cover them automatically and the streak continues.
+  If more days were missed than freezes are stored, the streak restarts and no freeze is spent.
+  Frozen days are not activity days. These numbers are defaults to confirm with Marie.
+- `my_streak` also shows the freezes stored, the maximum, and whether a freeze is protecting the
+  streak right now. `list_my_streak_freezes` is the history. `top_streaks` still lists only members
+  who were really active today or yesterday.
+
+## Build passing and good first issues
+- **Build passing:** each listed project can show a build status: passing, failing, running or
+  none (no builds yet). It comes from the project's GitHub Actions on its main branch. Other build
+  services are not read. A cancelled or skipped run says nothing, so the last status stays.
+- **Good first issues:** up to 10 open GitHub issues carrying the standard label "good first issue"
+  are kept for each listed project (pull requests are left out). `list_good_first_issues` is the
+  public list for the discovery screen, newest first, filterable by language and by the owner's clan
+  and paged. `project_good_first_issues` gives one project's issues. Both are readable by visitors.
+- **Opt out:** the owner can switch their project out of the list with `set_project_newcomer_friendly`.
+  Hidden, unconfirmed or private projects never appear.
+- **Who writes it:** only the GitHub checker (service role). Nothing is typed by members. The database
+  checks that each issue link points to an issue of that same repository, and drops anything else.
+- **Safety:** if GitHub fails or is out of calls, the last known status and issues stay. Each project is
+  refreshed about every 6 hours, and one that keeps failing still moves to the back of the line so it
+  cannot block the others. The checker runs this as a second pass after its normal hourly check, and a
+  problem there never fails the main check.
+- Needs the checker to be running. Without a GitHub access token GitHub allows only about 60 calls an
+  hour, which is too few for this second pass, so use the token (see `docs/GITHUB_CHECKER_SETUP.md`).
+
+## Cleaning up unused files
+- CV uploads and Souk images can be left behind (uploaded but never used, or no longer used). Members
+  could already list their own leftovers; now a daily job removes them for everyone.
+- `files_to_clean` (service role only) lists them. A file is "in use" if it is a member's current CV, the
+  CV sent with an application, the image of a waiting Souk submission, or the image of a shop item.
+- Only files older than `file_cleanup_grace_hours` (24, at least 1) are listed, so a file just uploaded and
+  about to be attached is never taken away. The 24 is a default to confirm with Marie.
+- The job is a small Edge Function, `file-cleanup`: it deletes through Supabase Storage (never by editing
+  tables), works in chunks of 50, stops after 3 failures in a row, and leaves files in place on any error so
+  they are listed again next time. Only the CV and Souk image buckets can be touched. Private message files
+  are never touched.
+- One small gap: a file that becomes used in the seconds between the list and the delete could be removed.
+  The 24 hour wait makes this extremely unlikely, since a file only becomes "old" if nobody attached it.
+- Setup: `docs/FILE_CLEANUP_SETUP.md`. It reuses the GitHub checker's password.
 
 ## Jobs (part 1: employers and offers)
 Working decisions (from the project coordinator, to confirm with Marie): offers

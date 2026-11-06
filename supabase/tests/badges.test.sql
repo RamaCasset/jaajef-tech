@@ -9,6 +9,16 @@
 --   bineta  (...0002)  solves quests, and posts in a forum
 --   cheikh  (...0003)  posts in a forum, and receives a manual badge
 --   dior    (...0004)  posts in her own empty community
+-- Stand-in for the old browser report: players can no longer call submit_quest, so the tests grade
+-- through the server-only function, as the server would, for the signed-in test player.
+create schema if not exists tg;
+create or replace function tg.submit_quest(p_quest uuid, p_code text, p_passed integer, p_total integer)
+returns jsonb language plpgsql security definer set search_path = public as $$
+begin return public.record_graded_attempt(auth.uid(), p_quest, p_code, p_passed, p_total); end $$;
+grant usage on schema tg to authenticated, anon, service_role;
+grant execute on function tg.submit_quest(uuid, text, integer, integer) to authenticated, anon, service_role;
+
+
 
 create schema bgkit;
 grant usage on schema bgkit to public;
@@ -155,7 +165,7 @@ begin
   select id into q1 from public.quests where slug = 'badge-q1';
   perform bgkit.as_user(2);
   perform public.start_quest(q1);
-  r := public.submit_quest(q1, 'rate', 0, 1); -- the tests fail
+  r := tg.submit_quest(q1, 'rate', 0, 1); -- the tests fail
   reset role;
   if (r ->> 'solved')::boolean then raise exception 'FAIL: a failed attempt was accepted'; end if;
   if bgkit.badge(2, 'gardien_du_baobab') <> 'none' then raise exception 'FAIL: a failed attempt counted'; end if;
@@ -167,14 +177,14 @@ declare q1 uuid; r jsonb;
 begin
   select id into q1 from public.quests where slug = 'badge-q1';
   perform bgkit.as_user(2);
-  r := public.submit_quest(q1, 'solution', 1, 1);
+  r := tg.submit_quest(q1, 'solution', 1, 1);
   reset role;
   if not (r ->> 'solved')::boolean then raise exception 'FAIL: the solve was refused %', r; end if;
   if bgkit.badge(2, 'gardien_du_baobab') <> '1|false' then raise exception 'FAIL: first solve should give 1|false, got %', bgkit.badge(2, 'gardien_du_baobab'); end if;
 
   -- sending the same solved quest again changes nothing
   perform bgkit.as_user(2);
-  perform public.submit_quest(q1, 'solution', 1, 1);
+  perform tg.submit_quest(q1, 'solution', 1, 1);
   reset role;
   if bgkit.badge(2, 'gardien_du_baobab') <> '1|false' then raise exception 'FAIL: solving twice counted twice'; end if;
   raise notice 'OK 3b: a solved quest counts once';
@@ -186,7 +196,7 @@ begin
   select id into q2 from public.quests where slug = 'badge-q2';
   perform bgkit.as_user(2);
   perform public.start_quest(q2);
-  perform public.submit_quest(q2, 'solution', 1, 1);
+  perform tg.submit_quest(q2, 'solution', 1, 1);
   reset role;
   if bgkit.badge(2, 'gardien_du_baobab') <> '2|true' then raise exception 'FAIL: second solve should unlock, got %', bgkit.badge(2, 'gardien_du_baobab'); end if;
   raise notice 'OK 3c: solving enough quests unlocks the badge';

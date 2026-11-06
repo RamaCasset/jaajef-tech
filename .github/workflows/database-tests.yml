@@ -69,3 +69,29 @@ jobs:
 
       - name: Run the GitHub checker test (real database, pretend GitHub)
         run: node --experimental-strip-types supabase/functions/github-sync/sync.test.mjs
+
+      - name: Run the file cleanup test (real database, pretend Storage)
+        run: node --experimental-strip-types supabase/functions/file-cleanup/cleanup.test.mjs
+      - name: Run the quest runner test (real database, pretend code runner)
+        run: node --experimental-strip-types supabase/functions/run-quest/run.test.mjs
+
+  app:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - name: Install
+        run: npm ci
+      - name: Type check
+        run: npm run typecheck
+      - name: Test
+        run: npm test
+      - name: Build
+        run: npm run build

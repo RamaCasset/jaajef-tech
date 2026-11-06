@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>jaajef.tech test console</title>
+<style>
+:root {
+  --bg: #f6f5f2;
+  --panel: #ffffff;
+  --fg: #1d1f1c;
+  --muted: #5e635b;
+  --line: #dcdad3;
+  --accent: #0b6b4f;
+  --accent-fg: #ffffff;
+  --ok: #17703f;
+  --ok-bg: #dff3e6;
+  --bad: #a3271f;
+  --bad-bg: #fbe3e0;
+  --warn-bg: #fff1cc;
+  --code-bg: #efede7;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14160f;
+    --panel: #1d201a;
+    --fg: #ebe9e2;
+    --muted: #a1a69a;
+    --line: #34382f;
+    --accent: #5cc79d;
+    --accent-fg: #0b1a14;
+    --ok: #7fd9a1;
+    --ok-bg: #173824;
+    --bad: #ff9d94;
+    --bad-bg: #4a1f1b;
+    --warn-bg: #403410;
+    --code-bg: #262a20;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 980px; margin: 0 auto; padding: 24px 16px 120px; }
+h1 { font-size: 24px; margin: 0 0 4px; }
+h2 { font-size: 18px; margin: 32px 0 4px; }
+p { margin: 4px 0 12px; }
+.muted { color: var(--muted); }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 14px; }
+.grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+label { display: block; font-size: 13px; color: var(--muted); margin: 8px 0 2px; }
+input, textarea { width: 100%; font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 7px 9px; }
+textarea { font: 13px/1.4 ui-monospace, Menlo, Consolas, monospace; min-height: 90px; }
+button { font: inherit; cursor: pointer; border: 1px solid var(--line); background: var(--panel); color: var(--fg); border-radius: 4px; padding: 6px 12px; }
+button.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+button:disabled { opacity: .5; cursor: default; }
+button:focus-visible, input:focus-visible, textarea:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.pill { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 10px; background: var(--code-bg); border: 1px solid var(--line); }
+.status-ok { background: var(--ok-bg); color: var(--ok); border-color: transparent; }
+.status-bad { background: var(--bad-bg); color: var(--bad); border-color: transparent; }
+.step { border-top: 1px solid var(--line); padding: 12px 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; }
+.step:first-of-type { border-top: 0; }
+.step .what { min-width: 0; }
+.step .expect { color: var(--muted); font-size: 13px; }
+.step .out { grid-column: 1 / -1; min-width: 0; }
+pre { margin: 6px 0 0; padding: 8px; background: var(--code-bg); border-radius: 4px; overflow: auto; max-height: 260px; font-size: 12.5px; white-space: pre-wrap; word-break: break-word; }
+details summary { cursor: pointer; font-size: 13px; color: var(--muted); }
+.sql { position: relative; }
+.mark { font-size: 13px; display: inline-flex; gap: 6px; align-items: center; }
+.mark input { width: auto; }
+.bar { position: fixed; left: 0; right: 0; bottom: 0; background: var(--panel); border-top: 1px solid var(--line); padding: 10px 16px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: center; }
+.note { background: var(--warn-bg); border-radius: 4px; padding: 8px 10px; font-size: 14px; }
+code { background: var(--code-bg); padding: 0 4px; border-radius: 3px; font-size: 13px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>jaajef.tech test console</h1>
+  <p class="muted">A private page for testing the real database with three accounts. It is not part of the product. Nothing is sent anywhere except to your own Supabase project.</p>
+
+  <div class="note">Do not paste the secret or service key here. Only the project address and the public (anon / publishable) key.</div>
+
+  <h2>1. Connect</h2>
+  <div class="panel">
+    <div class="grid3">
+      <div>
+        <label for="url">Project address (https://xxxx.supabase.co)</label>
+        <input id="url" placeholder="https://abcdefgh.supabase.co" autocomplete="off">
+      </div>
+      <div>
+        <label for="key">Public key (anon or publishable)</label>
+        <input id="key" placeholder="eyJ... or sb_publishable_..." autocomplete="off">
+      </div>
+      <div>
+        <label for="cron">Checker password (CRON_SECRET), only for sections 10 and 11</label>
+        <input id="cron" type="password" placeholder="the long password you invented" autocomplete="off">
+      </div>
+    </div>
+    <p class="muted" style="margin-bottom:0">In Supabase: Project Settings, then API. For quick testing, turn off "Confirm email" under Authentication, then Sign In / Providers, then Email. Turn it back on before launch.</p>
+  </div>
+
+  <h2>2. The three accounts</h2>
+  <p class="muted">Use three different email addresses (with Gmail, you can use yourname+ama@gmail.com, yourname+bara@gmail.com and yourname+coumba@gmail.com). Passwords: at least 8 characters. Press Sign up once, then Sign in whenever you reload this page.</p>
+  <div class="grid3" id="accounts"></div>
+
+  <div id="flows"></div>
+</main>
+
+<div class="bar">
+  <span id="summary" class="muted">No step run yet</span>
+  <button class="primary" id="copyReport">Copy report</button>
+  <span class="muted" id="copyMsg"></span>
+</div>
+
+<script>
+'use strict';
+const WHO = {
+  A: { name: 'Ama', role: 'admin (staff)' },
+  B: { name: 'Bara', role: 'company, creator, project owner' },
+  C: { name: 'Coumba', role: 'applicant and buyer' }
+};
+const S = { A: {}, B: {}, C: {} };            // session per account: token, uid, email
+const V = { rand: Math.random().toString(36).slice(2, 7), today: new Date().toISOString().slice(0, 10) }; // saved values
+const LOG = [];                                // every step run, for the report
+
+const $ = (id) => document.getElementById(id);
+function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
+
+/* ------------------------------ connection ------------------------------ */
+$('url').value = store('jt_url') || '';
+$('key').value = store('jt_key') || '';
+$('url').addEventListener('change', () => store('jt_url', $('url').value.trim()));
+$('key').addEventListener('change', () => store('jt_key', $('key').value.trim()));
+const base = () => $('url').value.trim().replace(/\/+$/, '');
+const anon = () => $('key').value.trim();
+
+function headers(who, extra) {
+  const h = { apikey: anon(), 'content-type': 'application/json' };
+  const t = who && S[who].token;
+  h.authorization = 'Bearer ' + (t || anon());
+  return Object.assign(h, extra || {});
+}
+async function http(method, path, who, body, extra) {
+  if (!base() || !anon()) throw new Error('Fill in the project address and the public key first.');
+  const res = await fetch(base() + path, { method, headers: headers(who, extra), body: body === undefined ? undefined : (typeof body === 'string' || body instanceof Blob ? body : JSON.stringify(body)) });
+  const text = await res.text();
+  let data = null;
+  try { data = text ? JSON.parse(text) : null; } catch (e) { data = text; }
+  if (!res.ok) {
+    const msg = (data && (data.message || data.msg || data.error_description || data.error)) || ('HTTP ' + res.status);
+    const err = new Error(msg); err.status = res.status; err.data = data; throw err;
+  }
+  return data;
+}
+
+/* ------------------------------ accounts ------------------------------ */
+function buildAccounts() {
+  const box = $('accounts');
+  for (const k of ['A', 'B', 'C']) {
+    const w = WHO[k];
+    const d = document.createElement('div');
+    d.className = 'panel';
+    d.innerHTML = '<strong>' + k + ': ' + w.name + '</strong> <span class="pill">' + w.role + '</span>' +
+      '<label for="em' + k + '">Email</label><input id="em' + k + '" type="email" autocomplete="off">' +
+      '<label for="pw' + k + '">Password</label><input id="pw' + k + '" type="password" autocomplete="off">' +
+      '<div class="row" style="margin-top:10px"><button id="su' + k + '">Sign up</button><button class="primary" id="si' + k + '">Sign in</button></div>' +
+      '<p class="muted" id="st' + k + '" style="margin:8px 0 0">Not signed in</p>';
+    box.appendChild(d);
+    $('em' + k).value = store('jt_em' + k) || '';
+    $('em' + k).addEventListener('change', () => store('jt_em' + k, $('em' + k).value.trim()));
+    $('su' + k).onclick = () => auth(k, 'signup');
+    $('si' + k).onclick = () => auth(k, 'signin');
+  }
+}
+async function auth(k, mode) {
+  const st = $('st' + k);
+  const email = $('em' + k).value.trim(), password = $('pw' + k).value;
+  try {
+    st.textContent = 'Working...';
+    let data;
+    if (mode === 'signup') data = await http('POST', '/auth/v1/signup', null, { email, password });
+    else data = await http('POST', '/auth/v1/token?grant_type=password', null, { email, password });
+    if (!data || !data.access_token) { st.textContent = 'Account created. Check your email to confirm it, then press Sign in.'; return; }
+    S[k] = { token: data.access_token, uid: data.user.id, email };
+    V['uid' + k] = data.user.id;
+    st.textContent = 'Signed in. Member id: ' + data.user.id;
+    refreshSql();
+  } catch (e) { st.textContent = 'Failed: ' + e.message; }
+}
+
+/* ------------------------------ value substitution ------------------------------ */
+function sub(v) {
+  if (typeof v === 'string') {
+    const whole = v.match(/^\{\{(\w+)\}\}$/);
+    if (whole) { if (!(whole[1] in V)) throw new Error('Missing value "' + whole[1] + '". Run the earlier steps first (or sign in).'); return V[whole[1]]; }
+    return v.replace(/\{\{(\w+)\}\}/g, (m, n) => { if (!(n in V)) throw new Error('Missing value "' + n + '". Run the earlier steps first (or sign in).'); return String(V[n]); });
+  }
+  if (Array.isArray(v)) return v.map(sub);
+  if (v && typeof v === 'object') { const o = {}; for (const k in v) o[k] = sub(v[k]); return o; }
+  return v;
+}
+function pick(data, path) {
+  if (path === '$') return data;
+  let cur = data;
+  for (const p of path.replace(/^\$\.?/, '').split('.').filter(Boolean)) { if (cur == null) return undefined; cur = cur[p]; }
+  return cur;
+}
+
+/* ------------------------------ generated files ------------------------------ */
+function makePng() {
+  return new Promise((resolve) => {
+    const c = document.createElement('canvas'); c.width = 64; c.height = 64;
+    const x = c.getContext('2d'); x.fillStyle = '#e8a33d'; x.fillRect(0, 0, 64, 64); x.fillStyle = '#1b1b2f'; x.fillRect(12, 12, 40, 40);
+    c.toBlob(resolve, 'image/png');
+  });
+}
+function makePdf() {
+  const txt = '%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 200 200]>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF';
+  return new Blob([txt], { type: 'application/pdf' });
+}
+
+/* ------------------------------ the steps ------------------------------ */
+// type rpc: call a database action. get: read a table. upload: send a generated file. sql: copy into the Supabase SQL editor.
+const FLOWS = [
+  { title: '0. Set-up in Supabase (once)', intro: 'These two pieces run in the Supabase SQL Editor (left menu, SQL Editor). They need the three accounts to be signed in above, because they contain the members\' ids. Copy, paste, press Run.', steps: [
+    { type: 'sql', label: 'Make Ama an administrator', sql: "select public.make_admin('{{uidA}}');", expect: 'It finishes without an error. Only the database owner can do this, which is why it is not a button.' },
+    { type: 'sql', label: 'Create a confirmed demo project owned by Bara', sql: "insert into public.projects (owner_id, github_owner, github_repo, title, summary, language, tags, verified_at)\nvalues ('{{uidB}}', 'bara-demo', 'demo-repo', 'Projet Demo', 'Un projet pour tester', 'Python', '{test}', now());", expect: 'One row inserted. Normally a project is confirmed by the GitHub checker; this does it by hand because the checker is not set up yet.' }
+  ] },
+  { title: '1. Accounts, characters and wallets', intro: 'Each member picks a clan and a mastery once. New members start with 100 Kopeks.', steps: [
+    { who: 'A', label: 'Ama picks her character', rpc: 'set_character', args: { p_clan: 'griot_du_code', p_mastery: 'borom_xam_xam' }, expect: 'Works once. Running it again fails because the choice is locked.' },
+    { who: 'B', label: 'Bara picks her character', rpc: 'set_character', args: { p_clan: 'forgeron', p_mastery: 'bagne' }, expect: 'Works once.' },
+    { who: 'C', label: 'Coumba picks her character', rpc: 'set_character', args: { p_clan: 'saltigue', p_mastery: 'ndongo' }, expect: 'Works once.' },
+    { who: 'C', label: 'Coumba tries to change her character', rpc: 'set_character', args: { p_clan: 'griot_du_code', p_mastery: 'bagne' }, expectError: true, expect: 'Refused: the character is locked after the first choice.' },
+    { who: 'C', label: 'Coumba reads her wallet', type: 'get', path: '/rest/v1/wallets?select=*', expect: 'Shows 100 Kopeks.' },
+    { who: 'C', label: 'Coumba reads her profile', type: 'get', path: '/rest/v1/profiles?select=*&id=eq.{{uidC}}', expect: 'Shows her username, clan, mastery, XP 0.' }
+  ] },
+  { title: '2. Communities and chat', intro: 'Bara creates a public community and a private one. Coumba joins the first and asks to join the second.', steps: [
+    { who: 'B', label: 'Bara creates a public community', rpc: 'create_community', args: { p_slug: 'test-hub-{{rand}}', p_name: 'Test Hub', p_description: 'Communaute de test' }, save: { comm: '$' }, expect: 'Returns the community id.' },
+    { who: 'C', label: 'Coumba joins it', rpc: 'join_community', args: { p_community: '{{comm}}' }, expect: 'Works.' },
+    { who: 'B', label: 'Bara adds a chat channel (a community already starts with general and annonces)', rpc: 'create_channel', args: { p_community: '{{comm}}', p_slug: 'projets', p_name: 'Projets' }, save: { chan: '$' }, expect: 'Returns the channel id.' },
+    { who: 'C', label: 'Coumba writes a message', rpc: 'send_message', args: { p_channel: '{{chan}}', p_body: 'Salam, tout le monde!' }, expect: 'Returns a message number.' },
+    { who: 'B', label: 'Bara creates a private community', rpc: 'create_community', args: { p_slug: 'test-private-{{rand}}', p_name: 'Cercle Prive', p_is_private: true, p_is_listed: true }, save: { priv: '$' }, expect: 'Returns the community id.' },
+    { who: 'C', label: 'Coumba asks to join it', rpc: 'request_to_join', args: { p_community: '{{priv}}', p_message: 'Je voudrais rejoindre.' }, save: { joinreq: '$' }, expect: 'Returns the request id.' },
+    { who: 'B', label: 'Bara accepts the request', rpc: 'decide_join_request', args: { p_request: '{{joinreq}}', p_approve: true }, expect: 'Works. Coumba is now a member.' }
+  ] },
+  { title: '3. Private messages', intro: 'Coumba writes to Bara.', steps: [
+    { who: 'C', label: 'Coumba starts a conversation with Bara', rpc: 'start_conversation', args: { p_user: '{{uidB}}' }, save: { conv: '$' }, expect: 'Returns the conversation id.' },
+    { who: 'C', label: 'Coumba sends a message', rpc: 'send_direct_message', args: { p_conversation: '{{conv}}', p_body: 'Bonjour Bara!' }, expect: 'Returns a message number.' },
+    { who: 'B', label: 'Bara lists her conversations', rpc: 'list_my_conversations', args: {}, expect: 'One conversation with 1 unread message.' },
+    { who: 'B', label: 'Bara marks it as read', rpc: 'mark_conversation_read', args: { p_conversation: '{{conv}}' }, expect: 'Works.' }
+  ] },
+  { title: '4. Projects', intro: 'Needs the demo project from set-up (section 0).', steps: [
+    { who: 'C', label: 'Coumba finds the demo project', type: 'get', path: '/rest/v1/projects?select=id,title,github_repo&github_repo=eq.demo-repo', save: { project: '$.0.id' }, expect: 'One project, "Projet Demo".' },
+    { who: 'C', label: 'Coumba stars it', rpc: 'star_project', args: { p_project: '{{project}}' }, expect: 'Works. Bara gets a notice.' },
+    { who: 'C', label: 'Coumba comments', rpc: 'post_project_comment', args: { p_project: '{{project}}', p_body: 'Super projet!' }, expect: 'Returns a comment number. Bara gets a notice.' },
+    { who: 'C', label: 'Coumba searches projects', rpc: 'search_projects', args: { p_query: 'Demo' }, expect: 'The demo project, 1 star, 1 comment.' },
+    { who: 'C', label: 'Coumba lists good first issues', rpc: 'list_good_first_issues', args: {}, expect: 'An empty list (the GitHub checker is not running yet).' },
+    { who: 'B', label: 'Bara switches off the newcomer list for her project', rpc: 'set_project_newcomer_friendly', args: { p_project: '{{project}}', p_on: false }, expect: 'Works.' },
+    { who: 'C', label: 'Coumba tries to switch it for Bara', rpc: 'set_project_newcomer_friendly', args: { p_project: '{{project}}', p_on: true }, expectError: true, expect: 'Refused: only the owner can.' }
+  ] },
+  { title: '5. Blog', intro: 'Bara publishes an article; Coumba likes and comments.', steps: [
+    { who: 'B', label: 'Bara publishes an article', rpc: 'create_blog_post', args: { p_title: 'Mon premier article', p_body: 'Ceci est un article de test pour verifier que le blog fonctionne correctement sur la plateforme jaajef.tech. Il contient assez de texte pour etre accepte.', p_summary: 'Un article de test', p_tags: ['test'], p_publish: true }, save: { post: '$' }, expect: 'Returns the article id.' },
+    { who: 'C', label: 'Coumba lists articles', rpc: 'list_blog_posts', args: {}, expect: 'Bara\'s article is in the list.' },
+    { who: 'C', label: 'Coumba likes it', rpc: 'like_blog_post', args: { p_post: '{{post}}' }, expect: 'Works. Bara gets a notice.' },
+    { who: 'C', label: 'Coumba comments', rpc: 'post_blog_comment', args: { p_post: '{{post}}', p_body: 'Bien ecrit!' }, expect: 'Returns a comment number. Bara gets a notice.' }
+  ] },
+  { title: '6. Jobs', intro: 'Bara registers a company, Ama approves it, Bara posts an offer, Coumba applies, Bara moves the application along.', steps: [
+    { who: 'B', label: 'Bara registers a company', rpc: 'create_employer', args: { p_kind: 'company', p_name: 'Studio Test Dakar {{rand}}', p_description: 'Un studio de test', p_location: 'Dakar' }, save: { employer: '$' }, expect: 'Returns the company id. It waits for staff approval.' },
+    { who: 'A', label: 'Ama approves the company', rpc: 'review_employer', args: { p_employer: '{{employer}}', p_approve: true }, expect: 'Works (needs the set-up step "Make Ama an administrator").' },
+    { who: 'B', label: 'Bara publishes an offer', rpc: 'create_job_offer', args: { p_title: 'Developpeuse Python', p_kind: 'job', p_description: 'Nous cherchons une developpeuse Python pour rejoindre notre equipe a Dakar. Offre de test.', p_employment_type: 'full_time', p_location: 'Dakar', p_remote: 'onsite', p_pay_min: 300000, p_pay_max: 500000, p_pay_unit: 'month', p_tags: ['python'], p_publish: true }, save: { offer: '$' }, expect: 'Returns the offer id.' },
+    { who: 'C', label: 'Coumba searches offers', rpc: 'search_job_offers', args: { p_query: 'Python' }, expect: 'The offer is listed, with salary in FCFA.' },
+    { who: 'C', label: 'Coumba fills her application file', rpc: 'save_application_file', args: { p_headline: 'Developpeuse Python', p_summary: 'Deux ans d\'experience en Python et SQL.', p_location: 'Dakar', p_experience_years: 2, p_availability: 'immediate', p_work_kinds: ['job'], p_skills: ['python', 'sql'] }, expect: 'Works.' },
+    { who: 'C', label: 'Coumba uploads a CV (a small generated PDF)', type: 'upload', kind: 'pdf', bucket: 'cv-files', saveAs: 'cvPath', expect: 'Uploaded to her own folder.' },
+    { who: 'C', label: 'Coumba attaches the CV', rpc: 'set_cv', args: { p_path: '{{cvPath}}', p_name: 'cv.pdf', p_size: '{{cvPathSize}}' }, expect: 'Works.' },
+    { who: 'C', label: 'Coumba reads her application file', rpc: 'my_application_file', args: {}, expect: 'Shows a completion percentage that includes the CV.' },
+    { who: 'C', label: 'Coumba applies', rpc: 'apply_to_offer', args: { p_offer: '{{offer}}', p_message: 'Bonjour, je suis interessee.', p_include_cv: true }, save: { application: '$' }, expect: 'Returns the application id. Bara gets a notice.' },
+    { who: 'B', label: 'Bara lists the applicants', rpc: 'list_offer_applicants', args: { p_offer: '{{offer}}' }, expect: 'Coumba is listed, with her file.' },
+    { who: 'C', label: 'Coumba tries to list the applicants', rpc: 'list_offer_applicants', args: { p_offer: '{{offer}}' }, expectError: true, expect: 'Refused: only the company that owns the offer can.' },
+    { who: 'B', label: 'Bara shortlists Coumba', rpc: 'set_application_status', args: { p_application: '{{application}}', p_status: 'shortlisted' }, expect: 'Works. Coumba gets a notice.' },
+    { who: 'C', label: 'Coumba lists her applications', rpc: 'list_my_applications', args: {}, expect: 'One application with status shortlisted.' },
+    { who: 'C', label: 'Coumba saves the offer', rpc: 'save_offer', args: { p_offer: '{{offer}}' }, expect: 'Works.' },
+    { who: 'C', label: 'Coumba saves a search with alerts', rpc: 'create_saved_search', args: { p_name: 'Python a Dakar', p_query: 'python', p_location: 'Dakar' }, save: { search: '$' }, expect: 'Returns the search id.' },
+    { who: 'C', label: 'Coumba runs the saved search', rpc: 'run_saved_search', args: { p_search: '{{search}}' }, expect: 'The offer is in the results.' },
+    { who: 'C', label: 'Coumba joins the talent directory', rpc: 'join_talent_directory', args: {}, expect: 'Works if her file is at least 60% complete, otherwise a clear message.' },
+    { who: 'B', label: 'Bara searches the talent directory', rpc: 'search_talent', args: { p_query: 'python' }, expect: 'Coumba appears (only approved companies can search).' }
+  ] },
+  { title: '7. Souk (shop) and creators', intro: 'Bara submits an item, Ama approves it, Coumba buys it, Bara earns her share.', steps: [
+    { who: 'C', label: 'Coumba browses the shop', rpc: 'souk_shop', args: {}, expect: 'The starting items are listed.' },
+    { who: 'B', label: 'Bara submits a theme', rpc: 'submit_souk_item', args: { p_kind: 'theme', p_name: 'Teranga Sunset', p_description: 'Un theme chaud', p_data: { primary: '#e8a33d', background: '#1b1b2f' }, p_price: 50 }, save: { submission: '$' }, expect: 'Returns the submission id.' },
+    { who: 'B', label: 'Bara uploads an image (a small generated PNG)', type: 'upload', kind: 'png', bucket: 'souk-images', saveAs: 'imgPath', expect: 'Uploaded to her own folder.' },
+    { who: 'B', label: 'Bara attaches the image', rpc: 'attach_submission_image', args: { p_submission: '{{submission}}', p_path: '{{imgPath}}' }, expect: 'Works.' },
+    { who: 'B', label: 'Bara tries to approve her own item', rpc: 'review_souk_submission', args: { p_submission: '{{submission}}', p_approve: true }, expectError: true, expect: 'Refused: only staff can review.' },
+    { who: 'A', label: 'Ama lists the waiting items', rpc: 'list_souk_submissions', args: {}, expect: 'Bara\'s theme is waiting.' },
+    { who: 'A', label: 'Ama approves it', rpc: 'review_souk_submission', args: { p_submission: '{{submission}}', p_approve: true }, save: { item: '$' }, expect: 'Returns the new shop item id. Bara gets a notice.' },
+    { who: 'C', label: 'Coumba buys it', rpc: 'buy_item', args: { p_item: '{{item}}' }, expect: 'Works: 50 Kopeks spent.' },
+    { who: 'C', label: 'Coumba wears it', rpc: 'equip_item', args: { p_item: '{{item}}' }, expect: 'Works.' },
+    { who: 'C', label: 'Coumba rates it', rpc: 'rate_item', args: { p_item: '{{item}}', p_stars: 5 }, expect: 'Works.' },
+    { who: 'C', label: 'Coumba reads her wallet', type: 'get', path: '/rest/v1/wallets?select=*', expect: '50 Kopeks left.' },
+    { who: 'B', label: 'Bara reads her creator summary', rpc: 'my_creator_summary', args: {}, expect: '1 item, 1 sale, 35 Kopeks earned (70% of 50).' },
+    { who: 'B', label: 'Bara lists her sales', rpc: 'list_my_sales', args: {}, expect: 'One sale of 50, amount 35.' },
+    { who: 'A', label: 'Ama sees the creator overview', rpc: 'creator_earnings_overview', args: {}, expect: 'Bara with 35 Kopeks.' }
+  ] },
+  { title: '8. Reports and moderation', intro: 'Coumba reports Bara\'s article; Ama removes it.', steps: [
+    { who: 'C', label: 'Coumba reports the article', rpc: 'report_content', args: { p_target_type: 'blog_post', p_target_id: '{{post}}', p_reason: 'spam', p_note: 'Test de signalement' }, save: { report: '$' }, expect: 'Returns the report id.' },
+    { who: 'A', label: 'Ama lists open reports', rpc: 'list_reports', args: {}, expect: 'The report is listed.' },
+    { who: 'A', label: 'Ama removes the article', rpc: 'resolve_report', args: { p_report: '{{report}}', p_action: 'remove_content', p_note: 'Test' }, expect: 'Works. Bara gets a notice that cannot be muted.' },
+    { who: 'C', label: 'Coumba lists articles', rpc: 'list_blog_posts', args: {}, expect: 'The article is gone from the list.' }
+  ] },
+  { title: '9. Notices, search, quest and streak', intro: 'What each member sees after all of the above.', steps: [
+    { who: 'B', label: 'Bara\'s unread notices (count)', rpc: 'unread_notification_count', args: {}, expect: 'Several: star, comment, like, application, sale, approval, article removed.' },
+    { who: 'B', label: 'Bara reads her notices', type: 'get', path: '/rest/v1/notifications?select=kind,data,created_at&order=created_at.desc&limit=20', expect: 'A list of notices that matches the steps above.' },
+    { who: 'B', label: 'Bara marks all as read', rpc: 'mark_all_notifications_read', args: {}, expect: 'Works.' },
+    { who: 'C', label: 'Coumba searches everything for "Test"', rpc: 'search_everything', args: { p_query: 'Test' }, expect: 'Matches across members, projects, communities, offers.' },
+    { who: 'C', label: 'Coumba lists the published quests', type: 'get', path: '/rest/v1/quests?select=id,slug,title,xp_reward,kopek_reward&published=eq.true&limit=3', save: { quest: '$.0.id' }, expect: 'One published quest: "La Malediction du Loop".' },
+    { who: 'A', label: 'Ama makes it the quest of the day', rpc: 'schedule_daily_quest', args: { p_quest: '{{quest}}', p_day: '{{today}}' }, expect: 'Works.' },
+    { who: 'C', label: 'Coumba reads the quest of the day', rpc: 'quest_of_the_day', args: {}, expect: 'That quest.' },
+    { who: 'C', label: 'Coumba starts it', rpc: 'start_quest', args: { p_quest_id: '{{quest}}' }, expect: 'Works. Now wait 20 seconds before the next step (a quest cannot be solved faster than its minimum time).' },
+    { who: 'C', label: 'Coumba tries to read the hidden tests', type: 'get', path: '/rest/v1/quest_tests?select=*&limit=3', expect: 'It must be REFUSED (a permission error). The hidden tests are private.' },
+    { who: 'C', label: 'Coumba tries to report her own result (the old way)', rpc: 'submit_quest', args: { p_quest_id: '{{quest}}', p_code: 'cheat', p_tests_passed: 4, p_tests_total: 4 }, expect: 'It must FAIL (function not found). Players can no longer report their own result.' },
+    { type: 'sql', label: 'Play the server: grade Coumba\'s solution as all 4 tests passed', sql: "select public.record_graded_attempt('{{uidC}}', '{{quest}}', 'def first_repeat(xs): pass', 4, 4);", expect: 'Returns solved true with XP and Kopeks. In real life the code runner service decides this, not a person; it is not connected yet, so the SQL stands in for it. Run it at least 20 seconds after the start step.' },
+    { who: 'C', label: 'Coumba reads her streak', rpc: 'my_streak', args: {}, expect: 'Streak 1, done today.' },
+    { who: 'C', label: 'Coumba reads her profile', type: 'get', path: '/rest/v1/profiles?select=*&id=eq.{{uidC}}', expect: 'XP is now above 0.' },
+    { who: 'C', label: 'Coumba lists her badges', type: 'get', path: '/rest/v1/user_badges?select=*', expect: 'A badge for the first quest, if one is defined for it.' },
+  ] },
+  { title: '10. GitHub checker: confirming a project, build status, good first issues', intro: 'First make a small PUBLIC test repository on your GitHub (instructions in the chat), then run the steps one by one, in order. The checker must be deployed in Supabase with its password (see docs/GITHUB_CHECKER_SETUP.md).', steps: [
+    { type: 'sql', label: 'List your test repository as a pending project owned by Bara', sql: "insert into public.projects (owner_id, github_owner, github_repo, title, summary)\nvalues ('{{uidB}}', 'YOUR-GITHUB-NAME', 'YOUR-TEST-REPO', 'Depot de test', 'Pour tester le verificateur');", expect: 'Replace YOUR-GITHUB-NAME and YOUR-TEST-REPO with the real ones, then run it. The project is pending: nobody but Bara sees it.' },
+    { who: 'C', label: 'Coumba cannot see the pending project', type: 'get', path: '/rest/v1/projects?select=id,title&title=eq.Depot%20de%20test', expect: 'An empty list (nothing public yet).' },
+    { type: 'fn', fn: 'github-sync', label: 'Run the GitHub checker', expect: 'An answer like {"checked":1,"verified":1,...,"extras":{"checked":..}}. "verified":1 means it confirmed your repository.' },
+    { who: 'B', label: 'Bara reads her project', type: 'get', path: '/rest/v1/projects?select=title,github_repo,verified_at,github_stars,language,build_status,build_checked_at&order=created_at.desc&limit=3', save: { ghproject: '$.0.id' }, expect: 'The test project now has a confirmation date. After the second run below it also has a build status.' },
+    { who: 'B', label: 'Bara\'s XP (reward for the confirmed repository)', type: 'get', path: '/rest/v1/profiles?select=xp&id=eq.{{uidB}}', expect: '50 XP more than before.' },
+    { type: 'fn', fn: 'github-sync', label: 'Run the checker again (the second pass needs a confirmed project)', expect: 'extras shows 1 checked. Running it a third time right away checks 0 (a project is looked at every 6 hours).' },
+    { who: 'C', label: 'Coumba reads the project\'s build status', type: 'get', path: '/rest/v1/projects?select=title,build_status,build_checked_at&id=eq.{{ghproject}}', expect: 'passing, failing, running or none, matching your test repository\'s latest run.' },
+    { who: 'C', label: 'Coumba lists good first issues', rpc: 'list_good_first_issues', args: {}, expect: 'The open issue(s) you labelled "good first issue" on your test repository.' },
+    { who: 'C', label: 'Coumba reads that project\'s issues', rpc: 'project_good_first_issues', args: { p_project: '{{ghproject}}' }, expect: 'The same issue(s), with their GitHub links.' }
+  ] },
+  { title: '11. File cleanup', intro: 'Leftover CV files and Souk images are deleted by a daily job. Files must be older than 24 hours, so a SQL step ages them for the test. Run the steps one by one, in order. The cleanup function must be deployed (docs/FILE_CLEANUP_SETUP.md).', steps: [
+    { who: 'C', label: 'Coumba uploads a second CV that nothing uses', type: 'upload', kind: 'pdf', bucket: 'cv-files', saveAs: 'cvLeft', expect: 'Uploaded.' },
+    { who: 'B', label: 'Bara uploads a second image that nothing uses', type: 'upload', kind: 'png', bucket: 'souk-images', saveAs: 'imgLeft', expect: 'Uploaded.' },
+    { who: 'C', label: 'Coumba lists her unused CV files', rpc: 'list_unused_cv_files', args: {}, expect: 'Only the second CV (the first is her current CV).' },
+    { type: 'sql', label: 'Make the leftover files look 2 days old', sql: "update storage.objects set created_at = now() - interval '2 days'\nwhere name in ('{{cvLeft}}', '{{imgLeft}}', '{{imgPath}}');", expect: 'Updates 2 or 3 rows. (The first image belongs to an approved item, so it must survive.)' },
+    { type: 'fn', fn: 'file-cleanup', label: 'Run the file cleanup', expect: '{"found":1,"deleted":1,...} or found 2 if the first image is also unused. Anything used must not be touched.' },
+    { who: 'C', label: 'Coumba lists her unused CV files again', rpc: 'list_unused_cv_files', args: {}, expect: 'Empty.' },
+    { who: 'C', label: 'Coumba\'s current CV still opens', rpc: 'my_application_file', args: {}, expect: 'Still shows the CV (it was not deleted).' },
+    { type: 'sql', label: 'Check which files remain', sql: "select bucket_id, name, created_at from storage.objects order by created_at;", expect: 'The leftover CV and the leftover image are gone; the current CV and the approved item\'s image remain.' }
+  ] }
+];
+
+/* ------------------------------ rendering & running ------------------------------ */
+let stepCount = 0, passCount = 0, failCount = 0;
+function sqlText(s) { return sub(s); }
+function refreshSql() {
+  document.querySelectorAll('[data-sql]').forEach((pre) => {
+    try { pre.textContent = sqlText(pre.getAttribute('data-sql')); } catch (e) { pre.textContent = 'This fills in by itself once the accounts are signed in and the earlier steps have run.'; }
+  });
+}
+
+function render() {
+  const root = $('flows');
+  FLOWS.forEach((f, fi) => {
+    const sec = document.createElement('section');
+    sec.innerHTML = '<h2>' + f.title + '</h2><p class="muted">' + f.intro + '</p>';
+    const panel = document.createElement('div'); panel.className = 'panel';
+    const hasRun = f.steps.some((s) => s.type !== 'sql');
+    if (hasRun) {
+      const bar = document.createElement('div'); bar.className = 'row'; bar.style.marginBottom = '6px';
+      const rb = document.createElement('button'); rb.textContent = 'Run all steps in this section'; rb.className = 'primary';
+      rb.onclick = async () => { rb.disabled = true; for (const s of f.steps) { if (s.type === 'sql') continue; const ok = await s._run(); if (!ok) break; } rb.disabled = false; };
+      bar.appendChild(rb); const hint = document.createElement('span'); hint.className = 'muted'; hint.textContent = 'Stops at the first unexpected result.'; bar.appendChild(hint);
+      panel.appendChild(bar);
+    }
+    f.steps.forEach((s, si) => {
+      const el = document.createElement('div'); el.className = 'step';
+      const id = 's' + fi + '_' + si;
+      let left = '<div class="what"><div>' + (s.who ? '<span class="pill">' + s.who + ': ' + WHO[s.who].name + '</span> ' : '') + '<strong>' + s.label + '</strong>' + (s.expectError ? ' <span class="pill">expected to be refused</span>' : '') + '</div><div class="expect">Expect: ' + s.expect + '</div>';
+      if (s.type === 'sql') left += '<div class="sql"><pre data-sql="' + s.sql.replace(/&/g, '&amp;').replace(/"/g, '&quot;') + '"></pre></div>';
+      else if (s.type === 'fn') left += '<div class="expect">Calls the deployed function in your Supabase project, with the checker password.</div>';
+      else if (s.type === 'upload') left += '<div class="expect">Sends a small ' + (s.kind === 'png' ? 'PNG image' : 'PDF') + ' made by this page.</div>';
+      else {
+        const a = s.type === 'get' ? s.path : JSON.stringify(s.args, null, 2);
+        left += '<details><summary>' + (s.type === 'get' ? 'Request' : 'Details (' + s.rpc + ')') + '</summary><textarea id="a_' + id + '" rows="4" spellcheck="false">' + a.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</textarea></details>';
+      }
+      left += '</div>';
+      const right = s.type === 'sql' ? '<div><button id="c_' + id + '">Copy</button></div>' : '<div class="row"><span id="t_' + id + '"></span><button id="b_' + id + '">Run</button></div>';
+      el.innerHTML = left + right + '<div class="out" id="o_' + id + '"></div>';
+      panel.appendChild(el);
+      s._id = id;
+      if (s.type === 'sql') {
+        setTimeout(() => {
+          const pre = el.querySelector('pre'); pre.setAttribute('data-sql', s.sql);
+          $('c_' + id).onclick = () => copyText(pre.textContent, $('c_' + id));
+        });
+      } else {
+        s._run = () => runStep(s);
+        setTimeout(() => { $('b_' + id).onclick = () => s._run(); });
+      }
+    });
+    sec.appendChild(panel); root.appendChild(sec);
+  });
+  setTimeout(refreshSql);
+}
+
+async function runStep(s) {
+  const id = s._id, out = $('o_' + id), tag = $('t_' + id), btn = $('b_' + id);
+  btn.disabled = true; tag.className = ''; tag.textContent = 'Running...'; out.innerHTML = '';
+  let result, err = null, shown = '';
+  try {
+    if (s.who && !S[s.who].token) throw new Error(WHO[s.who].name + ' is not signed in. Sign in above first.');
+    if (s.type === 'upload') {
+      const blob = s.kind === 'png' ? await makePng() : makePdf();
+      const path = S[s.who].uid + '/' + crypto.randomUUID() + '.' + s.kind;
+      const res = await fetch(base() + '/storage/v1/object/' + s.bucket + '/' + path, { method: 'POST', headers: { apikey: anon(), authorization: 'Bearer ' + S[s.who].token, 'content-type': blob.type, 'x-upsert': 'false' }, body: blob });
+      const t = await res.text(); let d; try { d = JSON.parse(t); } catch (e) { d = t; }
+      if (!res.ok) { const e = new Error((d && (d.message || d.error)) || 'HTTP ' + res.status); throw e; }
+      V[s.saveAs] = path; V[s.saveAs + 'Size'] = blob.size; result = { path, size: blob.size };
+    } else if (s.type === 'fn') {
+      const secret = $('cron').value;
+      if (!secret) throw new Error('Fill in the checker password at the top first.');
+      const res = await fetch(base() + '/functions/v1/' + s.fn, { method: 'POST', headers: { apikey: anon(), authorization: 'Bearer ' + anon(), 'x-cron-secret': secret, 'content-type': 'application/json' }, body: '{}' });
+      const t = await res.text(); let d; try { d = JSON.parse(t); } catch (e) { d = t; }
+      if (!res.ok) throw new Error('HTTP ' + res.status + ': ' + (typeof d === 'string' ? d : JSON.stringify(d)));
+      result = d;
+    } else if (s.type === 'get') {
+      const path = sub(document.getElementById('a_' + id).value);
+      result = await http('GET', path, s.who);
+    } else {
+      let args = JSON.parse(document.getElementById('a_' + id).value);
+      args = sub(args);
+      result = await http('POST', '/rest/v1/rpc/' + s.rpc, s.who, args);
+    }
+    if (s.save) for (const k in s.save) { const v = pick(result, s.save[k]); if (v !== undefined) V[k] = v; }
+    shown = JSON.stringify(result === null ? 'done (no data returned)' : result, null, 2);
+  } catch (e) { err = e; shown = e.message; }
+  const good = s.expectError ? !!err : !err;
+  tag.className = 'pill ' + (good ? 'status-ok' : 'status-bad');
+  tag.textContent = good ? (s.expectError ? 'Refused, as expected' : 'OK') : (s.expectError ? 'Was NOT refused' : 'Failed');
+  out.innerHTML = '<pre></pre><label class="mark"><input type="checkbox" id="m_' + id + '"> The result matches what I expected</label>';
+  out.querySelector('pre').textContent = shown.length > 6000 ? shown.slice(0, 6000) + '\n... (cut)' : shown;
+  const entry = { section: FLOWS.find((f) => f.steps.includes(s)).title, label: s.label, who: s.who, call: s.rpc || s.path || s.fn || s.bucket, ok: good, result: shown.slice(0, 700), id };
+  const i = LOG.findIndex((x) => x.id === id); if (i >= 0) LOG[i] = entry; else LOG.push(entry);
+  setTimeout(() => { const cb = document.getElementById('m_' + id); if (cb) cb.onchange = () => { entry.mark = cb.checked ? 'yes' : 'no'; }; });
+  btn.disabled = false; btn.textContent = 'Run again';
+  refreshSql();
+  updateSummary();
+  return good;
+}
+
+function updateSummary() {
+  const ok = LOG.filter((x) => x.ok).length, bad = LOG.length - ok;
+  $('summary').textContent = LOG.length + ' steps run: ' + ok + ' as expected, ' + bad + ' not';
+}
+async function copyText(text, btn) {
+  try { await navigator.clipboard.writeText(text); if (btn) { const t = btn.textContent; btn.textContent = 'Copied'; setTimeout(() => { btn.textContent = t; }, 1500); } return true; }
+  catch (e) { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch (e2) {} ta.remove(); if (btn) { btn.textContent = 'Copied'; } return true; }
+}
+$('copyReport').onclick = async () => {
+  const lines = ['jaajef.tech test report', new Date().toISOString(), ''];
+  let sect = '';
+  LOG.forEach((x) => {
+    if (x.section !== sect) { sect = x.section; lines.push('', '## ' + sect); }
+    lines.push((x.ok ? 'OK   ' : 'FAIL ') + (x.who ? '[' + x.who + '] ' : '') + x.label + ' -> ' + x.call + (x.mark ? ' (my check: ' + x.mark + ')' : ''));
+    if (!x.ok || x.mark === 'no') lines.push('     ' + x.result.replace(/\n/g, ' ').slice(0, 500));
+  });
+  await copyText(lines.join('\n'), $('copyReport'));
+  $('copyMsg').textContent = 'Copied. Paste it in the chat.';
+};
+
+buildAccounts();
+render();
+</script>
+</body>
+</html>
