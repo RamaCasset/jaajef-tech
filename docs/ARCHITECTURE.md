@@ -31,7 +31,7 @@ database itself, and the tests check it.
 | Who you blocked | Only you |
 | Projects confirmed on GitHub | Everyone, even visitors (unless the owner hides it) |
 | Projects not yet confirmed | Only their owner |
-| Application file, portfolio and CV | Only the member (the company applied to will see it once applying is built) |
+| Application file, portfolio and CV | Only the member (the company applied to sees a copy and the CV for 90 days after a decline or the offer closing) |
 | Approved employers and offers on the board | Everyone, even visitors |
 | Staff roles | You see your own; admins see all |
 | Audit log of staff actions | Admins only |
@@ -341,7 +341,30 @@ Not in part 1 (part 2 is below): the application file, applying,
 the opt-in talent directory, and reporting an offer from the report button.
 
 
-### Application file (part 2)
+#### Applying (part 3)
+A signed-in member applies to a listed offer with `apply_to_offer`. One
+application per offer (applying again is possible only after withdrawing), not
+to your own offer, with a daily limit (`job_applications_max_per_day`, 20) and
+an optional minimum completion of the application file
+(`application_min_completion`, to confirm with Marie, 0 for now).
+
+- The company receives a copy of the file as it was on the day of applying
+  (headline, text, skills, portfolio, CV link). Later edits do not change it.
+- Only the applicant and the company that owns the offer can read an
+  application. Not even an admin. Nobody writes the table directly.
+- The company moves an application forward only: seen, shortlisted, declined.
+  Declined is final. The applicant gets a notice each time.
+- The company can open the CV (private bucket, storage policy) only while the
+  application is open: until 90 days after a decline or after the offer
+  closed (`application_cv_access_days`). Reopening the offer stops the clock.
+  After that the company no longer sees the application at all.
+- Withdrawing erases the message, the copy and the CV link.
+- Replacing a CV keeps the one an application was sent with; removing the CV
+  or the file takes it from the member's applications too.
+  `list_unused_cv_files` lists files that can be deleted.
+- `list_my_applications` keeps the member's history, even if the offer is gone.
+
+## Application file (part 2)
 Each member can keep one private application file: headline, text about
 themselves, place, years of experience, availability, the kind of work wanted
 (job, freelance or both), up to 20 skills, and https links to a website and
