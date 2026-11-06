@@ -434,6 +434,74 @@ export async function runQuest(questId: string, code: string): Promise<RunOutcom
 }
 
 // ---------------------------------------------------------------------
+// The Cité home page
+// ---------------------------------------------------------------------
+export type DailyQuest = {
+  quest_id: string
+  slug: string
+  title: string
+  summary: string | null
+  clan: ClanKey
+  mastery: MasteryKey
+  topic: string | null
+  language: 'python' | 'javascript' | null
+  est_minutes: number
+  xp_reward: number
+  kopek_reward: number
+  source: 'scheduled' | 'automatic'
+  day: string
+  seconds_left: number
+  status: 'in_progress' | 'solved' | null
+}
+
+/** Today's quest, or null when no quest is published yet. */
+export async function getDailyQuest(): Promise<DailyQuest | null> {
+  const rows = await rpc<DailyQuest[] | null>('quest_of_the_day')
+  return rows && rows.length > 0 ? rows[0] : null
+}
+
+export type StreakInfo = {
+  current_streak: number
+  longest_streak: number
+  done_today: boolean
+  at_risk: boolean
+  chest_every: number
+  chest_kopeks: number
+  next_chest_in: number | null
+  last_active_on: string | null
+  freezes: number
+  freeze_max: number
+  protected_by_freeze: boolean
+}
+
+export async function getMyStreak(): Promise<StreakInfo | null> {
+  const rows = await rpc<StreakInfo[] | null>('my_streak')
+  return rows && rows.length > 0 ? rows[0] : null
+}
+
+/** XP needed per level (a game setting, 10 000 if it cannot be read). */
+export async function getXpPerLevel(): Promise<number> {
+  const { data, error } = await supabase.from('game_config').select('value').eq('key', 'xp_per_level').maybeSingle()
+  if (error) throw new Error(error.message)
+  return Number(data?.value ?? 10000) || 10000
+}
+
+/** The badges the member unlocked most recently. */
+export async function getRecentBadges(userId: string, limit = 4): Promise<ProfileBadge[]> {
+  const { data, error } = await supabase
+    .from('user_badges')
+    .select('unlocked_at, badges(slug, name, description, tier)')
+    .eq('user_id', userId)
+    .not('unlocked_at', 'is', null)
+    .order('unlocked_at', { ascending: false })
+    .limit(limit)
+  if (error) throw new Error(error.message)
+  type Row = { badges: ProfileBadge | ProfileBadge[] | null }
+  return ((data ?? []) as unknown as Row[])
+    .map((r) => (Array.isArray(r.badges) ? r.badges[0] : r.badges))
+    .filter((b): b is ProfileBadge => !!b)
+}
+
 // Importing projects from GitHub
 // ---------------------------------------------------------------------
 
