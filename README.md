@@ -21,6 +21,7 @@ tied together by XP and Kopeks. Designs by Marie (Figma).
 | Souk (buy, own and wear themes, avatar frames and status badges with Kopeks) | Done and tested. Creator submissions and the creator share come later |
 | Notifications (in-app inbox: stars, comments, requests, badges, warnings; mute and read state) | Done and tested; not yet merged |
 | Project discovery (search, filters, sorting, featured projects, trending creators) | Done and tested; not yet merged |
+| Global search (projects, members, communities, quests) | Done and tested; not yet merged |
 | Jobs | Not started |
 | Project stars, comments and ask to collaborate | Done and tested |
 | GitHub checker (confirms projects against GitHub, hourly) | Built and tested; not yet merged. Setup guide: `docs/GITHUB_CHECKER_SETUP.md` |
@@ -69,6 +70,7 @@ psql -v ON_ERROR_STOP=1 -f supabase/tests/chat.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/dm.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/fixes.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/foundation.test.sql
+psql -v ON_ERROR_STOP=1 -f supabase/tests/global_search.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/moderation.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/moderation_followup.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/project_discovery.test.sql
