@@ -204,3 +204,13 @@ select { background: var(--panel); color: var(--fg); border: 1px solid var(--lin
 .hint-list { margin: 0; padding-left: 20px; display: grid; gap: 8px; }
 .quest-side { display: grid; gap: 16px; }
 @media (max-width: 900px) { .quest-cols { grid-template-columns: 1fr; } }
+
+/* Import a project */
+.import-page { display: grid; gap: 16px; }
+.import-connect { padding: 24px; display: grid; gap: 12px; justify-items: start; }
+.import-connect h2, .import-connect p { margin: 0; }
+.repo-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.repo-row { display: flex; gap: 16px; align-items: center; padding: 16px; }
+.repo-main { flex: 1; min-width: 0; display: grid; gap: 6px; }
+.repo-main h3, .repo-main p { margin: 0; }
+.repo-row > .btn, .repo-row > .tag { flex: none; }

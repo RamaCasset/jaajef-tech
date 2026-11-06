@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
 import { ClanTag, ProjectCard, BuildBadge } from '../components/ProjectCard'
 import { fr, type ClanKey } from '../i18n/fr'
@@ -67,6 +68,7 @@ export function Projects() {
           <p className="eyebrow">{fr.projects.eyebrow}</p>
           <h1 className="page-title">{fr.projects.title}</h1>
           <p className="muted">{fr.projects.subtitle}</p>
+          <p><Link className="btn btn-cta" to="/projets/ajouter">{fr.importProject.newProject}</Link></p>
         </div>
 
         <div className="filters">
