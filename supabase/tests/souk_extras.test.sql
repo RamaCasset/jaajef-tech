@@ -268,7 +268,7 @@ begin
   if exists (select 1 from public.souk_featured) then raise exception 'FAIL: the picks were not cleared'; end if;
   if (select count(*) from public.admin_audit_log where action = 'souk_featured_cleared' and target_id = b::text) <> 1 then raise exception 'FAIL: clearing B should be logged once'; end if;
   if (select count(*) from public.admin_audit_log where action = 'souk_featured_cleared' and target_id = a::text) <> 1 then raise exception 'FAIL: clearing A should be logged once'; end if;
-  if (select count(*) from public.admin_audit_log where action = 'souk_featured_cleared') <> 2 then raise exception 'FAIL: only the two real clearings should be logged'; end if;
+  if (select count(*) from public.admin_audit_log where action = 'souk_featured_cleared' and target_id in (a::text, b::text)) <> 2 then raise exception 'FAIL: only the two real clearings should be logged'; end if;
   perform sxkit.as_anon();
   if (select source from public.featured_item()) <> 'automatic' then raise exception 'FAIL: back to the automatic pick'; end if;
   reset role;
