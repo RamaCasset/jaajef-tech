@@ -1,0 +1,37 @@
+-- Schedules the job-alert e-mail to run once a day (at 08:07, which is 08:07 in Senegal).
+--
+-- Run this ONCE in the Supabase SQL Editor, after replacing the two
+-- placeholders in capital letters. It is NOT a migration, because it contains
+-- your own secrets. Never save the filled-in version in the repository.
+--
+-- YOUR-PROJECT-REF  : the first part of your Supabase address (https://THIS.supabase.co)
+-- YOUR-CRON-SECRET  : the same CRON_SECRET you saved in the function's secrets
+-- YOUR-FUNCTION-NAME: the last part of the function's address (Supabase chooses it; see the setup guide)
+
+create extension if not exists pg_cron;
+create extension if not exists pg_net;
+
+-- If you already ran the GitHub checker's schedule file, the two secrets below already exist:
+-- skip these two lines (running them again would fail).
+select vault.create_secret('https://YOUR-PROJECT-REF.supabase.co', 'project_url');
+select vault.create_secret('YOUR-CRON-SECRET', 'cron_secret');
+
+select cron.schedule(
+  'job-digest-daily',
+  '7 8 * * *',
+  $$
+  select net.http_post(
+    url := (select decrypted_secret from vault.decrypted_secrets where name = 'project_url') || '/functions/v1/YOUR-FUNCTION-NAME',
+    headers := jsonb_build_object(
+      'Content-type', 'application/json',
+      'x-cron-secret', (select decrypted_secret from vault.decrypted_secrets where name = 'cron_secret')
+    ),
+    body := '{}'::jsonb
+  ) as request_id;
+  $$
+);
+
+-- To look at the last runs:
+--   select status, return_message, start_time from cron.job_run_details order by start_time desc limit 5;
+-- To stop the schedule:
+--   select cron.unschedule('job-digest-daily');
