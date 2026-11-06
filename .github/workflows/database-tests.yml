@@ -75,6 +75,9 @@ jobs:
       - name: Run the quest runner test (real database, pretend code runner)
         run: node --experimental-strip-types supabase/functions/run-quest/run.test.mjs
 
+      - name: Run the E2B runner test (real python and node, pretend E2B)
+        run: node --experimental-strip-types supabase/functions/e2b-runner/runner.test.mjs
+
   app:
     runs-on: ubuntu-latest
     defaults:
