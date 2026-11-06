@@ -58,6 +58,11 @@ describe('Projects page', () => {
     expect(within(trending).getByText('248')).toBeInTheDocument()
   })
 
+  it('has a button that leads to the page for adding a project', async () => {
+    mount()
+    expect(screen.getByRole('link', { name: 'Ajouter un projet' })).toHaveAttribute('href', '/projets/ajouter')
+  })
+
   it('searches after typing stops, passing the text to the database', async () => {
     mount()
     await screen.findByText('repo-1')
