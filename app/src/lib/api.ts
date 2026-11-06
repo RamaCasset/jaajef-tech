@@ -236,3 +236,72 @@ export async function loadProfile(username: string, viewerId: string): Promise<P
     questsSolved: mine ? (quests.count ?? 0) : null,
   }
 }
+
+// ---------------------------------------------------------------------
+// Jobs
+// ---------------------------------------------------------------------
+export type JobSort = 'recent' | 'pay'
+export type JobFilters = { query: string; place: string; kind: '' | 'job' | 'freelance'; contract: string; remote: string; sort: JobSort }
+
+export type JobOffer = {
+  id: string
+  title: string
+  kind: 'job' | 'freelance'
+  employment_type: string | null
+  location: string | null
+  remote: 'onsite' | 'hybrid' | 'remote'
+  pay_min_fcfa: number | null
+  pay_max_fcfa: number | null
+  pay_unit: string | null
+  pay_negotiable: boolean
+  tags: string[]
+  closes_on: string | null
+  published_at: string
+  employer_id: string
+  employer_name: string
+  employer_kind: string
+  employer_logo_url: string | null
+}
+
+export const searchJobs = (f: JobFilters) =>
+  rpc<JobOffer[]>('search_job_offers', {
+    p_query: f.query.trim() || null,
+    p_kind: f.kind || null,
+    p_employment_type: f.contract || null,
+    p_remote: f.remote || null,
+    p_location: f.place.trim() || null,
+    p_tag: null,
+    p_min_pay: null,
+    p_pay_unit: null,
+    p_sort: f.sort,
+    p_limit: 50,
+    p_offset: 0,
+  })
+
+export type SavedOffer = {
+  offer_id: string
+  title: string
+  kind: string
+  location: string | null
+  remote: string
+  employer_name: string
+  closes_on: string | null
+  is_listed: boolean
+  saved_at: string
+}
+export const listSavedOffers = () => rpc<SavedOffer[]>('list_saved_offers', { p_limit: 50, p_offset: 0 })
+export const saveOffer = (id: string) => rpc<void>('save_offer', { p_offer: id })
+export const unsaveOffer = (id: string) => rpc<void>('unsave_offer', { p_offer: id })
+
+export type MyApplication = {
+  id: string
+  offer_id: string
+  offer_title: string
+  employer_name: string
+  status: 'submitted' | 'seen' | 'shortlisted' | 'declined' | 'withdrawn'
+  applied_at: string
+  updated_at: string
+  offer_open: boolean
+  has_cv: boolean
+}
+export const listMyApplications = () => rpc<MyApplication[]>('list_my_applications')

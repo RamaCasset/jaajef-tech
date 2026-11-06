@@ -11,6 +11,7 @@ export function friendlyError(error: unknown): string {
   if (m.includes('not enough kopeks')) return fr.errors.notEnoughKopeks
   if (m.includes('already own')) return fr.errors.alreadyOwned
   if (m.includes('not for sale')) return fr.errors.notForSale
+  if (m.includes('saved as many offers')) return fr.errors.saveLimit
   if (m.includes('sign in first') || m.includes('not authenticated')) return fr.errors.notSignedIn
   return fr.common.unknownError
 }

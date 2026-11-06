@@ -166,3 +166,14 @@ select { background: var(--panel); color: var(--fg); border: 1px solid var(--lin
 .badge-rare, .badge-legendary { border-color: var(--cta); }
 @media (max-width: 800px) { .profile-cols { grid-template-columns: 1fr; } }
 .mono { font-family: var(--font-mono); }
+
+/* Jobs */
+.jobs-filters { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; }
+.jobs-filters label { display: grid; gap: 4px; font-size: 12px; color: var(--fg-muted); }
+.jobs-filters input[type="search"] { flex: 1 1 280px; }
+.jobs-list { display: grid; gap: 12px; }
+.job-card { display: flex; gap: 16px; align-items: flex-start; padding: 16px; }
+.job-logo { width: 44px; height: 44px; flex: none; border-radius: 10px; border: 1px solid var(--line-strong); display: grid; place-items: center; font-family: var(--font-mono); color: var(--accent); }
+.job-main { flex: 1; min-width: 0; display: grid; gap: 6px; }
+.job-main h3, .job-main p { margin: 0; }
+.job-card > .btn, .job-card > .tag { margin-left: auto; flex: none; }

@@ -90,6 +90,43 @@ export const fr = {
     retry: 'Réessayer',
     bought: (name: string) => `${name} est à toi.`,
   },
+  jobs: {
+    title: 'Jobs',
+    subtitle: 'Votre prochain défi tech, à Dakar, en Afrique ou en remote.',
+    tabs: { all: 'Toutes les offres', saved: 'Sauvegardées', applications: 'Mes candidatures' },
+    search: 'Intitulé de poste, entreprise ou compétence...',
+    place: 'Lieu',
+    kind: 'Type',
+    kinds: { job: 'Emploi', freelance: 'Freelance' },
+    contract: 'Contrat',
+    contracts: { full_time: 'CDI / temps plein', part_time: 'Temps partiel', contract: 'CDD / contrat', internship: 'Stage' },
+    remote: 'Lieu de travail',
+    remotes: { onsite: 'Sur place', hybrid: 'Hybride', remote: '100 % remote' },
+    sort: 'Trier par',
+    sorts: { recent: 'Plus récentes', pay: 'Mieux payées' },
+    any: 'Tous',
+    reset: 'Réinitialiser',
+    count: (n: number) => (n === 1 ? '1 offre' : `${n} offres`),
+    countMore: (n: number) => `${n} offres ou plus sur cette page`,
+    payRange: (min: number | null, max: number | null, unit: string | null) => {
+      const f = (n: number) => n.toLocaleString('fr-FR')
+      const per = unit === 'hour' ? 'heure' : unit === 'day' ? 'jour' : unit === 'month' ? 'mois' : unit === 'year' ? 'an' : unit === 'project' ? 'projet' : ''
+      const range = min !== null && max !== null && min !== max ? `${f(min)} - ${f(max)}` : f((max ?? min) as number)
+      return `${range} FCFA${per ? ` / ${per}` : ''}`
+    },
+    negotiable: 'Salaire à négocier',
+    closes: (d: string) => `Jusqu'au ${d}`,
+    save: 'Sauvegarder',
+    unsave: 'Retirer des sauvegardes',
+    empty: "Aucune offre ne correspond pour l'instant.",
+    savedEmpty: "Aucune offre sauvegardée pour l'instant.",
+    applicationsEmpty: "Aucune candidature pour l'instant.",
+    notListed: "Plus en ligne",
+    appliedOn: (d: string) => `Envoyée le ${d}`,
+    statuses: { submitted: 'Envoyée', seen: 'Vue', shortlisted: 'Retenue', declined: 'Refusée', withdrawn: 'Retirée' },
+    error: 'Impossible de charger les offres.',
+    retry: 'Réessayer',
+  },
   profile: {
     available: 'Disponible pour collaborer',
     verified: 'Vérifié',
@@ -152,6 +189,7 @@ export const fr = {
     notSignedIn: 'Connectez-vous pour continuer.',
     notEnoughKopeks: "Il te manque des Kopeks pour cet article.",
     alreadyOwned: 'Tu possèdes déjà cet article.',
+    saveLimit: "Tu as atteint le maximum d'offres sauvegardées. Retires-en quelques-unes.",
     notForSale: "Cet article n'est plus en vente.",
   },
 } as const
