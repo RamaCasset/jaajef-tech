@@ -77,6 +77,20 @@ finished lesson, written as a draft to be reviewed and edited.
 Every quest takes at most 10 minutes. Monthly big challenges are recorded as
 to be confirmed (solo or teams, length, reward).
 
+### Streak extras
+The streak number used to change only when a quest was solved, so a member who
+stopped playing still showed the old number. Now `my_streak()` gives the
+streak as it really stands: it reads 0 once a day was missed, and also gives the
+longest streak ever, whether today is done, whether the streak is at risk (alive
+but nothing done today), and how many days of solving remain until the next
+chest. The longest streak is kept on the profile (public, not editable). An
+activity calendar records, per day, how many quests a member solved (public;
+`activity_calendar(user, days)`, up to a year back), and `top_streaks()` lists
+the longest streaks that are still alive. A new streak never lowers the longest.
+
+Not decided yet: a bonus reward for the quest of the day, streak freezes, and
+reminders when a streak is at risk (reminders need the notifications piece).
+
 ### Quest of the day
 One quest is shown to everyone each day (UTC, which is Senegal time), with its
 rewards, difficulty and the seconds left. An admin can schedule a quest for any

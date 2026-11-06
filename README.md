@@ -25,6 +25,7 @@ tied together by XP and Kopeks. Designs by Marie (Figma).
 | Quest of the day (one quest for everyone, scheduled by admins or picked automatically) | Done and tested |
 | Blog (posts and drafts, likes, comments, staff hiding, daily limit) | Done and tested. Notices and search for posts come after those pieces merge |
 | Souk extras (ratings by owners, theme of the week) | Done and tested |
+| Streak extras (real streak today, longest streak, activity calendar, top streaks) | Done and tested |
 | Jobs | Not started |
 | Project stars, comments and ask to collaborate | Done and tested |
 | GitHub checker (confirms projects against GitHub, hourly) | Built and tested; not yet merged. Setup guide: `docs/GITHUB_CHECKER_SETUP.md` |
@@ -86,6 +87,7 @@ psql -v ON_ERROR_STOP=1 -f supabase/tests/quests.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/souk.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/souk_extras.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/staff.test.sql
+psql -v ON_ERROR_STOP=1 -f supabase/tests/streaks.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/teaching.test.sql
 node --experimental-strip-types supabase/functions/github-sync/sync.test.mjs   # the GitHub checker, needs Node 22
 ```
