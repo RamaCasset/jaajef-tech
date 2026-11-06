@@ -238,6 +238,20 @@ and forum (a thread has a title, replies stay one level deep).
 - Not built yet: creator submissions, admin review, and the creator share
   (`souk_creator_share_percent` is still undecided).
 
+
+### Ratings and theme of the week
+A member who owns an item can rate it from 1 to 5 stars, change the rating, or
+take it back. Only owners can rate (the database ties a rating to ownership).
+Each item shows its average and number of ratings; who rated what is private.
+`souk_shop()` lists the shop with averages, whether the viewer owns each item,
+the viewer's own rating, and sorting (new, price, best rated).
+
+An admin can pick one item to feature for a week (weeks start on Monday, UTC),
+up to a year ahead. If no item is picked, or the picked item is taken off sale,
+the shop features the most recently added item on sale. Staff can see the
+coming weeks. Picking and clearing are written to the audit log, once per real
+change. No Kopeks move and no prices change.
+
 ## Blog
 Members write posts (title, summary, body, optional https cover image, up to 5
 tags). A post starts as a private draft; publishing makes it public. Anyone can
