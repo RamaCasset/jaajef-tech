@@ -7,6 +7,13 @@ export function friendlyError(error: unknown): string {
   if (m.includes('invalid login credentials')) return fr.errors.invalidCredentials
   if (m.includes('already registered') || m.includes('already been registered')) return fr.errors.emailTaken
   if (m.includes('password should be at least') || m.includes('weak password')) return fr.errors.weakPassword
+  if (m.includes('already applied')) return fr.errors.alreadyApplied
+  if (m.includes('applying too fast')) return fr.errors.applyingTooFast
+  if (m.includes('headline to your application') || m.includes('complete your application file')) return fr.errors.needFile
+  if (m.includes('your own offer')) return fr.errors.ownOffer
+  if (m.includes('offer not found')) return fr.errors.offerGone
+  if (m.includes('account is suspended')) return fr.errors.suspended
+  if (m.includes('secure (https)')) return fr.errors.secureLink
   if (m.includes('already chosen')) return fr.errors.characterLocked
   if (m.includes('not enough kopeks')) return fr.errors.notEnoughKopeks
   if (m.includes('already own')) return fr.errors.alreadyOwned
