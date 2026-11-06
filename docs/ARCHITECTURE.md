@@ -301,9 +301,15 @@ and unhiding are written to the audit log, once per real change.
 Posts, comments, likes and counts can only change through functions. The feed
 is `list_blog_posts` (filter by tag or author, newest first).
 
-Still to add after the notifications and global search pieces are merged:
-notices to the author for likes and comments, posts inside the global search,
-and the report button for posts.
+### Blog hooks
+- The author gets a notice for each new comment (not their own) and for each
+  person who likes the post (once per person, even after unlike and like again).
+  When staff hide a post the author is told; this notice cannot be switched off.
+- Published, visible posts appear in the global search as kind `post`.
+- Reports can target a blog post, a blog comment or a job offer (not your own,
+  not hidden or draft ones). Staff "remove content" hides the post or the offer
+  (the owner is told, cannot be muted) or deletes the comment.
+- Souk items cannot be reported yet: they have no author until creators can submit them.
 
 ## Jobs (part 1: employers and offers)
 Working decisions (from the project coordinator, to confirm with Marie): offers

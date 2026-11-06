@@ -23,10 +23,11 @@ tied together by XP and Kopeks. Designs by Marie (Figma).
 | Project discovery (search, filters, sorting, featured projects, trending creators) | Done and tested; not yet merged |
 | Global search (projects, members, communities, quests) | Done and tested; not yet merged |
 | Quest of the day (one quest for everyone, scheduled by admins or picked automatically) | Done and tested |
-| Blog (posts and drafts, likes, comments, staff hiding, daily limit) | Done and tested. Notices and search for posts come after those pieces merge |
+| Blog (posts and drafts, likes, comments, staff hiding, daily limit) | Done and tested |
 | Souk extras (ratings by owners, theme of the week) | Done and tested |
 | Streak extras (real streak today, longest streak, activity calendar, top streaks) | Done and tested |
 | Safety audit (checks the whole database for common security mistakes, on every push) | Done |
+| Blog hooks (notices for comments, likes and hiding; posts in search; reports on posts, comments and job offers) | Done and tested |
 | Jobs, part 1 (employers, job offers, staff review, search) | Done and tested |
 | Jobs, part 2 (private application file: skills, portfolio, CV upload, completion percentage) | Done and tested |
 | Jobs, part 3 (applying, statuses, 90-day CV access for the company) | Done and tested |
@@ -77,6 +78,7 @@ for f in supabase/migrations/*.sql; do psql -v ON_ERROR_STOP=1 -f "$f"; done
 psql -v ON_ERROR_STOP=1 -f supabase/tests/ask_to_join.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/badges.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/blog.test.sql
+psql -v ON_ERROR_STOP=1 -f supabase/tests/blog_hooks.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/chat.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/dm.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/fixes.test.sql
