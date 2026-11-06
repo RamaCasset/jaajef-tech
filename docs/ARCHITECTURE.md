@@ -303,6 +303,41 @@ Still to add after the notifications and global search pieces are merged:
 notices to the author for likes and comments, posts inside the global search,
 and the report button for posts.
 
+## Jobs (part 1: employers and offers)
+Working decisions (from the project coordinator, to confirm with Marie): offers
+can be published by registered companies and by people who hire freelancers;
+people apply inside the platform; a CV is stored privately and shared only with
+the company a member applies to, for 90 days after the application is declined
+or the offer closes; alerts show in the app first, with a daily email summary
+later; the career space is one space for developers and for employers.
+
+What part 1 builds:
+- **Employer profile.** One per member: a company, or an individual who hires
+  freelancers (name, description, https website and logo, place).
+- **Company approval.** Staff approve a company once. Changing an approved
+  company's name, website or logo sends it back for review, and its offers leave
+  the board until it is approved again. An individual's first offer waits for
+  staff; approving it approves the individual, and later offers go out freely.
+- **Offers.** A job (full time, part time, contract, internship) or a freelance
+  gig, with a description, pay range in FCFA per hour, day, month, year or
+  project (or negotiable), place, onsite, hybrid or remote, up to 8 tags and an
+  optional closing day (within a year). Drafts are private. Limits: 3 first
+  publications per employer per day and 20 open offers (both in `game_config`).
+- **Board.** `search_job_offers` is open to visitors and filters by text (title,
+  employer or tag), kind, job type, remote option, place, tag and minimum pay
+  (the pay filter needs a unit, since pay per month and per year cannot be
+  compared). Sorted by newest or by highest pay.
+- **Staff.** A review queue (companies waiting, offers waiting), approve or
+  reject with a reason, and hide or show any offer. Every decision is logged once.
+  Rejection reasons are kept only on rejected rows, which only the owner and staff
+  can read, so no staff note ever appears on a public row.
+- Suspended members cannot create, edit or publish. Everything is written
+  through functions.
+
+Not in part 1: the application file (profile, skills, portfolio, CV), applying,
+"my applications", saved offers, saved searches and alerts, the email summary,
+the opt-in talent directory, and reporting an offer from the report button.
+
 ## Staff (admin and moderator)
 - Staff are normal member accounts that carry a role, kept in a private table.
   There is no separate kind of account. A separate back-office web address can
