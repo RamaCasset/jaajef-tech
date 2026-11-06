@@ -372,6 +372,20 @@ a moderator. These roles give no moderation or admin power (tested).
   An item off sale stops being featured.
 - The creator is told when their item is taken off sale (either route). This notice cannot be switched off.
 
+## Quest-of-the-day bonus and streak freezes
+- **Bonus:** solving the quest of the day on its day can pay extra XP and Kopeks, once.
+  The amounts (`daily_quest_bonus_xp`, `daily_quest_bonus_kopeks`) are placeholders at 0 until
+  Marie decides, so nothing extra is paid yet. `submit_quest` reports `daily_quest`,
+  `bonus_xp` and `bonus_kopeks`.
+- **Freezes:** a member earns one each time the streak reaches a multiple of
+  `streak_freeze_every_days` (7), keeps at most `streak_freeze_max` (2). When the member comes
+  back after missing days, stored freezes cover them automatically and the streak continues.
+  If more days were missed than freezes are stored, the streak restarts and no freeze is spent.
+  Frozen days are not activity days. These numbers are defaults to confirm with Marie.
+- `my_streak` also shows the freezes stored, the maximum, and whether a freeze is protecting the
+  streak right now. `list_my_streak_freezes` is the history. `top_streaks` still lists only members
+  who were really active today or yesterday.
+
 ## Jobs (part 1: employers and offers)
 Working decisions (from the project coordinator, to confirm with Marie): offers
 can be published by registered companies and by people who hire freelancers;

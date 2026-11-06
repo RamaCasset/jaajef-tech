@@ -33,6 +33,7 @@ tied together by XP and Kopeks. Designs by Marie (Figma).
 | Souk creator share (Kopek payout on sales, sales list, owner overview) | Done and tested |
 | Souk submission images (private upload, review, shown with the item) | Done and tested |
 | Souk reports and taking items off sale | Done and tested |
+| Quest-of-the-day bonus (placeholder amounts) and streak freezes | Done and tested |
 | Jobs, part 1 (employers, job offers, staff review, search) | Done and tested |
 | Jobs, part 2 (private application file: skills, portfolio, CV upload, completion percentage) | Done and tested |
 | Jobs, part 3 (applying, statuses, 90-day CV access for the company) | Done and tested |
@@ -85,6 +86,7 @@ psql -v ON_ERROR_STOP=1 -f supabase/tests/badges.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/blog.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/blog_hooks.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/chat.test.sql
+psql -v ON_ERROR_STOP=1 -f supabase/tests/daily_bonus_streak_freeze.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/dm.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/fixes.test.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/foundation.test.sql
