@@ -132,6 +132,8 @@ describe('Import a project', () => {
     linkGithubAccount.mockRejectedValue(new Error('No GitHub account is connected to your login'))
     mount()
     const button = await screen.findByRole('button', { name: 'Connecter GitHub' })
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    expect(linkGithubAccount).toHaveBeenCalledTimes(1)
     expect(listPublicRepos).not.toHaveBeenCalled()
     connectGithub.mockResolvedValue(undefined)
     await userEvent.click(button)
