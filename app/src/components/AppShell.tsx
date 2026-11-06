@@ -4,7 +4,7 @@ import { useAuth } from '../auth/AuthContext'
 import { Logo } from './Logo'
 import { fr } from '../i18n/fr'
 
-const SOON = [fr.nav.quests]
+const SOON: string[] = []
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { member, signOut } = useAuth()
@@ -15,6 +15,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <NavLink to="/cite" aria-label={fr.appName}><Logo size={20} /></NavLink>
         <nav aria-label="Navigation principale" className="topnav">
           <NavLink to="/cite" end>{fr.nav.city}</NavLink>
+          <NavLink to="/quetes">{fr.nav.quests}</NavLink>
           <NavLink to="/projets">{fr.nav.projects}</NavLink>
           <NavLink to="/souk">{fr.nav.souk}</NavLink>
           <NavLink to="/jobs">{fr.nav.jobs}</NavLink>
