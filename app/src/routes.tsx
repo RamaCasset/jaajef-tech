@@ -18,6 +18,8 @@ import { JobDetail } from './pages/JobDetail'
 import { ApplicationFile } from './pages/ApplicationFile'
 import { Profile } from './pages/Profile'
 import { Souk } from './pages/Souk'
+import { Messages } from './pages/Messages'
+import { Conversation } from './pages/Conversation'
 import { Communities } from './pages/Communities'
 import { Community } from './pages/Community'
 import { Notifications } from './pages/Notifications'
@@ -66,6 +68,8 @@ export function AppRoutes() {
       <Route path="/quetes/:slug" element={<RequireAuth><RequireCharacter><Quest /></RequireCharacter></RequireAuth>} />
       <Route path="/projets/ajouter" element={<RequireAuth><RequireCharacter><ImportProject /></RequireCharacter></RequireAuth>} />
       <Route path="/projets" element={<RequireAuth><RequireCharacter><Projects /></RequireCharacter></RequireAuth>} />
+      <Route path="/messages" element={<RequireAuth><RequireCharacter><Messages /></RequireCharacter></RequireAuth>} />
+      <Route path="/messages/:id" element={<RequireAuth><RequireCharacter><Conversation /></RequireCharacter></RequireAuth>} />
       <Route path="/communautes" element={<RequireAuth><RequireCharacter><Communities /></RequireCharacter></RequireAuth>} />
       <Route path="/communautes/:slug" element={<RequireAuth><RequireCharacter><Community /></RequireCharacter></RequireAuth>} />
       <Route path="/jobs/:id" element={<RequireAuth><RequireCharacter><JobDetail /></RequireCharacter></RequireAuth>} />

@@ -7,6 +7,10 @@ export function friendlyError(error: unknown): string {
   if (m.includes('invalid login credentials')) return fr.errors.invalidCredentials
   if (m.includes('already registered') || m.includes('already been registered')) return fr.errors.emailTaken
   if (m.includes('password should be at least') || m.includes('weak password')) return fr.errors.weakPassword
+  if (m.includes('cannot message this person')) return fr.errors.cannotMessage
+  if (m.includes('cannot message yourself')) return fr.errors.cannotMessageSelf
+  if (m.includes('message is empty')) return fr.errors.emptyMessage
+  if (m.includes('only delete your own')) return fr.errors.notYourMessage
   if (m.includes('communities_slug_key')) return fr.errors.slugTaken
   if (m.includes('communities_slug_check')) return fr.errors.slugInvalid
   if (m.includes('limit of communities')) return fr.errors.communityLimit
