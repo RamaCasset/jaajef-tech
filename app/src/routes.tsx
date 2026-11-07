@@ -19,6 +19,7 @@ import { JobDetail } from './pages/JobDetail'
 import { ApplicationFile } from './pages/ApplicationFile'
 import { Profile } from './pages/Profile'
 import { Souk } from './pages/Souk'
+import { SoukSell } from './pages/SoukSell'
 import { EditProfile } from './pages/EditProfile'
 import { Search } from './pages/Search'
 import { Blog } from './pages/Blog'
@@ -76,6 +77,7 @@ export function AppRoutes() {
       <Route path="/projets/ajouter" element={<RequireAuth><RequireCharacter><ImportProject /></RequireCharacter></RequireAuth>} />
       <Route path="/projets/:id" element={<RequireAuth><RequireCharacter><ProjectPage /></RequireCharacter></RequireAuth>} />
       <Route path="/projets" element={<RequireAuth><RequireCharacter><Projects /></RequireCharacter></RequireAuth>} />
+      <Route path="/souk/vendre" element={<RequireAuth><RequireCharacter><SoukSell /></RequireCharacter></RequireAuth>} />
       <Route path="/parametres/profil" element={<RequireAuth><RequireCharacter><EditProfile /></RequireCharacter></RequireAuth>} />
       <Route path="/recherche" element={<RequireAuth><RequireCharacter><Search /></RequireCharacter></RequireAuth>} />
       <Route path="/blog" element={<RequireAuth><RequireCharacter><Blog /></RequireCharacter></RequireAuth>} />

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
 import { SoukCard } from '../components/SoukCard'
 import { useAuth } from '../auth/AuthContext'
@@ -56,6 +57,7 @@ export function Souk() {
           <p className="eyebrow">{fr.souk.eyebrow}</p>
           <h1 className="page-title">{fr.souk.title}</h1>
           <p className="muted">{fr.souk.subtitle}</p>
+          <p><Link to="/souk/vendre">{fr.soukSell.sellLink}</Link></p>
         </header>
 
         <div className="souk-bar">
