@@ -36,6 +36,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </nav>
         <div className="topbar-right">
           <span className="kopeks-pill" aria-label={fr.nav.kopeks}>{member?.kopeks ?? 0} {fr.nav.kopeks}</span>
+          <NavLink to="/parametres" className="topnav-link">{fr.nav.settings}</NavLink>
           <button type="button" className="avatar-btn" onClick={() => void signOut()} title={fr.home.signOut} aria-label={fr.home.signOut}>{initial}</button>
         </div>
       </header>
