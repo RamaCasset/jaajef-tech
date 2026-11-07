@@ -14,6 +14,15 @@ Decisions given by the project owner. Newest first. Open points are marked "to c
 - The monthly challenge becomes an occasional virtual hackathon, individual or in groups. The whole project runs inside the platform. Sponsors fund it, and the prize payments are handled by a third party, not by the platform. Rules, judging and the entry flow: to confirm with Marie.
 - The talent directory is open to every signed-in member (not to visitors). Members still choose to appear in it.
 
+## Hosted repos: the agreed approach (not built yet)
+
+GitHub stays the home of the code. The platform shows it and offers a browser editor on top. Built in three steps:
+1. View code read-only, from public repositories (no extra GitHub permission).
+2. Edit in the browser and commit back to GitHub, through a GitHub app where each member picks which repositories to allow, with permission limited to file changes, and the access kept on the server only.
+3. Create a repository. First version: send the member to GitHub's new-repository page, then import it. Creating one directly from the platform needs checking against what GitHub allows.
+
+The platform does not store members' code itself.
+
 ## What these decisions change in the existing build
 
 - The badge "Teranga legendaire" is defined as "1 000 karma points". With karma gone it needs a new rule or removal: to confirm.
