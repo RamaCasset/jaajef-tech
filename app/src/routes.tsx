@@ -20,6 +20,8 @@ import { Blog } from './pages/Blog'
 import { BlogPost } from './pages/BlogPost'
 import { BlogEditor } from './pages/BlogEditor'
 import { BlogMine } from './pages/BlogMine'
+import { Notifications } from './pages/Notifications'
+import { Settings } from './pages/Settings'
 import { Setup } from './pages/Setup'
 
 function Loading() {
@@ -69,6 +71,8 @@ export function AppRoutes() {
       <Route path="/blog/mes-articles" element={<RequireAuth><RequireCharacter><BlogMine /></RequireCharacter></RequireAuth>} />
       <Route path="/blog/modifier/:id" element={<RequireAuth><RequireCharacter><BlogEditor /></RequireCharacter></RequireAuth>} />
       <Route path="/blog/:slug" element={<RequireAuth><RequireCharacter><BlogPost /></RequireCharacter></RequireAuth>} />
+      <Route path="/notifications" element={<RequireAuth><RequireCharacter><Notifications /></RequireCharacter></RequireAuth>} />
+      <Route path="/parametres" element={<RequireAuth><RequireCharacter><Settings /></RequireCharacter></RequireAuth>} />
       <Route path="/souk" element={<RequireAuth><RequireCharacter><Souk /></RequireCharacter></RequireAuth>} />
       <Route path="/profil/:username" element={<RequireAuth><RequireCharacter><Profile /></RequireCharacter></RequireAuth>} />
       <Route path="/jobs" element={<RequireAuth><RequireCharacter><Jobs /></RequireCharacter></RequireAuth>} />

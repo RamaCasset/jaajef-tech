@@ -13,6 +13,7 @@ export function friendlyError(error: unknown): string {
   if (m.includes('title needs at least')) return fr.errors.titleShort
   if (m.includes('write something first')) return fr.errors.writeSomething
   if (m.includes('cover image must be')) return fr.errors.coverSecure
+  if (m.includes('cannot be deleted yet')) return fr.errors.cannotDelete
   if (m.includes('different from the old password')) return fr.errors.sameAsOldPassword
   if (m.includes('rate limit') || m.includes('too many requests') || m.includes('for security purposes')) return fr.errors.tooManyRequests
   if (m.includes('already chosen')) return fr.errors.characterLocked
