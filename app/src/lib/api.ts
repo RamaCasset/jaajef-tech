@@ -689,3 +689,14 @@ export const setMemberRole = (communityId: string, userId: string, role: 'modera
   rpc<void>('set_member_role', { p_community: communityId, p_user: userId, p_role: role })
 export const transferCommunity = (communityId: string, userId: string) => rpc<void>('transfer_community', { p_community: communityId, p_user: userId })
 export const deleteCommunity = (communityId: string, confirmSlug: string) => rpc<void>('delete_community', { p_community: communityId, p_confirm_slug: confirmSlug })
+// ---- Account: delete and download my data ----------------------------------------------------------------
+export type DeletionBlocker = { code: 'staff' | 'suspended' | 'community_owner' | 'employer_active'; count: number }
+export type AccountDeletion = { requested_at: string | null; delete_on: string | null; blockers: DeletionBlocker[] }
+
+export async function myAccountDeletion(): Promise<AccountDeletion> {
+  const rows = await rpc<AccountDeletion[]>('my_account_deletion')
+  return rows[0] ?? { requested_at: null, delete_on: null, blockers: [] }
+}
+export const requestAccountDeletion = () => rpc<string>('request_account_deletion')
+export const cancelAccountDeletion = () => rpc<void>('cancel_account_deletion')
+export const exportMyData = () => rpc<Record<string, unknown>>('export_my_data')
