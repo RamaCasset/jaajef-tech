@@ -405,6 +405,7 @@ export type RunOutcome = {
   kopeks?: number
   streak_days?: number
   duration_ms?: number
+  rewarded?: boolean
   daily_quest?: boolean
   bonus_xp?: number
   bonus_kopeks?: number
@@ -1098,3 +1099,9 @@ export type ReviewItem = { kind: 'employer' | 'offer'; id: string; title: string
 export const listReviewQueue = () => rpc<ReviewItem[]>('list_review_queue')
 export const reviewEmployer = (id: string, approve: boolean, note: string) => rpc<void>('review_employer', { p_employer: id, p_approve: approve, p_note: note.trim() || null })
 export const reviewJobOffer = (id: string, approve: boolean, note: string) => rpc<void>('review_job_offer', { p_offer: id, p_approve: approve, p_note: note.trim() || null })
+// ---- Quest arena ---------------------------------------------------------------------------------------
+export type PastDailyQuest = {
+  day: string; quest_id: string; slug: string; title: string; clan: ClanKey; mastery: MasteryKey
+  language: 'python' | 'javascript' | null; est_minutes: number; status: 'in_progress' | 'solved' | null
+}
+export const listPastDailyQuests = (days = 30) => rpc<PastDailyQuest[]>('list_past_daily_quests', { p_days: days })

@@ -33,6 +33,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <nav aria-label="Navigation principale" className="topnav">
           <NavLink to="/cite" end>{fr.nav.city}</NavLink>
           <NavLink to="/quetes">{fr.nav.quests}</NavLink>
+          <NavLink to="/arene">{fr.nav.arena}</NavLink>
           <NavLink to="/projets">{fr.nav.projects}</NavLink>
           <NavLink to="/souk">{fr.nav.souk}</NavLink>
           <NavLink to="/recherche">{fr.nav.search}</NavLink>

@@ -111,6 +111,15 @@ describe('Quest page', () => {
     expect(refreshMember).toHaveBeenCalled()
   })
 
+  it('says a practice solve earns no points and shows no reward', async () => {
+    runQuest.mockResolvedValue({ ...winning, rewarded: false, xp: 0, kopeks: 0, streak_days: undefined })
+    mount()
+    await screen.findByText('Somme d’une liste')
+    await userEvent.click(screen.getByRole('button', { name: 'Lancer les tests' }))
+    expect(await screen.findByText(/ne rapporte ni XP ni Kopeks/)).toBeInTheDocument()
+    expect(screen.queryByText(/^\+\d+ XP/)).toBeNull()
+  })
+
   it('shows the daily bonus only when the quest was the quest of the day', async () => {
     runQuest.mockResolvedValue({ ...winning, daily_quest: true, bonus_xp: 20, bonus_kopeks: 5 })
     mount()
