@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
 import { fr } from '../i18n/fr'
 import { friendlyError } from '../lib/errors'
@@ -73,6 +74,7 @@ export function ApplicationFile() {
         <header className="page-head">
           <h1 className="page-title">{fr.applicationFile.title}</h1>
           <p className="muted">{fr.applicationFile.subtitle}</p>
+          <p><Link to="/dossier/cv-portfolio">{fr.cvPortfolio.link}</Link></p>
         </header>
 
         {failed && (
