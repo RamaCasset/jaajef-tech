@@ -7,6 +7,8 @@ export function friendlyError(error: unknown): string {
   if (m.includes('invalid login credentials')) return fr.errors.invalidCredentials
   if (m.includes('already registered') || m.includes('already been registered')) return fr.errors.emailTaken
   if (m.includes('password should be at least') || m.includes('weak password')) return fr.errors.weakPassword
+  if (m.includes('different from the old password')) return fr.errors.sameAsOldPassword
+  if (m.includes('rate limit') || m.includes('too many requests') || m.includes('for security purposes')) return fr.errors.tooManyRequests
   if (m.includes('already chosen')) return fr.errors.characterLocked
   if (m.includes('not enough kopeks')) return fr.errors.notEnoughKopeks
   if (m.includes('already own')) return fr.errors.alreadyOwned
