@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { AppShell } from '../components/AppShell'
 import { fr } from '../i18n/fr'
 import { friendlyError } from '../lib/errors'
+import { BlockedSection, EmailSection, PasswordSection, SignInSection } from './SettingsSections'
 import {
   cancelAccountDeletion, exportMyData, myAccountDeletion, requestAccountDeletion,
   type AccountDeletion,
@@ -87,6 +88,11 @@ export function Settings() {
 
         {error && <div className="alert" role="alert">{error}</div>}
         {notice && <div className="notice" role="status">{notice}</div>}
+
+        <SignInSection />
+        <PasswordSection />
+        <EmailSection />
+        <BlockedSection />
 
         <section className="panel" style={{ marginBottom: 24 }}>
           <h2>{fr.settings.exportTitle}</h2>
