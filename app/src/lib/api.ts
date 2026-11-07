@@ -1098,3 +1098,49 @@ export type ReviewItem = { kind: 'employer' | 'offer'; id: string; title: string
 export const listReviewQueue = () => rpc<ReviewItem[]>('list_review_queue')
 export const reviewEmployer = (id: string, approve: boolean, note: string) => rpc<void>('review_employer', { p_employer: id, p_approve: approve, p_note: note.trim() || null })
 export const reviewJobOffer = (id: string, approve: boolean, note: string) => rpc<void>('review_job_offer', { p_offer: id, p_approve: approve, p_note: note.trim() || null })
+// ---- Portfolio and CV --------------------------------------------------------------------------------
+export type PortfolioItem = { id: string; title: string; description: string | null; url: string | null; project_id: string | null }
+export async function listMyPortfolio(userId: string): Promise<PortfolioItem[]> {
+  const { data, error } = await supabase
+    .from('portfolio_items')
+    .select('id, title, description, url, project_id')
+    .eq('user_id', userId)
+    .order('created_at')
+  if (error) throw new Error(error.message)
+  return (data ?? []) as PortfolioItem[]
+}
+export const addPortfolioItem = (title: string, description: string, url: string) =>
+  rpc<string>('add_portfolio_item', { p_title: title, p_description: description || null, p_url: url || null, p_project: null })
+export const updatePortfolioItem = (id: string, title: string, description: string, url: string) =>
+  rpc<void>('update_portfolio_item', { p_item: id, p_title: title, p_description: description || null, p_url: url || null, p_project: null })
+export const deletePortfolioItem = (id: string) => rpc<void>('delete_portfolio_item', { p_item: id })
+
+export type MyCv = { cv_path: string | null; cv_name: string | null; cv_size: number | null }
+export async function getMyCv(userId: string): Promise<MyCv> {
+  const { data, error } = await supabase.from('application_files').select('cv_path, cv_name, cv_size').eq('user_id', userId).maybeSingle()
+  if (error) throw new Error(error.message)
+  return { cv_path: data?.cv_path ?? null, cv_name: data?.cv_name ?? null, cv_size: data?.cv_size ?? null }
+}
+/** Uploads the PDF into the member's own folder, records it, and deletes the file it replaces. */
+export async function uploadCv(userId: string, file: File): Promise<void> {
+  const path = `${userId}/${crypto.randomUUID()}.pdf`
+  const up = await supabase.storage.from('cv-files').upload(path, file, { contentType: 'application/pdf', upsert: false })
+  if (up.error) throw new Error(up.error.message)
+  let old: string | null
+  try {
+    old = await rpc<string | null>('set_cv', { p_path: path, p_name: file.name, p_size: file.size })
+  } catch (err) {
+    await supabase.storage.from('cv-files').remove([path])
+    throw err
+  }
+  if (old) await supabase.storage.from('cv-files').remove([old])
+}
+export async function removeMyCv(): Promise<void> {
+  const old = await rpc<string | null>('remove_cv')
+  if (old) await supabase.storage.from('cv-files').remove([old])
+}
+export async function cvLink(path: string): Promise<string> {
+  const { data, error } = await supabase.storage.from('cv-files').createSignedUrl(path, 60)
+  if (error || !data) throw new Error(error?.message ?? 'No link')
+  return data.signedUrl
+}
