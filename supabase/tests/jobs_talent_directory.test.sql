@@ -149,20 +149,17 @@ begin
   perform tdkit.must_fail('a visitor browses', 'select * from public.search_talent()', 'permission denied');
   reset role;
   perform tdkit.as_user(1);
-  perform tdkit.must_fail('an ordinary member browses', 'select * from public.search_talent()', 'Only approved companies');
-  perform tdkit.must_fail('an ordinary member opens a profile', format('select * from public.get_talent(%L)', tdkit.uid(7)), 'Only approved companies');
+  if (select count(*) from public.search_talent()) <> 2 then raise exception 'FAIL: an ordinary member finds the 2 listed members, got %', (select count(*) from public.search_talent()); end if;
+  if (select count(*) from public.get_talent(tdkit.uid(7))) <> 1 then raise exception 'FAIL: an ordinary member opens a listed profile'; end if;
+  if (select public.can_browse_talent()) is not true then raise exception 'FAIL: a signed-in member can browse'; end if;
   reset role;
   perform tdkit.as_user(5);
-  perform tdkit.must_fail('a company waiting for approval browses', 'select * from public.search_talent()', 'Only approved companies');
+  if (select count(*) from public.search_talent()) <> 2 then raise exception 'FAIL: a company waiting for approval can browse too'; end if;
   reset role;
   perform tdkit.as_user(3);
   if (select count(*) from public.search_talent()) <> 2 then raise exception 'FAIL: the approved company finds the 2 listed members, got %', (select count(*) from public.search_talent()); end if;
-  if (select public.can_browse_talent()) is not true then raise exception 'FAIL: can browse'; end if;
   reset role;
-  perform tdkit.as_user(1);
-  if public.can_browse_talent() then raise exception 'FAIL: ana cannot browse'; end if;
-  reset role;
-  raise notice 'OK 2: only owners of approved company or hiring profiles can browse';
+  raise notice 'OK 2: every signed-in member can browse, visitors cannot';
 end $$;
 
 -- ---- 3. Search and filters ------------------------------------------------------------------------------------

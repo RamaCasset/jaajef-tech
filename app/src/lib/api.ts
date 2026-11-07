@@ -596,3 +596,14 @@ export async function myCreatorSummary(): Promise<CreatorSummary> {
 }
 export type MySale = { id: number; item_name: string; price: number; share_percent: number; amount: number; sold_at: string }
 export const listMySales = () => rpc<MySale[]>('list_my_sales', { p_limit: 20, p_offset: 0 })
+// ---- Account: delete and download my data ----------------------------------------------------------------
+export type DeletionBlocker = { code: 'staff' | 'suspended' | 'community_owner' | 'employer_active'; count: number }
+export type AccountDeletion = { requested_at: string | null; delete_on: string | null; blockers: DeletionBlocker[] }
+
+export async function myAccountDeletion(): Promise<AccountDeletion> {
+  const rows = await rpc<AccountDeletion[]>('my_account_deletion')
+  return rows[0] ?? { requested_at: null, delete_on: null, blockers: [] }
+}
+export const requestAccountDeletion = () => rpc<string>('request_account_deletion')
+export const cancelAccountDeletion = () => rpc<void>('cancel_account_deletion')
+export const exportMyData = () => rpc<Record<string, unknown>>('export_my_data')
