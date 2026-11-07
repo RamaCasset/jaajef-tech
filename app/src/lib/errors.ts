@@ -16,6 +16,9 @@ export function friendlyError(error: unknown): string {
   if (m.includes('nothing to remove for a member')) return fr.errors.nothingToRemove
   if (m.includes('give a reason for the rejection')) return fr.errors.giveReason
   if (m.includes('not waiting for review')) return fr.errors.notWaiting
+  if (m.includes('cannot be deleted yet')) return fr.errors.cannotDelete
+  if (m.includes('different from the old password')) return fr.errors.sameAsOldPassword
+  if (m.includes('rate limit') || m.includes('too many requests') || m.includes('for security purposes')) return fr.errors.tooManyRequests
   if (m.includes('already chosen')) return fr.errors.characterLocked
   if (m.includes('not enough kopeks')) return fr.errors.notEnoughKopeks
   if (m.includes('already own')) return fr.errors.alreadyOwned
