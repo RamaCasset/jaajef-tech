@@ -18,6 +18,7 @@ import { JobDetail } from './pages/JobDetail'
 import { ApplicationFile } from './pages/ApplicationFile'
 import { Profile } from './pages/Profile'
 import { Souk } from './pages/Souk'
+import { Search } from './pages/Search'
 import { Blog } from './pages/Blog'
 import { BlogPost } from './pages/BlogPost'
 import { BlogEditor } from './pages/BlogEditor'
@@ -72,6 +73,7 @@ export function AppRoutes() {
       <Route path="/quetes/:slug" element={<RequireAuth><RequireCharacter><Quest /></RequireCharacter></RequireAuth>} />
       <Route path="/projets/ajouter" element={<RequireAuth><RequireCharacter><ImportProject /></RequireCharacter></RequireAuth>} />
       <Route path="/projets" element={<RequireAuth><RequireCharacter><Projects /></RequireCharacter></RequireAuth>} />
+      <Route path="/recherche" element={<RequireAuth><RequireCharacter><Search /></RequireCharacter></RequireAuth>} />
       <Route path="/blog" element={<RequireAuth><RequireCharacter><Blog /></RequireCharacter></RequireAuth>} />
       <Route path="/blog/ecrire" element={<RequireAuth><RequireCharacter><BlogEditor /></RequireCharacter></RequireAuth>} />
       <Route path="/blog/mes-articles" element={<RequireAuth><RequireCharacter><BlogMine /></RequireCharacter></RequireAuth>} />

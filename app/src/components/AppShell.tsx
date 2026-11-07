@@ -26,6 +26,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <NavLink to="/quetes">{fr.nav.quests}</NavLink>
           <NavLink to="/projets">{fr.nav.projects}</NavLink>
           <NavLink to="/souk">{fr.nav.souk}</NavLink>
+          <NavLink to="/recherche">{fr.nav.search}</NavLink>
           <NavLink to="/blog">{fr.nav.blog}</NavLink>
           <NavLink to="/messages">{fr.nav.messages}</NavLink>
           <NavLink to="/communautes">{fr.nav.communities}</NavLink>
