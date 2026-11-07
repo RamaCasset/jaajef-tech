@@ -34,3 +34,4 @@ export function StaffGate({ allow, children }: { allow: (a: StaffAccess) => bool
 }
 
 export const isModeration = (a: StaffAccess) => a.role !== null
+export const isAdmin = (a: StaffAccess) => a.role === 'admin'
