@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import type { JobOffer } from '../lib/api'
 import { fr } from '../i18n/fr'
 
@@ -11,7 +12,7 @@ export function JobCard({ job, saved, busy, onToggleSave }: Props) {
     <article className="panel job-card">
       <div className="job-logo" aria-hidden="true">{job.employer_name.slice(0, 2).toLowerCase()}</div>
       <div className="job-main">
-        <h3>{job.title}</h3>
+        <h3><Link to={`/jobs/${job.id}`}>{job.title}</Link></h3>
         <p className="muted">{job.employer_name} · {place}</p>
         <div className="project-tags">
           <span className="tag">{contract}</span>

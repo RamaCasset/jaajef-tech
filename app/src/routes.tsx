@@ -14,6 +14,8 @@ import { Quest } from './pages/Quest'
 import { Projects } from './pages/Projects'
 import { ImportProject } from './pages/ImportProject'
 import { Jobs } from './pages/Jobs'
+import { JobDetail } from './pages/JobDetail'
+import { ApplicationFile } from './pages/ApplicationFile'
 import { Profile } from './pages/Profile'
 import { Souk } from './pages/Souk'
 import { Communities } from './pages/Communities'
@@ -66,6 +68,8 @@ export function AppRoutes() {
       <Route path="/projets" element={<RequireAuth><RequireCharacter><Projects /></RequireCharacter></RequireAuth>} />
       <Route path="/communautes" element={<RequireAuth><RequireCharacter><Communities /></RequireCharacter></RequireAuth>} />
       <Route path="/communautes/:slug" element={<RequireAuth><RequireCharacter><Community /></RequireCharacter></RequireAuth>} />
+      <Route path="/jobs/:id" element={<RequireAuth><RequireCharacter><JobDetail /></RequireCharacter></RequireAuth>} />
+      <Route path="/dossier" element={<RequireAuth><RequireCharacter><ApplicationFile /></RequireCharacter></RequireAuth>} />
       <Route path="/notifications" element={<RequireAuth><RequireCharacter><Notifications /></RequireCharacter></RequireAuth>} />
       <Route path="/parametres" element={<RequireAuth><RequireCharacter><Settings /></RequireCharacter></RequireAuth>} />
       <Route path="/souk" element={<RequireAuth><RequireCharacter><Souk /></RequireCharacter></RequireAuth>} />
