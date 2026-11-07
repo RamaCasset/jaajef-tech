@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
 import { BuildBadge, ClanTag } from '../components/ProjectCard'
 import { useAuth } from '../auth/AuthContext'
-import { loadProfile, type ProfileData } from '../lib/api'
+import { loadProfile, startConversation, type ProfileData } from '../lib/api'
+import { friendlyError } from '../lib/errors'
 import { fr } from '../i18n/fr'
 
 export function Profile() {
@@ -43,6 +44,16 @@ export function Profile() {
 }
 
 function ProfileView({ data, viewerId }: { data: ProfileData; viewerId: string }) {
+  const navigate = useNavigate()
+  const [writeError, setWriteError] = useState<string | null>(null)
+  async function write() {
+    setWriteError(null)
+    try {
+      navigate(`/messages/${await startConversation(data.profile.id)}`)
+    } catch (err) {
+      setWriteError(friendlyError(err))
+    }
+  }
   const { profile: p, xpPerLevel, badges, projects, questsSolved } = data
   const level = 1 + Math.floor(p.xp / xpPerLevel)
   const inLevel = p.xp % xpPerLevel
@@ -68,6 +79,12 @@ function ProfileView({ data, viewerId }: { data: ProfileData; viewerId: string }
               {p.github_username ? <> · <a href={`https://github.com/${p.github_username}`} target="_blank" rel="noreferrer">github.com/{p.github_username}</a></> : null}
             </p>
             {p.id === viewerId && <p><Link className="btn" to="/parametres/profil">{fr.editProfile.edit}</Link></p>}
+            {p.id !== viewerId && (
+              <p>
+                <button type="button" className="btn" onClick={() => void write()}>{fr.messages.write}</button>
+                {writeError && <span role="alert" className="alert" style={{ marginLeft: 8 }}>{writeError}</span>}
+              </p>
+            )}
             {p.available_to_collab ? <span className="build build-passing">{fr.profile.available}</span> : null}
           </div>
         </div>
