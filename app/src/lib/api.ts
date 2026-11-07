@@ -1057,3 +1057,44 @@ export const requestCollaboration = (projectId: string, message: string) => rpc<
 export const withdrawCollabRequest = (id: string) => rpc<void>('withdraw_collab_request', { p_request: id })
 export const decideCollabRequest = (id: string, accept: boolean) => rpc<void>('decide_collab_request', { p_request: id, p_accept: accept })
 export const removeCollaborator = (projectId: string, userId: string) => rpc<void>('remove_collaborator', { p_project: projectId, p_user: userId })
+// ---- Staff area ---------------------------------------------------------------------------------------
+export type StaffAccess = { role: 'admin' | 'moderator' | null; shopManager: boolean; questWriter: boolean; shopOwner: boolean }
+export async function getMyStaffAccess(userId: string): Promise<StaffAccess> {
+  const [roleRes, access] = await Promise.all([
+    supabase.from('staff_roles').select('role').eq('user_id', userId).maybeSingle(),
+    rpc<{ quest_writer: boolean; shop_manager: boolean; shop_owner: boolean }[]>('my_back_office_access'),
+  ])
+  if (roleRes.error) throw new Error(roleRes.error.message)
+  const a = access[0]
+  return {
+    role: (roleRes.data?.role as 'admin' | 'moderator' | undefined) ?? null,
+    shopManager: !!a?.shop_manager,
+    questWriter: !!a?.quest_writer,
+    shopOwner: !!a?.shop_owner,
+  }
+}
+
+export type ReportRow = {
+  report_id: string
+  target_type: 'message' | 'direct_message' | 'project' | 'member'
+  target_id: string
+  target_author_id: string
+  target_author_username: string
+  reporter_username: string
+  reason: 'spam' | 'harassment' | 'inappropriate' | 'scam' | 'other'
+  note: string | null
+  snapshot: Record<string, unknown>
+  status: 'open' | 'dismissed' | 'actioned'
+  created_at: string
+  open_reports_on_same_target: number
+}
+export const listReports = (status: 'open' | 'dismissed' | 'actioned', limit = 50) =>
+  rpc<ReportRow[]>('list_reports', { p_status: status, p_limit: limit })
+export type ReportAction = 'dismiss' | 'remove_content' | 'warn_member' | 'suspend_member'
+export const resolveReport = (id: string, action: ReportAction, note: string, days: number | null) =>
+  rpc<void>('resolve_report', { p_report: id, p_action: action, p_note: note.trim() || null, p_days: action === 'suspend_member' ? days : null })
+
+export type ReviewItem = { kind: 'employer' | 'offer'; id: string; title: string; owner_username: string; employer_kind: string; created_at: string }
+export const listReviewQueue = () => rpc<ReviewItem[]>('list_review_queue')
+export const reviewEmployer = (id: string, approve: boolean, note: string) => rpc<void>('review_employer', { p_employer: id, p_approve: approve, p_note: note.trim() || null })
+export const reviewJobOffer = (id: string, approve: boolean, note: string) => rpc<void>('review_job_offer', { p_offer: id, p_approve: approve, p_note: note.trim() || null })

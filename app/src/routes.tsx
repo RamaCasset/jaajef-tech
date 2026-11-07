@@ -19,6 +19,9 @@ import { JobDetail } from './pages/JobDetail'
 import { ApplicationFile } from './pages/ApplicationFile'
 import { Profile } from './pages/Profile'
 import { Souk } from './pages/Souk'
+import { Staff } from './pages/Staff'
+import { StaffReports } from './pages/StaffReports'
+import { StaffReview } from './pages/StaffReview'
 import { SoukSell } from './pages/SoukSell'
 import { EditProfile } from './pages/EditProfile'
 import { Search } from './pages/Search'
@@ -77,6 +80,9 @@ export function AppRoutes() {
       <Route path="/projets/ajouter" element={<RequireAuth><RequireCharacter><ImportProject /></RequireCharacter></RequireAuth>} />
       <Route path="/projets/:id" element={<RequireAuth><RequireCharacter><ProjectPage /></RequireCharacter></RequireAuth>} />
       <Route path="/projets" element={<RequireAuth><RequireCharacter><Projects /></RequireCharacter></RequireAuth>} />
+      <Route path="/equipe" element={<RequireAuth><RequireCharacter><Staff /></RequireCharacter></RequireAuth>} />
+      <Route path="/equipe/signalements" element={<RequireAuth><RequireCharacter><StaffReports /></RequireCharacter></RequireAuth>} />
+      <Route path="/equipe/validation" element={<RequireAuth><RequireCharacter><StaffReview /></RequireCharacter></RequireAuth>} />
       <Route path="/souk/vendre" element={<RequireAuth><RequireCharacter><SoukSell /></RequireCharacter></RequireAuth>} />
       <Route path="/parametres/profil" element={<RequireAuth><RequireCharacter><EditProfile /></RequireCharacter></RequireAuth>} />
       <Route path="/recherche" element={<RequireAuth><RequireCharacter><Search /></RequireCharacter></RequireAuth>} />
