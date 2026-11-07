@@ -12,7 +12,7 @@ Decisions given by the project owner. Newest first. Open points are marked "to c
 - Learning paths become a space to learn software engineering (coding, UI, UX, backend, AI and more). It links out to free programs such as freeCodeCamp; the platform does not host the lessons. Which programs, and how they are ordered: to confirm with Marie.
 - Hosted repos: members can create a repository (a "depot") on the platform, import code from GitHub, show it, edit it in the browser the way they would in VS Code, and commit it back to GitHub if they want to.
 - Onboarding is a how-to guide for using the platform: it shows the main screens and functions, and how to earn points and experience (XP, Kopeks, streaks, badges). Exact steps and wording: to confirm with Marie.
-- The monthly challenge becomes an occasional virtual hackathon, individual or in groups. The whole project runs inside the platform. Sponsors fund it, and the prize payments are handled by a third party, not by the platform. Rules, judging and the entry flow: to confirm with Marie.
+- The monthly challenge becomes an occasional virtual hackathon, individual or in groups. The whole project runs inside the platform. Sponsors fund it, and the prize payments are handled by a third party, not by the platform. Entering works like communities: one member enrols, then adds the other members of the team. Sponsors are only made aware (informed, no special role). At the end each team gives a live demo in the platform to be judged. Who judges, the dates and phases, and team size limits: to confirm with Marie.
 - The talent directory is open to every signed-in member (not to visitors). Members still choose to appear in it.
 
 ## Hosted repos: the agreed approach (not built yet)
@@ -26,7 +26,7 @@ The platform does not store members' code itself.
 
 Editor layout (decided): a list of files on the left, tabs on top, the code in the middle, and a box at the bottom to describe the change and commit it. The editor itself is Monaco, the open-source editor that powers VS Code. Marie can restyle the screen around it.
 
-The code runner (E2B) is used only for quests today. The editor does not need it to edit and commit. Whether the editor can also run a project's code (the old "live demo / Run Sandbox" idea) is open: to confirm with Marie.
+The code runner (E2B) is used only for quests today. The editor does not need it to edit and commit. The editor will also get a Run button that runs a project's code in E2B (decided 7 November). The hackathon live demo depends on it. Planned limits to confirm: time per run, runs per day, no internet at first, signed-in members only, command-line output first and web previews later.
 
 ## What these decisions change in the existing build
 
