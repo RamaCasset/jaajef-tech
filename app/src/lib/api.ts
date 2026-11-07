@@ -590,6 +590,42 @@ export async function loadMyProfileFields(userId: string): Promise<ProfileEdit> 
   if (error) throw new Error(error.message)
   return { display_name: data.display_name, bio: data.bio ?? '', location: data.location ?? '', available_to_collab: data.available_to_collab }
 }
+// ---- Notifications ---------------------------------------------------------------------------------------
+export type NotificationKind =
+  | 'project_starred' | 'project_comment' | 'project_confirmed' | 'project_hidden'
+  | 'collab_request' | 'collab_accepted' | 'collab_declined'
+  | 'join_request' | 'join_approved' | 'join_declined'
+  | 'badge_unlocked' | 'warning' | 'suspension'
+
+export type NotificationRow = {
+  id: number
+  kind: NotificationKind
+  data: Record<string, unknown>
+  created_at: string
+  read_at: string | null
+}
+
+export async function listNotifications(limit = 50): Promise<NotificationRow[]> {
+  const { data, error } = await supabase
+    .from('notifications')
+    .select('id, kind, data, created_at, read_at')
+    .order('created_at', { ascending: false })
+    .limit(limit)
+  if (error) throw new Error(error.message)
+  return (data ?? []) as NotificationRow[]
+}
+
+export const unreadNotificationCount = () => rpc<number>('unread_notification_count')
+export const markNotificationRead = (id: number) => rpc<void>('mark_notification_read', { p_id: id })
+export const markAllNotificationsRead = () => rpc<number>('mark_all_notifications_read')
+export const setNotificationMute = (kind: NotificationKind, muted: boolean) =>
+  rpc<void>('set_notification_mute', { p_kind: kind, p_muted: muted })
+
+export async function listMutedKinds(): Promise<NotificationKind[]> {
+  const { data, error } = await supabase.from('notification_mutes').select('kind')
+  if (error) throw new Error(error.message)
+  return (data ?? []).map((r) => r.kind as NotificationKind)
+}
 // ---- Account: delete and download my data ----------------------------------------------------------------
 export type DeletionBlocker = { code: 'staff' | 'suspended' | 'community_owner' | 'employer_active'; count: number }
 export type AccountDeletion = { requested_at: string | null; delete_on: string | null; blockers: DeletionBlocker[] }
