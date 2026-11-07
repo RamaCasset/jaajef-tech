@@ -5,6 +5,8 @@ import { isConfigured } from './lib/supabase'
 import { fr } from './i18n/fr'
 import { Login } from './pages/Login'
 import { Signup } from './pages/Signup'
+import { ForgotPassword } from './pages/ForgotPassword'
+import { ResetPassword } from './pages/ResetPassword'
 import { ChooseClan } from './pages/ChooseClan'
 import { Home } from './pages/Home'
 import { Quests } from './pages/Quests'
@@ -51,6 +53,8 @@ export function AppRoutes() {
   return (
     <Routes>
       <Route path="/connexion" element={<PublicOnly><Login /></PublicOnly>} />
+      <Route path="/mot-de-passe-oublie" element={<PublicOnly><ForgotPassword /></PublicOnly>} />
+      <Route path="/nouveau-mot-de-passe" element={<ResetPassword />} />
       <Route path="/inscription" element={<PublicOnly><Signup /></PublicOnly>} />
       <Route path="/inscription/clan" element={<RequireAuth><ChooseClan /></RequireAuth>} />
       <Route path="/cite" element={<RequireAuth><RequireCharacter><Home /></RequireCharacter></RequireAuth>} />

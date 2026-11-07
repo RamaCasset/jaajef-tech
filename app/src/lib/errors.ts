@@ -11,6 +11,8 @@ export function friendlyError(error: unknown): string {
   if (m.includes('cannot message yourself')) return fr.errors.cannotMessageSelf
   if (m.includes('message is empty')) return fr.errors.emptyMessage
   if (m.includes('only delete your own')) return fr.errors.notYourMessage
+  if (m.includes('different from the old password')) return fr.errors.sameAsOldPassword
+  if (m.includes('rate limit') || m.includes('too many requests') || m.includes('for security purposes')) return fr.errors.tooManyRequests
   if (m.includes('already chosen')) return fr.errors.characterLocked
   if (m.includes('not enough kopeks')) return fr.errors.notEnoughKopeks
   if (m.includes('already own')) return fr.errors.alreadyOwned
