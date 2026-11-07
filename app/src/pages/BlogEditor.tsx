@@ -81,6 +81,7 @@ export function BlogEditor() {
             <div className="field">
               <label htmlFor="b-body">{fr.blog.fBody}</label>
               <textarea id="b-body" rows={14} maxLength={20000} value={body} onChange={(e) => setBody(e.target.value)} />
+            <span className="hint">{fr.blog.formatHint}</span>
               <span className="hint">{fr.blog.plainText}</span>
             </div>
             <div className="field">
