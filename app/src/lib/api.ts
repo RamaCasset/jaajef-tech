@@ -1336,3 +1336,50 @@ export type PastDailyQuest = {
   language: 'python' | 'javascript' | null; est_minutes: number; status: 'in_progress' | 'solved' | null
 }
 export const listPastDailyQuests = (days = 30) => rpc<PastDailyQuest[]>('list_past_daily_quests', { p_days: days })
+
+// ---- Read-only code viewer (public GitHub repositories) --------------------------------------------------
+export type RepoEntry = { path: string; type: 'blob' | 'tree'; size: number }
+export type RepoTree = { branch: string; entries: RepoEntry[]; truncated: boolean }
+const NAME = /^[A-Za-z0-9._-]{1,100}$/
+async function githubJson<T>(url: string, fetchFn: typeof fetch): Promise<T> {
+  let response: Response
+  try {
+    response = await fetchFn(url, { headers: { accept: 'application/vnd.github+json' } })
+  } catch {
+    throw new GithubError('failed')
+  }
+  if (response.status === 403 || response.status === 429) throw new GithubError('rate_limited')
+  if (response.status === 404) throw new GithubError('not_found')
+  if (!response.ok) throw new GithubError('failed')
+  return (await response.json()) as T
+}
+/** The files of a public repository, from its default branch (two GitHub calls). */
+export async function getRepoTree(owner: string, repo: string, fetchFn: typeof fetch = fetch): Promise<RepoTree> {
+  if (!NAME.test(owner) || !NAME.test(repo)) throw new GithubError('not_found')
+  const info = await githubJson<{ default_branch: string }>(`https://api.github.com/repos/${owner}/${repo}`, fetchFn)
+  const branch = info.default_branch
+  const tree = await githubJson<{ tree: { path: string; type: string; size?: number }[]; truncated: boolean }>(
+    `https://api.github.com/repos/${owner}/${repo}/git/trees/${encodeURIComponent(branch)}?recursive=1`, fetchFn)
+  const entries = tree.tree
+    .filter((e) => e.type === 'blob' || e.type === 'tree')
+    .map((e) => ({ path: e.path, type: e.type as 'blob' | 'tree', size: e.size ?? 0 }))
+  return { branch, entries, truncated: tree.truncated }
+}
+export const MAX_VIEW_BYTES = 200 * 1024
+/** One file's text. Throws GithubError; the caller checks the size and the kind of file first. */
+export async function getRepoFile(owner: string, repo: string, branch: string, path: string, fetchFn: typeof fetch = fetch): Promise<string> {
+  if (!NAME.test(owner) || !NAME.test(repo) || path.includes('..')) throw new GithubError('not_found')
+  const url = `https://raw.githubusercontent.com/${owner}/${repo}/${encodeURIComponent(branch)}/${path.split('/').map(encodeURIComponent).join('/')}`
+  let response: Response
+  try {
+    response = await fetchFn(url)
+  } catch {
+    throw new GithubError('failed')
+  }
+  if (response.status === 404) throw new GithubError('not_found')
+  if (response.status === 403 || response.status === 429) throw new GithubError('rate_limited')
+  if (!response.ok) throw new GithubError('failed')
+  return await response.text()
+}
+const BINARY = /\.(png|jpe?g|gif|webp|ico|svg|pdf|zip|gz|tar|woff2?|ttf|otf|mp[34]|mov|wasm|exe|bin|so|dll|class|jar|lock)$/i
+export const isViewable = (e: RepoEntry) => e.type === 'blob' && !BINARY.test(e.path) && e.size <= MAX_VIEW_BYTES
