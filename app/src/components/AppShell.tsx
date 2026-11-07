@@ -26,6 +26,8 @@ export function AppShell({ children }: { children: ReactNode }) {
           <NavLink to="/quetes">{fr.nav.quests}</NavLink>
           <NavLink to="/projets">{fr.nav.projects}</NavLink>
           <NavLink to="/souk">{fr.nav.souk}</NavLink>
+          <NavLink to="/messages">{fr.nav.messages}</NavLink>
+          <NavLink to="/communautes">{fr.nav.communities}</NavLink>
           <NavLink to="/jobs">{fr.nav.jobs}</NavLink>
           <NavLink to="/notifications" aria-label={unread > 0 ? `${fr.nav.notifications} (${unread})` : fr.nav.notifications}>
             {fr.nav.notifications}{unread > 0 && <span className="kopeks-pill" style={{ marginLeft: 6 }}>{unread}</span>}
