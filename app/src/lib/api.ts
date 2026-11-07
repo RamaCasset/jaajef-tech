@@ -590,3 +590,14 @@ export async function loadMyProfileFields(userId: string): Promise<ProfileEdit> 
   if (error) throw new Error(error.message)
   return { display_name: data.display_name, bio: data.bio ?? '', location: data.location ?? '', available_to_collab: data.available_to_collab }
 }
+// ---- Account: delete and download my data ----------------------------------------------------------------
+export type DeletionBlocker = { code: 'staff' | 'suspended' | 'community_owner' | 'employer_active'; count: number }
+export type AccountDeletion = { requested_at: string | null; delete_on: string | null; blockers: DeletionBlocker[] }
+
+export async function myAccountDeletion(): Promise<AccountDeletion> {
+  const rows = await rpc<AccountDeletion[]>('my_account_deletion')
+  return rows[0] ?? { requested_at: null, delete_on: null, blockers: [] }
+}
+export const requestAccountDeletion = () => rpc<string>('request_account_deletion')
+export const cancelAccountDeletion = () => rpc<void>('cancel_account_deletion')
+export const exportMyData = () => rpc<Record<string, unknown>>('export_my_data')
