@@ -17,6 +17,9 @@ import { ImportProject } from './pages/ImportProject'
 import { Jobs } from './pages/Jobs'
 import { JobDetail } from './pages/JobDetail'
 import { ApplicationFile } from './pages/ApplicationFile'
+import { Employer } from './pages/Employer'
+import { OfferForm } from './pages/OfferForm'
+import { OfferApplicants } from './pages/OfferApplicants'
 import { Talents } from './pages/Talents'
 import { TalentProfile } from './pages/TalentProfile'
 import { CvPortfolio } from './pages/CvPortfolio'
@@ -103,6 +106,10 @@ export function AppRoutes() {
       <Route path="/communautes" element={<RequireAuth><RequireCharacter><Communities /></RequireCharacter></RequireAuth>} />
       <Route path="/communautes/:slug" element={<RequireAuth><RequireCharacter><Community /></RequireCharacter></RequireAuth>} />
       <Route path="/jobs/:id" element={<RequireAuth><RequireCharacter><JobDetail /></RequireCharacter></RequireAuth>} />
+      <Route path="/employeur" element={<RequireAuth><RequireCharacter><Employer /></RequireCharacter></RequireAuth>} />
+      <Route path="/employeur/offres/nouvelle" element={<RequireAuth><RequireCharacter><OfferForm /></RequireCharacter></RequireAuth>} />
+      <Route path="/employeur/offres/:id" element={<RequireAuth><RequireCharacter><OfferForm /></RequireCharacter></RequireAuth>} />
+      <Route path="/employeur/offres/:id/candidatures" element={<RequireAuth><RequireCharacter><OfferApplicants /></RequireCharacter></RequireAuth>} />
       <Route path="/talents" element={<RequireAuth><RequireCharacter><Talents /></RequireCharacter></RequireAuth>} />
       <Route path="/talents/:id" element={<RequireAuth><RequireCharacter><TalentProfile /></RequireCharacter></RequireAuth>} />
       <Route path="/dossier/cv-portfolio" element={<RequireAuth><RequireCharacter><CvPortfolio /></RequireCharacter></RequireAuth>} />
