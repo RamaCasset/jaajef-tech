@@ -4,6 +4,7 @@ import { useAuth } from '../auth/AuthContext'
 import { Logo } from './Logo'
 import { fr } from '../i18n/fr'
 import { getMyStaffAccess } from '../lib/api'
+import { unreadNotificationCount } from '../lib/api'
 
 const SOON: string[] = []
 
@@ -17,6 +18,13 @@ export function AppShell({ children }: { children: ReactNode }) {
     Promise.resolve().then(() => getMyStaffAccess(myId ?? '')).then((a) => { if (alive) setIsStaff(a.role !== null || a.shopManager || a.questWriter) }).catch(() => undefined)
     return () => { alive = false }
   }, [myId])
+  const [unread, setUnread] = useState(0)
+  useEffect(() => {
+    let alive = true
+    // The little number is a convenience: if it cannot be loaded, the link simply shows without it.
+    Promise.resolve().then(() => unreadNotificationCount()).then((n) => { if (alive) setUnread(Number(n) || 0) }).catch(() => undefined)
+    return () => { alive = false }
+  }, [])
   const initial = (member?.profile.display_name ?? '?').slice(0, 1).toUpperCase()
   return (
     <div className="shell">
@@ -29,6 +37,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           <NavLink to="/souk">{fr.nav.souk}</NavLink>
           <NavLink to="/jobs">{fr.nav.jobs}</NavLink>
           {isStaff && <NavLink to="/equipe">{fr.staff.navLink}</NavLink>}
+          <NavLink to="/notifications" aria-label={unread > 0 ? `${fr.nav.notifications} (${unread})` : fr.nav.notifications}>
+            {fr.nav.notifications}{unread > 0 && <span className="kopeks-pill" style={{ marginLeft: 6 }}>{unread}</span>}
+          </NavLink>
           {SOON.map((label) => (
             <span key={label} className="topnav-soon" aria-disabled="true" title={fr.nav.soon}>{label}</span>
           ))}
