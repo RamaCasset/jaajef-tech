@@ -15,7 +15,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   useEffect(() => {
     let alive = true
     // The staff link is a convenience: if it cannot be checked, the link simply does not show.
-    Promise.resolve().then(() => getMyStaffAccess(myId ?? '')).then((a) => { if (alive) setIsStaff(a.role !== null || a.shopManager || a.questWriter) }).catch(() => undefined)
+    Promise.resolve().then(() => getMyStaffAccess(myId ?? '')).then((a) => { if (alive) setIsStaff(a.role !== null || a.shopManager || a.shopOwner || a.questWriter) }).catch(() => undefined)
     return () => { alive = false }
   }, [myId])
   const [unread, setUnread] = useState(0)

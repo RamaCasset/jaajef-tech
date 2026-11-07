@@ -1114,3 +1114,20 @@ export async function findMemberByUsername(username: string): Promise<{ id: stri
   if (error) throw new Error(error.message)
   return data ? { id: data.id as string, username: data.username as string } : null
 }
+export type SoukSubmissionStaff = {
+  id: string
+  creator_id: string
+  creator_username: string
+  kind: SoukKind
+  name: string
+  description: string | null
+  data: Record<string, unknown>
+  proposed_price: number
+  status: 'pending' | 'approved' | 'rejected' | 'withdrawn'
+  review_note: string | null
+  created_at: string
+}
+export const listSoukSubmissions = (status: 'pending' | 'approved' | 'rejected', limit = 50) =>
+  rpc<SoukSubmissionStaff[]>('list_souk_submissions', { p_status: status, p_limit: limit })
+export const reviewSoukSubmission = (id: string, approve: boolean, note: string, price: number | null) =>
+  rpc<string | null>('review_souk_submission', { p_submission: id, p_approve: approve, p_note: note.trim() || null, p_price: approve ? price : null })
