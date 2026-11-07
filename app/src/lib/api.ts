@@ -571,6 +571,105 @@ export async function listMyProjects(userId: string): Promise<MyProject[]> {
 export const publishProject = (repoUrl: string, title: string, summary: string | null) =>
   rpc<string>('publish_project', { p_repo_url: repoUrl, p_title: title, p_summary: summary, p_tags: [] })
 
+// ---- Blog ---------------------------------------------------------------------------------------------
+export type BlogCard = {
+  id: string
+  slug: string
+  title: string
+  summary: string | null
+  cover_url: string | null
+  tags: string[]
+  author_id: string
+  author_username: string
+  published_at: string
+  like_count: number
+  comment_count: number
+  liked_by_me: boolean
+}
+export const listBlogPosts = (tag: string, limit = 20, offset = 0) =>
+  rpc<BlogCard[]>('list_blog_posts', { p_tag: tag.trim() || null, p_author: null, p_limit: limit, p_offset: offset })
+export const likeBlogPost = (id: string) => rpc<void>('like_blog_post', { p_post: id })
+export const unlikeBlogPost = (id: string) => rpc<void>('unlike_blog_post', { p_post: id })
+
+export type BlogPostFull = {
+  id: string
+  slug: string
+  title: string
+  summary: string | null
+  body: string
+  cover_url: string | null
+  tags: string[]
+  author_id: string
+  author_username: string
+  author_name: string
+  published_at: string | null
+  status: 'draft' | 'published'
+  like_count: number
+  comment_count: number
+  liked_by_me: boolean
+}
+const POST_COLUMNS = 'id, slug, title, summary, body, cover_url, tags, author_id, published_at, status, profiles:author_id(username, display_name)'
+type PostRow = Omit<BlogPostFull, 'author_username' | 'author_name' | 'like_count' | 'comment_count' | 'liked_by_me'> & { profiles: { username: string; display_name: string } | null }
+
+async function fullPost(row: PostRow): Promise<BlogPostFull> {
+  const [stats, liked] = await Promise.all([
+    supabase.from('blog_stats').select('like_count, comment_count').eq('post_id', row.id).maybeSingle(),
+    supabase.from('blog_likes').select('post_id').eq('post_id', row.id).limit(1),
+  ])
+  const { profiles, ...rest } = row
+  return {
+    ...rest,
+    author_username: profiles?.username ?? '',
+    author_name: profiles?.display_name ?? '',
+    like_count: Number(stats.data?.like_count ?? 0),
+    comment_count: Number(stats.data?.comment_count ?? 0),
+    liked_by_me: (liked.data ?? []).length > 0,
+  }
+}
+export async function getBlogPostBySlug(slug: string): Promise<BlogPostFull | null> {
+  const { data, error } = await supabase.from('blog_posts').select(POST_COLUMNS).eq('slug', slug).maybeSingle()
+  if (error) throw new Error(error.message)
+  return data ? fullPost(data as unknown as PostRow) : null
+}
+export async function getMyBlogPost(id: string): Promise<BlogPostFull | null> {
+  const { data, error } = await supabase.from('blog_posts').select(POST_COLUMNS).eq('id', id).maybeSingle()
+  if (error) throw new Error(error.message)
+  return data ? fullPost(data as unknown as PostRow) : null
+}
+export type MyBlogPost = { id: string; slug: string; title: string; status: 'draft' | 'published'; staff_hidden: boolean; updated_at: string }
+export async function listMyBlogPosts(userId: string): Promise<MyBlogPost[]> {
+  const { data, error } = await supabase
+    .from('blog_posts')
+    .select('id, slug, title, status, staff_hidden, updated_at')
+    .eq('author_id', userId)
+    .order('updated_at', { ascending: false })
+  if (error) throw new Error(error.message)
+  return (data ?? []) as MyBlogPost[]
+}
+
+export type BlogComment = { id: number; author_id: string; body: string; created_at: string; author_username: string }
+export async function listBlogComments(postId: string): Promise<BlogComment[]> {
+  const { data, error } = await supabase
+    .from('blog_comments')
+    .select('id, author_id, body, created_at, profiles:author_id(username)')
+    .eq('post_id', postId)
+    .order('created_at')
+    .limit(200)
+  if (error) throw new Error(error.message)
+  type Row = Omit<BlogComment, 'author_username'> & { profiles: { username: string } | null }
+  return ((data ?? []) as unknown as Row[]).map(({ profiles, ...c }) => ({ ...c, author_username: profiles?.username ?? '' }))
+}
+export const postBlogComment = (postId: string, body: string) => rpc<number>('post_blog_comment', { p_post: postId, p_body: body })
+export const deleteBlogComment = (id: number) => rpc<void>('delete_blog_comment', { p_comment: id })
+
+export type BlogDraft = { title: string; summary: string; body: string; cover_url: string; tags: string[] }
+export const createBlogPost = (d: BlogDraft, publish: boolean) =>
+  rpc<string>('create_blog_post', { p_title: d.title, p_body: d.body, p_summary: d.summary.trim() || null, p_cover_url: d.cover_url.trim() || null, p_tags: d.tags, p_publish: publish })
+export const updateBlogPost = (id: string, d: BlogDraft) =>
+  rpc<void>('update_blog_post', { p_post: id, p_title: d.title, p_body: d.body, p_summary: d.summary.trim() || null, p_cover_url: d.cover_url.trim() || null, p_tags: d.tags })
+export const publishBlogPost = (id: string) => rpc<void>('publish_blog_post', { p_post: id })
+export const unpublishBlogPost = (id: string) => rpc<void>('unpublish_blog_post', { p_post: id })
+export const deleteBlogPost = (id: string) => rpc<void>('delete_blog_post', { p_post: id })
 // ---- Private messages ----------------------------------------------------------------------------------
 export type Conversation = {
   conversation_id: string
@@ -828,6 +927,10 @@ export const requestAccountDeletion = () => rpc<string>('request_account_deletio
 export const cancelAccountDeletion = () => rpc<void>('cancel_account_deletion')
 export const exportMyData = () => rpc<Record<string, unknown>>('export_my_data')
 
+// ---- Search everything ---------------------------------------------------------------------------------
+export type SearchKind = 'project' | 'member' | 'community' | 'quest'
+export type SearchHit = { kind: SearchKind; pos: number; id: string; slug: string; title: string; subtitle: string | null; image_url: string | null }
+export const searchEverything = (query: string) => rpc<SearchHit[]>('search_everything', { p_query: query.trim(), p_limit_each: 8 })
 // ---- One project: stars, comments, collaboration -------------------------------------------------------
 export type ProjectFull = {
   id: string

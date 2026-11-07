@@ -17,6 +17,12 @@ export function friendlyError(error: unknown): string {
   if (m.includes('request waiting for this project')) return fr.errors.alreadyRequested
   if (m.includes('last request was declined; you can ask')) return fr.errors.declinedCollab
   if (m.includes('commenting too fast')) return fr.errors.commentingFast
+  if (m.includes('post not found')) return fr.errors.postNotFound
+  if (m.includes('hidden by staff')) return fr.errors.postHidden
+  if (m.includes('publishing too fast')) return fr.errors.publishingTooFast
+  if (m.includes('title needs at least')) return fr.errors.titleShort
+  if (m.includes('write something first')) return fr.errors.writeSomething
+  if (m.includes('cover image must be')) return fr.errors.coverSecure
   if (m.includes('cannot message this person')) return fr.errors.cannotMessage
   if (m.includes('cannot message yourself')) return fr.errors.cannotMessageSelf
   if (m.includes('message is empty')) return fr.errors.emptyMessage
