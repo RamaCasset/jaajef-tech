@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
+import { ReportButton } from '../components/ReportButton'
 import { useAuth } from '../auth/AuthContext'
 import { fr } from '../i18n/fr'
 import { friendlyError } from '../lib/errors'
@@ -105,6 +106,7 @@ export function Conversation() {
                         {m.file_name && <p className="muted tiny" style={{ margin: 0 }}>{fr.messages.fileSent(m.file_name)}</p>}
                       </>
                     )}
+                    {!mine && !m.deleted_at && <ReportButton type="direct_message" id={m.id} />}
                     {mine && !m.deleted_at && (
                       <button type="button" className="btn" disabled={busy} onClick={() => void run(() => deleteDirectMessage(m.id), loadMessages)}>{fr.messages.deleteMessage}</button>
                     )}

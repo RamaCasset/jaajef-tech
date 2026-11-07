@@ -13,7 +13,8 @@ export function Staff() {
     getMyStaffAccess(member?.profile.id ?? '').then(setAccess).catch(() => setAccess(null))
   }, [member?.profile.id])
 
-  const any = !!access && (access.role !== null || access.shopManager || access.questWriter)
+  const any = !!access && (access.role !== null || access.shopManager || access.shopOwner || access.questWriter)
+  const shop = !!access && (access.role === 'admin' || access.shopManager || access.shopOwner)
 
   return (
     <AppShell>
@@ -35,6 +36,12 @@ export function Staff() {
               <p className="muted">{fr.staff.tools.reviewText}</p>
             </section>
           </>
+        )}
+        {shop && (
+          <section className="panel" style={{ marginBottom: 16 }}>
+            <h2><Link to="/equipe/souk">{fr.staff.tools.souk}</Link></h2>
+            <p className="muted">{fr.staff.tools.soukText}</p>
+          </section>
         )}
       </main>
     </AppShell>

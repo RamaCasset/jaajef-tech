@@ -1098,6 +1098,46 @@ export type ReviewItem = { kind: 'employer' | 'offer'; id: string; title: string
 export const listReviewQueue = () => rpc<ReviewItem[]>('list_review_queue')
 export const reviewEmployer = (id: string, approve: boolean, note: string) => rpc<void>('review_employer', { p_employer: id, p_approve: approve, p_note: note.trim() || null })
 export const reviewJobOffer = (id: string, approve: boolean, note: string) => rpc<void>('review_job_offer', { p_offer: id, p_approve: approve, p_note: note.trim() || null })
+export type StaffMember = { user_id: string; username: string; role: string; granted_at: string }
+export type BackOfficeRole = 'quest_writer' | 'shop_manager' | 'shop_owner'
+export const listStaff = () => rpc<StaffMember[]>('list_staff')
+export const listBackOfficeTeam = () => rpc<StaffMember[]>('list_back_office_team')
+export const setModerator = (userId: string, on: boolean) => rpc<void>('set_moderator', { p_user: userId, p_on: on })
+export const setBackOfficeRole = (userId: string, role: BackOfficeRole, on: boolean) =>
+  rpc<void>('set_back_office_role', { p_user: userId, p_role: role, p_on: on })
+export const liftSuspension = (userId: string) => rpc<void>('lift_suspension', { p_user: userId })
+/** Finds a member by exact username (a leading @ is ignored). Returns null when nobody has it. */
+export async function findMemberByUsername(username: string): Promise<{ id: string; username: string } | null> {
+  const name = username.trim().replace(/^@/, '')
+  if (!name) return null
+  const { data, error } = await supabase.from('profiles').select('id, username').eq('username', name).maybeSingle()
+  if (error) throw new Error(error.message)
+  return data ? { id: data.id as string, username: data.username as string } : null
+}
+export type SoukSubmissionStaff = {
+  id: string
+  creator_id: string
+  creator_username: string
+  kind: SoukKind
+  name: string
+  description: string | null
+  data: Record<string, unknown>
+  proposed_price: number
+  status: 'pending' | 'approved' | 'rejected' | 'withdrawn'
+  review_note: string | null
+  created_at: string
+}
+export const listSoukSubmissions = (status: 'pending' | 'approved' | 'rejected', limit = 50) =>
+  rpc<SoukSubmissionStaff[]>('list_souk_submissions', { p_status: status, p_limit: limit })
+export const reviewSoukSubmission = (id: string, approve: boolean, note: string, price: number | null) =>
+  rpc<string | null>('review_souk_submission', { p_submission: id, p_approve: approve, p_note: note.trim() || null, p_price: approve ? price : null })
+
+// ---- Reporting content ------------------------------------------------------------------------------
+export type ReportTarget = 'message' | 'direct_message' | 'project' | 'member'
+export type ReportReason = 'spam' | 'harassment' | 'inappropriate' | 'scam' | 'other'
+export const reportContent = (type: ReportTarget, id: string, reason: ReportReason, note: string) =>
+  rpc<string>('report_content', { p_target_type: type, p_target_id: id, p_reason: reason, p_note: note.trim() || null })
+
 // ---- Portfolio and CV --------------------------------------------------------------------------------
 export type PortfolioItem = { id: string; title: string; description: string | null; url: string | null; project_id: string | null }
 export async function listMyPortfolio(userId: string): Promise<PortfolioItem[]> {
