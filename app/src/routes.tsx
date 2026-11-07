@@ -21,6 +21,12 @@ import { Souk } from './pages/Souk'
 import { Staff } from './pages/Staff'
 import { StaffReports } from './pages/StaffReports'
 import { StaffReview } from './pages/StaffReview'
+import { EditProfile } from './pages/EditProfile'
+import { Search } from './pages/Search'
+import { Blog } from './pages/Blog'
+import { BlogPost } from './pages/BlogPost'
+import { BlogEditor } from './pages/BlogEditor'
+import { BlogMine } from './pages/BlogMine'
 import { Messages } from './pages/Messages'
 import { Conversation } from './pages/Conversation'
 import { Communities } from './pages/Communities'
@@ -74,6 +80,13 @@ export function AppRoutes() {
       <Route path="/equipe" element={<RequireAuth><RequireCharacter><Staff /></RequireCharacter></RequireAuth>} />
       <Route path="/equipe/signalements" element={<RequireAuth><RequireCharacter><StaffReports /></RequireCharacter></RequireAuth>} />
       <Route path="/equipe/validation" element={<RequireAuth><RequireCharacter><StaffReview /></RequireCharacter></RequireAuth>} />
+      <Route path="/parametres/profil" element={<RequireAuth><RequireCharacter><EditProfile /></RequireCharacter></RequireAuth>} />
+      <Route path="/recherche" element={<RequireAuth><RequireCharacter><Search /></RequireCharacter></RequireAuth>} />
+      <Route path="/blog" element={<RequireAuth><RequireCharacter><Blog /></RequireCharacter></RequireAuth>} />
+      <Route path="/blog/ecrire" element={<RequireAuth><RequireCharacter><BlogEditor /></RequireCharacter></RequireAuth>} />
+      <Route path="/blog/mes-articles" element={<RequireAuth><RequireCharacter><BlogMine /></RequireCharacter></RequireAuth>} />
+      <Route path="/blog/modifier/:id" element={<RequireAuth><RequireCharacter><BlogEditor /></RequireCharacter></RequireAuth>} />
+      <Route path="/blog/:slug" element={<RequireAuth><RequireCharacter><BlogPost /></RequireCharacter></RequireAuth>} />
       <Route path="/messages" element={<RequireAuth><RequireCharacter><Messages /></RequireCharacter></RequireAuth>} />
       <Route path="/messages/:id" element={<RequireAuth><RequireCharacter><Conversation /></RequireCharacter></RequireAuth>} />
       <Route path="/communautes" element={<RequireAuth><RequireCharacter><Communities /></RequireCharacter></RequireAuth>} />

@@ -16,6 +16,13 @@ export function friendlyError(error: unknown): string {
   if (m.includes('nothing to remove for a member')) return fr.errors.nothingToRemove
   if (m.includes('give a reason for the rejection')) return fr.errors.giveReason
   if (m.includes('not waiting for review')) return fr.errors.notWaiting
+  if (m.includes('profiles_display_name_check')) return fr.editProfile.nameEmpty
+  if (m.includes('post not found')) return fr.errors.postNotFound
+  if (m.includes('hidden by staff')) return fr.errors.postHidden
+  if (m.includes('publishing too fast')) return fr.errors.publishingTooFast
+  if (m.includes('title needs at least')) return fr.errors.titleShort
+  if (m.includes('write something first')) return fr.errors.writeSomething
+  if (m.includes('cover image must be')) return fr.errors.coverSecure
   if (m.includes('cannot message this person')) return fr.errors.cannotMessage
   if (m.includes('cannot message yourself')) return fr.errors.cannotMessageSelf
   if (m.includes('message is empty')) return fr.errors.emptyMessage

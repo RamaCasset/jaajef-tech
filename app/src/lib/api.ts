@@ -571,47 +571,105 @@ export async function listMyProjects(userId: string): Promise<MyProject[]> {
 export const publishProject = (repoUrl: string, title: string, summary: string | null) =>
   rpc<string>('publish_project', { p_repo_url: repoUrl, p_title: title, p_summary: summary, p_tags: [] })
 
-// ---- Staff area ---------------------------------------------------------------------------------------
-export type StaffAccess = { role: 'admin' | 'moderator' | null; shopManager: boolean; questWriter: boolean; shopOwner: boolean }
-export async function getMyStaffAccess(userId: string): Promise<StaffAccess> {
-  const [roleRes, access] = await Promise.all([
-    supabase.from('staff_roles').select('role').eq('user_id', userId).maybeSingle(),
-    rpc<{ quest_writer: boolean; shop_manager: boolean; shop_owner: boolean }[]>('my_back_office_access'),
+// ---- Blog ---------------------------------------------------------------------------------------------
+export type BlogCard = {
+  id: string
+  slug: string
+  title: string
+  summary: string | null
+  cover_url: string | null
+  tags: string[]
+  author_id: string
+  author_username: string
+  published_at: string
+  like_count: number
+  comment_count: number
+  liked_by_me: boolean
+}
+export const listBlogPosts = (tag: string, limit = 20, offset = 0) =>
+  rpc<BlogCard[]>('list_blog_posts', { p_tag: tag.trim() || null, p_author: null, p_limit: limit, p_offset: offset })
+export const likeBlogPost = (id: string) => rpc<void>('like_blog_post', { p_post: id })
+export const unlikeBlogPost = (id: string) => rpc<void>('unlike_blog_post', { p_post: id })
+
+export type BlogPostFull = {
+  id: string
+  slug: string
+  title: string
+  summary: string | null
+  body: string
+  cover_url: string | null
+  tags: string[]
+  author_id: string
+  author_username: string
+  author_name: string
+  published_at: string | null
+  status: 'draft' | 'published'
+  like_count: number
+  comment_count: number
+  liked_by_me: boolean
+}
+const POST_COLUMNS = 'id, slug, title, summary, body, cover_url, tags, author_id, published_at, status, profiles:author_id(username, display_name)'
+type PostRow = Omit<BlogPostFull, 'author_username' | 'author_name' | 'like_count' | 'comment_count' | 'liked_by_me'> & { profiles: { username: string; display_name: string } | null }
+
+async function fullPost(row: PostRow): Promise<BlogPostFull> {
+  const [stats, liked] = await Promise.all([
+    supabase.from('blog_stats').select('like_count, comment_count').eq('post_id', row.id).maybeSingle(),
+    supabase.from('blog_likes').select('post_id').eq('post_id', row.id).limit(1),
   ])
-  if (roleRes.error) throw new Error(roleRes.error.message)
-  const a = access[0]
+  const { profiles, ...rest } = row
   return {
-    role: (roleRes.data?.role as 'admin' | 'moderator' | undefined) ?? null,
-    shopManager: !!a?.shop_manager,
-    questWriter: !!a?.quest_writer,
-    shopOwner: !!a?.shop_owner,
+    ...rest,
+    author_username: profiles?.username ?? '',
+    author_name: profiles?.display_name ?? '',
+    like_count: Number(stats.data?.like_count ?? 0),
+    comment_count: Number(stats.data?.comment_count ?? 0),
+    liked_by_me: (liked.data ?? []).length > 0,
   }
 }
-
-export type ReportRow = {
-  report_id: string
-  target_type: 'message' | 'direct_message' | 'project' | 'member'
-  target_id: string
-  target_author_id: string
-  target_author_username: string
-  reporter_username: string
-  reason: 'spam' | 'harassment' | 'inappropriate' | 'scam' | 'other'
-  note: string | null
-  snapshot: Record<string, unknown>
-  status: 'open' | 'dismissed' | 'actioned'
-  created_at: string
-  open_reports_on_same_target: number
+export async function getBlogPostBySlug(slug: string): Promise<BlogPostFull | null> {
+  const { data, error } = await supabase.from('blog_posts').select(POST_COLUMNS).eq('slug', slug).maybeSingle()
+  if (error) throw new Error(error.message)
+  return data ? fullPost(data as unknown as PostRow) : null
 }
-export const listReports = (status: 'open' | 'dismissed' | 'actioned', limit = 50) =>
-  rpc<ReportRow[]>('list_reports', { p_status: status, p_limit: limit })
-export type ReportAction = 'dismiss' | 'remove_content' | 'warn_member' | 'suspend_member'
-export const resolveReport = (id: string, action: ReportAction, note: string, days: number | null) =>
-  rpc<void>('resolve_report', { p_report: id, p_action: action, p_note: note.trim() || null, p_days: action === 'suspend_member' ? days : null })
+export async function getMyBlogPost(id: string): Promise<BlogPostFull | null> {
+  const { data, error } = await supabase.from('blog_posts').select(POST_COLUMNS).eq('id', id).maybeSingle()
+  if (error) throw new Error(error.message)
+  return data ? fullPost(data as unknown as PostRow) : null
+}
+export type MyBlogPost = { id: string; slug: string; title: string; status: 'draft' | 'published'; staff_hidden: boolean; updated_at: string }
+export async function listMyBlogPosts(userId: string): Promise<MyBlogPost[]> {
+  const { data, error } = await supabase
+    .from('blog_posts')
+    .select('id, slug, title, status, staff_hidden, updated_at')
+    .eq('author_id', userId)
+    .order('updated_at', { ascending: false })
+  if (error) throw new Error(error.message)
+  return (data ?? []) as MyBlogPost[]
+}
 
-export type ReviewItem = { kind: 'employer' | 'offer'; id: string; title: string; owner_username: string; employer_kind: string; created_at: string }
-export const listReviewQueue = () => rpc<ReviewItem[]>('list_review_queue')
-export const reviewEmployer = (id: string, approve: boolean, note: string) => rpc<void>('review_employer', { p_employer: id, p_approve: approve, p_note: note.trim() || null })
-export const reviewJobOffer = (id: string, approve: boolean, note: string) => rpc<void>('review_job_offer', { p_offer: id, p_approve: approve, p_note: note.trim() || null })
+export type BlogComment = { id: number; author_id: string; body: string; created_at: string; author_username: string }
+export async function listBlogComments(postId: string): Promise<BlogComment[]> {
+  const { data, error } = await supabase
+    .from('blog_comments')
+    .select('id, author_id, body, created_at, profiles:author_id(username)')
+    .eq('post_id', postId)
+    .order('created_at')
+    .limit(200)
+  if (error) throw new Error(error.message)
+  type Row = Omit<BlogComment, 'author_username'> & { profiles: { username: string } | null }
+  return ((data ?? []) as unknown as Row[]).map(({ profiles, ...c }) => ({ ...c, author_username: profiles?.username ?? '' }))
+}
+export const postBlogComment = (postId: string, body: string) => rpc<number>('post_blog_comment', { p_post: postId, p_body: body })
+export const deleteBlogComment = (id: number) => rpc<void>('delete_blog_comment', { p_comment: id })
+
+export type BlogDraft = { title: string; summary: string; body: string; cover_url: string; tags: string[] }
+export const createBlogPost = (d: BlogDraft, publish: boolean) =>
+  rpc<string>('create_blog_post', { p_title: d.title, p_body: d.body, p_summary: d.summary.trim() || null, p_cover_url: d.cover_url.trim() || null, p_tags: d.tags, p_publish: publish })
+export const updateBlogPost = (id: string, d: BlogDraft) =>
+  rpc<void>('update_blog_post', { p_post: id, p_title: d.title, p_body: d.body, p_summary: d.summary.trim() || null, p_cover_url: d.cover_url.trim() || null, p_tags: d.tags })
+export const publishBlogPost = (id: string) => rpc<void>('publish_blog_post', { p_post: id })
+export const unpublishBlogPost = (id: string) => rpc<void>('unpublish_blog_post', { p_post: id })
+export const deleteBlogPost = (id: string) => rpc<void>('delete_blog_post', { p_post: id })
 // ---- Private messages ----------------------------------------------------------------------------------
 export type Conversation = {
   conversation_id: string
@@ -868,3 +926,68 @@ export async function myAccountDeletion(): Promise<AccountDeletion> {
 export const requestAccountDeletion = () => rpc<string>('request_account_deletion')
 export const cancelAccountDeletion = () => rpc<void>('cancel_account_deletion')
 export const exportMyData = () => rpc<Record<string, unknown>>('export_my_data')
+
+// ---- Search everything ---------------------------------------------------------------------------------
+export type SearchKind = 'project' | 'member' | 'community' | 'quest'
+export type SearchHit = { kind: SearchKind; pos: number; id: string; slug: string; title: string; subtitle: string | null; image_url: string | null }
+export const searchEverything = (query: string) => rpc<SearchHit[]>('search_everything', { p_query: query.trim(), p_limit_each: 8 })
+// ---- Edit my profile ---------------------------------------------------------------------------------
+export type ProfileEdit = { display_name: string; bio: string; location: string; available_to_collab: boolean }
+export async function updateMyProfile(userId: string, e: ProfileEdit): Promise<void> {
+  const { error } = await supabase
+    .from('profiles')
+    .update({
+      display_name: e.display_name.trim(),
+      bio: e.bio.trim() || null,
+      location: e.location.trim() || null,
+      available_to_collab: e.available_to_collab,
+    })
+    .eq('id', userId)
+  if (error) throw new Error(error.message)
+}
+export async function loadMyProfileFields(userId: string): Promise<ProfileEdit> {
+  const { data, error } = await supabase.from('profiles').select('display_name, bio, location, available_to_collab').eq('id', userId).single()
+  if (error) throw new Error(error.message)
+  return { display_name: data.display_name, bio: data.bio ?? '', location: data.location ?? '', available_to_collab: data.available_to_collab }
+}
+// ---- Staff area ---------------------------------------------------------------------------------------
+export type StaffAccess = { role: 'admin' | 'moderator' | null; shopManager: boolean; questWriter: boolean; shopOwner: boolean }
+export async function getMyStaffAccess(userId: string): Promise<StaffAccess> {
+  const [roleRes, access] = await Promise.all([
+    supabase.from('staff_roles').select('role').eq('user_id', userId).maybeSingle(),
+    rpc<{ quest_writer: boolean; shop_manager: boolean; shop_owner: boolean }[]>('my_back_office_access'),
+  ])
+  if (roleRes.error) throw new Error(roleRes.error.message)
+  const a = access[0]
+  return {
+    role: (roleRes.data?.role as 'admin' | 'moderator' | undefined) ?? null,
+    shopManager: !!a?.shop_manager,
+    questWriter: !!a?.quest_writer,
+    shopOwner: !!a?.shop_owner,
+  }
+}
+
+export type ReportRow = {
+  report_id: string
+  target_type: 'message' | 'direct_message' | 'project' | 'member'
+  target_id: string
+  target_author_id: string
+  target_author_username: string
+  reporter_username: string
+  reason: 'spam' | 'harassment' | 'inappropriate' | 'scam' | 'other'
+  note: string | null
+  snapshot: Record<string, unknown>
+  status: 'open' | 'dismissed' | 'actioned'
+  created_at: string
+  open_reports_on_same_target: number
+}
+export const listReports = (status: 'open' | 'dismissed' | 'actioned', limit = 50) =>
+  rpc<ReportRow[]>('list_reports', { p_status: status, p_limit: limit })
+export type ReportAction = 'dismiss' | 'remove_content' | 'warn_member' | 'suspend_member'
+export const resolveReport = (id: string, action: ReportAction, note: string, days: number | null) =>
+  rpc<void>('resolve_report', { p_report: id, p_action: action, p_note: note.trim() || null, p_days: action === 'suspend_member' ? days : null })
+
+export type ReviewItem = { kind: 'employer' | 'offer'; id: string; title: string; owner_username: string; employer_kind: string; created_at: string }
+export const listReviewQueue = () => rpc<ReviewItem[]>('list_review_queue')
+export const reviewEmployer = (id: string, approve: boolean, note: string) => rpc<void>('review_employer', { p_employer: id, p_approve: approve, p_note: note.trim() || null })
+export const reviewJobOffer = (id: string, approve: boolean, note: string) => rpc<void>('review_job_offer', { p_offer: id, p_approve: approve, p_note: note.trim() || null })
