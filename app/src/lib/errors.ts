@@ -14,6 +14,8 @@ export function friendlyError(error: unknown): string {
   if (m.includes('offer not found')) return fr.errors.offerGone
   if (m.includes('account is suspended')) return fr.errors.suspended
   if (m.includes('secure (https)')) return fr.errors.secureLink
+  if (m.includes('different from the old password')) return fr.errors.sameAsOldPassword
+  if (m.includes('rate limit') || m.includes('too many requests') || m.includes('for security purposes')) return fr.errors.tooManyRequests
   if (m.includes('already chosen')) return fr.errors.characterLocked
   if (m.includes('not enough kopeks')) return fr.errors.notEnoughKopeks
   if (m.includes('already own')) return fr.errors.alreadyOwned
