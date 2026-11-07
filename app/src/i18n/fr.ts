@@ -642,6 +642,7 @@ export const fr = {
     fTitle: 'Titre',
     fSummary: 'Résumé (facultatif)',
     fBody: 'Texte',
+    formatHint: 'Mise en forme : # Titre, ## Sous-titre, **gras**, *italique*, - liste, [texte](https://adresse), `code`.',
     fCover: "Image de couverture (adresse https, facultative)",
     fTags: 'Thèmes (séparés par des virgules, 5 au maximum)',
     saveDraft: 'Enregistrer le brouillon',

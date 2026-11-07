@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
+import { ArticleBody } from '../components/ArticleBody'
 import { useAuth } from '../auth/AuthContext'
 import { fr } from '../i18n/fr'
 import { friendlyError } from '../lib/errors'
@@ -80,7 +81,7 @@ export function BlogPost() {
             </header>
             {post.cover_url && <img src={post.cover_url} alt="" style={{ maxWidth: '100%', borderRadius: 8 }} />}
             {/* Plain text only: nothing the author writes is ever treated as markup. */}
-            <article className="panel" style={{ whiteSpace: 'pre-wrap', marginBottom: 16 }}>{post.body}</article>
+            <article className="panel" style={{ marginBottom: 16 }}><ArticleBody text={post.body} /></article>
             {!isDraft && (
               <p>
                 <button type="button" className="btn" disabled={busy} aria-pressed={post.liked_by_me} onClick={() => void toggleLike()}>
