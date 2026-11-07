@@ -15,7 +15,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   useEffect(() => {
     let alive = true
     // The staff link is a convenience: if it cannot be checked, the link simply does not show.
-    Promise.resolve().then(() => getMyStaffAccess(myId ?? '')).then((a) => { if (alive) setIsStaff(a.role !== null || a.shopManager || a.questWriter) }).catch(() => undefined)
+    Promise.resolve().then(() => getMyStaffAccess(myId ?? '')).then((a) => { if (alive) setIsStaff(a.role !== null || a.shopManager || a.shopOwner || a.questWriter) }).catch(() => undefined)
     return () => { alive = false }
   }, [myId])
   const [unread, setUnread] = useState(0)
@@ -50,6 +50,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </nav>
         <div className="topbar-right">
           <span className="kopeks-pill" aria-label={fr.nav.kopeks}>{member?.kopeks ?? 0} {fr.nav.kopeks}</span>
+          <NavLink to="/guide" className="topnav-link">{fr.nav.guide}</NavLink>
           <NavLink to="/parametres" className="topnav-link">{fr.nav.settings}</NavLink>
           <button type="button" className="avatar-btn" onClick={() => void signOut()} title={fr.home.signOut} aria-label={fr.home.signOut}>{initial}</button>
         </div>
