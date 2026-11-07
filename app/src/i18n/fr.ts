@@ -637,6 +637,22 @@ export const fr = {
     groups: { project: 'Projets', member: 'Membres', community: 'Communautés', quest: 'Quêtes' },
     openOnGithub: 'voir sur GitHub',
   },
+  editProfile: {
+    title: 'Modifier mon profil',
+    subtitle: 'Ce que les autres voient sur votre page.',
+    displayName: 'Nom affiché',
+    bio: 'Présentation',
+    bioHint: '500 caractères au maximum.',
+    location: 'Lieu',
+    available: 'Je suis disponible pour collaborer',
+    save: 'Enregistrer',
+    saved: 'Profil enregistré.',
+    seeProfile: 'Voir mon profil',
+    loadFailed: 'Impossible de charger votre profil.',
+    retry: 'Réessayer',
+    edit: 'Modifier mon profil',
+    nameEmpty: 'Le nom affiché ne peut pas être vide.',
+  },
 } as const
 
 export type ClanKey = keyof typeof fr.clans

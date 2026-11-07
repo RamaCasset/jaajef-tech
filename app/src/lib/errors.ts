@@ -7,6 +7,7 @@ export function friendlyError(error: unknown): string {
   if (m.includes('invalid login credentials')) return fr.errors.invalidCredentials
   if (m.includes('already registered') || m.includes('already been registered')) return fr.errors.emailTaken
   if (m.includes('password should be at least') || m.includes('weak password')) return fr.errors.weakPassword
+  if (m.includes('profiles_display_name_check')) return fr.editProfile.nameEmpty
   if (m.includes('post not found')) return fr.errors.postNotFound
   if (m.includes('hidden by staff')) return fr.errors.postHidden
   if (m.includes('publishing too fast')) return fr.errors.publishingTooFast
