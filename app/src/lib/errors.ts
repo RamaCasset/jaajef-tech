@@ -11,6 +11,12 @@ export function friendlyError(error: unknown): string {
   if (m.includes('waiting for review as allowed')) return fr.errors.soukTooMany
   if (m.includes('give the item a name')) return fr.errors.soukName
   if (m.includes('price must be between')) return fr.errors.soukPrice
+  if (m.includes('post not found')) return fr.errors.postNotFound
+  if (m.includes('hidden by staff')) return fr.errors.postHidden
+  if (m.includes('publishing too fast')) return fr.errors.publishingTooFast
+  if (m.includes('title needs at least')) return fr.errors.titleShort
+  if (m.includes('write something first')) return fr.errors.writeSomething
+  if (m.includes('cover image must be')) return fr.errors.coverSecure
   if (m.includes('cannot message this person')) return fr.errors.cannotMessage
   if (m.includes('cannot message yourself')) return fr.errors.cannotMessageSelf
   if (m.includes('message is empty')) return fr.errors.emptyMessage
