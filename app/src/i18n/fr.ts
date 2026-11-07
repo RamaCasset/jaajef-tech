@@ -519,6 +519,10 @@ export const fr = {
     suspensionDays: 'Durée de suspension non permise pour votre rôle.',
     nothingToRemove: 'Il n\'y a rien à retirer pour un membre : avertissez ou suspendez-le.',
     giveReason: 'Donnez une raison pour le refus.',
+    reportTooMany: "Vous avez beaucoup signalé aujourd'hui. Réessayez demain.",
+    reportTargetGone: "Ce contenu n'existe plus ou n'est pas accessible.",
+    reportOwn: 'Vous ne pouvez pas signaler votre propre contenu.',
+    reportAlready: 'Vous avez déjà signalé ce contenu.',
     notWaiting: "Cet élément n'attend plus de validation.",
   },
   communities: {
@@ -737,6 +741,17 @@ export const fr = {
     requestsEmpty: 'Aucune demande en attente.',
     accept: 'Accepter',
     decline: 'Refuser',
+  },
+  report: {
+    button: 'Signaler',
+    title: 'Signaler ce contenu',
+    intro: "L'équipe de la Cité lira votre signalement. La personne ne saura pas que c'est vous.",
+    reasonLabel: 'Pourquoi ?',
+    reasons: { spam: 'Spam', harassment: 'Harcèlement', inappropriate: 'Contenu inapproprié', scam: 'Arnaque', other: 'Autre' },
+    noteLabel: 'Précisions (facultatif)',
+    send: 'Envoyer le signalement',
+    cancel: 'Annuler',
+    sent: 'Merci, votre signalement a été envoyé.',
   },
   staff: {
     title: "L'équipe de la Cité",

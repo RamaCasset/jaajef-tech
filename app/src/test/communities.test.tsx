@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -210,5 +210,14 @@ describe('One community', () => {
     await userEvent.type(await screen.findByLabelText('Votre message'), 'Yo')
     await userEvent.click(screen.getByRole('button', { name: 'Envoyer' }))
     expect(await screen.findByRole('alert')).toHaveTextContent('trop de messages')
+  })
+
+  it('offers "Signaler" only on other members\' messages that still exist', async () => {
+    setup('member')
+    const theirs = (await screen.findByText('Bonjour <b>tous</b>')).closest('li') as HTMLElement
+    const mine = screen.getByText('Salut').closest('li') as HTMLElement
+    expect(within(theirs).getByRole('button', { name: 'Signaler' })).toBeInTheDocument()
+    expect(within(mine).queryByRole('button', { name: 'Signaler' })).not.toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: 'Signaler' })).toHaveLength(1)
   })
 })

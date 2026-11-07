@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -75,6 +75,16 @@ describe('Conversation', () => {
     expect(buttons).toHaveLength(1)
     await userEvent.click(buttons[0])
     expect(api.deleteDirectMessage).toHaveBeenCalledWith(2)
+  })
+
+  it('offers "Signaler" only on the other person\'s messages that still exist', async () => {
+    mount()
+    await screen.findByText('Hello')
+    const rows = screen.getAllByRole('listitem')
+    const theirs = rows.find((r) => r.getAttribute('data-mine') === 'false') as HTMLElement
+    const mine = rows.find((r) => r.getAttribute('data-mine') === 'true') as HTMLElement
+    expect(within(theirs).getByRole('button', { name: 'Signaler' })).toBeInTheDocument()
+    expect(within(mine).queryByRole('button', { name: 'Signaler' })).not.toBeInTheDocument()
   })
 
   it('sends a message, clears the box, reloads', async () => {

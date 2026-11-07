@@ -1098,3 +1098,8 @@ export type ReviewItem = { kind: 'employer' | 'offer'; id: string; title: string
 export const listReviewQueue = () => rpc<ReviewItem[]>('list_review_queue')
 export const reviewEmployer = (id: string, approve: boolean, note: string) => rpc<void>('review_employer', { p_employer: id, p_approve: approve, p_note: note.trim() || null })
 export const reviewJobOffer = (id: string, approve: boolean, note: string) => rpc<void>('review_job_offer', { p_offer: id, p_approve: approve, p_note: note.trim() || null })
+// ---- Reporting content ------------------------------------------------------------------------------
+export type ReportTarget = 'message' | 'direct_message' | 'project' | 'member'
+export type ReportReason = 'spam' | 'harassment' | 'inappropriate' | 'scam' | 'other'
+export const reportContent = (type: ReportTarget, id: string, reason: ReportReason, note: string) =>
+  rpc<string>('report_content', { p_target_type: type, p_target_id: id, p_reason: reason, p_note: note.trim() || null })
