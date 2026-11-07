@@ -612,6 +612,215 @@ export type ReviewItem = { kind: 'employer' | 'offer'; id: string; title: string
 export const listReviewQueue = () => rpc<ReviewItem[]>('list_review_queue')
 export const reviewEmployer = (id: string, approve: boolean, note: string) => rpc<void>('review_employer', { p_employer: id, p_approve: approve, p_note: note.trim() || null })
 export const reviewJobOffer = (id: string, approve: boolean, note: string) => rpc<void>('review_job_offer', { p_offer: id, p_approve: approve, p_note: note.trim() || null })
+// ---- Private messages ----------------------------------------------------------------------------------
+export type Conversation = {
+  conversation_id: string
+  other_user_id: string
+  other_username: string
+  other_display_name: string
+  other_avatar_url: string | null
+  last_message_preview: string | null
+  last_message_at: string | null
+  unread_count: number
+}
+export const listMyConversations = () => rpc<Conversation[]>('list_my_conversations')
+export const startConversation = (userId: string) => rpc<string>('start_conversation', { p_user: userId })
+
+export type DirectMessage = {
+  id: number
+  sender_id: string
+  body: string
+  file_name: string | null
+  created_at: string
+  deleted_at: string | null
+}
+export async function listDirectMessages(conversationId: string, limit = 100): Promise<DirectMessage[]> {
+  const { data, error } = await supabase
+    .from('direct_messages')
+    .select('id, sender_id, body, file_name, created_at, deleted_at')
+    .eq('conversation_id', conversationId)
+    .order('created_at', { ascending: false })
+    .limit(limit)
+  if (error) throw new Error(error.message)
+  return ((data ?? []) as DirectMessage[]).reverse()
+}
+export const sendDirectMessage = (conversationId: string, body: string) => rpc<number>('send_direct_message', { p_conversation: conversationId, p_body: body })
+export const deleteDirectMessage = (id: number) => rpc<void>('delete_direct_message', { p_message: id })
+export const markConversationRead = (conversationId: string) => rpc<void>('mark_conversation_read', { p_conversation: conversationId })
+export const blockUser = (userId: string) => rpc<void>('block_user', { p_user: userId })
+export const unblockUser = (userId: string) => rpc<void>('unblock_user', { p_user: userId })
+export async function isBlockedByMe(userId: string): Promise<boolean> {
+  const { data, error } = await supabase.from('blocks').select('blocked_id').eq('blocked_id', userId).limit(1)
+  if (error) throw new Error(error.message)
+  return (data ?? []).length > 0
+}
+// ---- Communities and chat ------------------------------------------------------------------------------
+export type Community = {
+  id: string
+  slug: string
+  name: string
+  description: string | null
+  is_private: boolean
+  is_listed: boolean
+  owner_id: string
+}
+export type CommunityRole = 'owner' | 'moderator' | 'member'
+
+const COMMUNITY_COLUMNS = 'id, slug, name, description, is_private, is_listed, owner_id'
+
+/** Communities the member belongs to, with their role. */
+export async function listMyCommunities(userId: string): Promise<(Community & { role: CommunityRole })[]> {
+  const { data, error } = await supabase
+    .from('community_members')
+    .select(`role, communities(${COMMUNITY_COLUMNS})`)
+    .eq('user_id', userId)
+  if (error) throw new Error(error.message)
+  type Row = { role: CommunityRole; communities: Community | null }
+  return ((data ?? []) as unknown as Row[])
+    .filter((r) => r.communities)
+    .map((r) => ({ ...(r.communities as Community), role: r.role }))
+    .sort((a, b) => a.name.localeCompare(b.name))
+}
+
+/** Communities anyone can see: public ones, and private ones that chose to be listed. */
+export async function listDiscoverCommunities(): Promise<Community[]> {
+  const { data, error } = await supabase
+    .from('communities')
+    .select(COMMUNITY_COLUMNS)
+    .or('is_private.eq.false,is_listed.eq.true')
+    .order('created_at', { ascending: false })
+    .limit(50)
+  if (error) throw new Error(error.message)
+  return (data ?? []) as Community[]
+}
+
+export const communityMemberCount = (id: string) => rpc<number | null>('community_member_count', { p_community: id })
+export const createCommunity = (slug: string, name: string, description: string, isPrivate: boolean, isListed: boolean) =>
+  rpc<string>('create_community', { p_slug: slug, p_name: name, p_description: description.trim() || null, p_is_private: isPrivate, p_is_listed: isListed })
+export const joinCommunity = (id: string) => rpc<void>('join_community', { p_community: id })
+export const requestToJoin = (id: string, message: string) => rpc<string>('request_to_join', { p_community: id, p_message: message.trim() || null })
+export const leaveCommunity = (id: string) => rpc<void>('leave_community', { p_community: id })
+
+export async function getCommunityBySlug(slug: string): Promise<Community | null> {
+  const { data, error } = await supabase.from('communities').select(COMMUNITY_COLUMNS).eq('slug', slug).maybeSingle()
+  if (error) throw new Error(error.message)
+  return (data as Community | null) ?? null
+}
+
+export type Channel = { id: string; slug: string; name: string; kind: 'chat' | 'announcement' | 'forum' }
+export async function listChannels(communityId: string): Promise<Channel[]> {
+  const { data, error } = await supabase.from('channels').select('id, slug, name, kind').eq('community_id', communityId).order('created_at')
+  if (error) throw new Error(error.message)
+  return (data ?? []) as Channel[]
+}
+
+export type ChatMessage = {
+  id: number
+  author_id: string
+  body: string
+  created_at: string
+  edited_at: string | null
+  deleted_at: string | null
+  author_username: string
+  author_name: string
+}
+export async function listChannelMessages(channelId: string, limit = 100): Promise<ChatMessage[]> {
+  const { data, error } = await supabase
+    .from('messages')
+    .select('id, author_id, body, created_at, edited_at, deleted_at, profiles:author_id(username, display_name)')
+    .eq('channel_id', channelId)
+    .is('parent_id', null)
+    .order('created_at', { ascending: false })
+    .limit(limit)
+  if (error) throw new Error(error.message)
+  type Row = Omit<ChatMessage, 'author_username' | 'author_name'> & { profiles: { username: string; display_name: string } | null }
+  return ((data ?? []) as unknown as Row[])
+    .map(({ profiles, ...m }) => ({ ...m, author_username: profiles?.username ?? '', author_name: profiles?.display_name ?? '' }))
+    .reverse()
+}
+export const sendMessage = (channelId: string, body: string) => rpc<number>('send_message', { p_channel: channelId, p_body: body })
+export const deleteMessage = (id: number) => rpc<void>('delete_message', { p_message: id })
+
+export type CommunityMember = { user_id: string; role: CommunityRole; username: string; display_name: string }
+export async function listCommunityMembers(communityId: string): Promise<CommunityMember[]> {
+  const { data, error } = await supabase
+    .from('community_members')
+    .select('user_id, role, profiles:user_id(username, display_name)')
+    .eq('community_id', communityId)
+    .order('joined_at')
+    .limit(200)
+  if (error) throw new Error(error.message)
+  type Row = { user_id: string; role: CommunityRole; profiles: { username: string; display_name: string } | null }
+  return ((data ?? []) as unknown as Row[]).map((r) => ({ user_id: r.user_id, role: r.role, username: r.profiles?.username ?? '', display_name: r.profiles?.display_name ?? '' }))
+}
+
+export type JoinRequest = { id: string; user_id: string; message: string | null; username: string }
+export async function listPendingJoinRequests(communityId: string): Promise<JoinRequest[]> {
+  const { data, error } = await supabase
+    .from('join_requests')
+    .select('id, user_id, message, profiles:user_id(username)')
+    .eq('community_id', communityId)
+    .eq('status', 'pending')
+    .order('created_at')
+  if (error) throw new Error(error.message)
+  type Row = { id: string; user_id: string; message: string | null; profiles: { username: string } | null }
+  return ((data ?? []) as unknown as Row[]).map((r) => ({ id: r.id, user_id: r.user_id, message: r.message, username: r.profiles?.username ?? '' }))
+}
+export const decideJoinRequest = (id: string, approve: boolean) => rpc<void>('decide_join_request', { p_request: id, p_approve: approve })
+export const removeCommunityMember = (communityId: string, userId: string) => rpc<void>('remove_member', { p_community: communityId, p_user: userId })
+export const setMemberRole = (communityId: string, userId: string, role: 'moderator' | 'member') =>
+  rpc<void>('set_member_role', { p_community: communityId, p_user: userId, p_role: role })
+export const transferCommunity = (communityId: string, userId: string) => rpc<void>('transfer_community', { p_community: communityId, p_user: userId })
+export const deleteCommunity = (communityId: string, confirmSlug: string) => rpc<void>('delete_community', { p_community: communityId, p_confirm_slug: confirmSlug })
+// ---- One job offer, applying, and my application file -----------------------------------------------------
+export type JobOfferDetail = JobOffer & { description: string }
+
+export async function getJobOffer(id: string): Promise<JobOfferDetail | null> {
+  const { data, error } = await supabase
+    .from('job_offers')
+    .select('id, title, kind, description, employment_type, location, remote, pay_min_fcfa, pay_max_fcfa, pay_unit, pay_negotiable, tags, closes_on, published_at, employer_id, employers(name, kind, logo_url)')
+    .eq('id', id)
+    .maybeSingle()
+  if (error) throw new Error(error.message)
+  if (!data) return null
+  const e = (data as unknown as { employers: { name: string; kind: string; logo_url: string | null } | null }).employers
+  const { employers: _drop, ...rest } = data as Record<string, unknown>
+  void _drop
+  return { ...(rest as Omit<JobOfferDetail, 'employer_name' | 'employer_kind' | 'employer_logo_url'>), employer_name: e?.name ?? '', employer_kind: e?.kind ?? '', employer_logo_url: e?.logo_url ?? null }
+}
+
+export const applyToOffer = (offerId: string, message: string, includeCv: boolean) =>
+  rpc<string>('apply_to_offer', { p_offer: offerId, p_message: message.trim() || null, p_include_cv: includeCv })
+export const withdrawApplication = (id: string) => rpc<void>('withdraw_application', { p_application: id })
+
+export type Availability = 'immediate' | 'within_month' | 'within_3_months' | 'not_looking'
+export type ApplicationFile = {
+  headline: string | null
+  summary: string | null
+  location: string | null
+  experience_years: number | null
+  availability: Availability | null
+  work_kinds: ('job' | 'freelance')[]
+  skills: string[]
+  website: string | null
+  linkedin_url: string | null
+  cv_name: string | null
+  portfolio_count: number
+  completion: number
+  missing: string[]
+}
+export async function myApplicationFile(): Promise<ApplicationFile> {
+  const rows = await rpc<ApplicationFile[]>('my_application_file')
+  return rows[0]
+}
+export const saveApplicationFile = (f: {
+  headline: string; summary: string; location: string; experience_years: number | null; availability: Availability | null
+  work_kinds: ('job' | 'freelance')[]; skills: string[]; website: string; linkedin_url: string
+}) =>
+  rpc<void>('save_application_file', {
+    p_headline: f.headline, p_summary: f.summary, p_location: f.location, p_experience_years: f.experience_years,
+    p_availability: f.availability, p_work_kinds: f.work_kinds, p_skills: f.skills, p_website: f.website, p_linkedin_url: f.linkedin_url,
+  })
 // ---- Notifications ---------------------------------------------------------------------------------------
 export type NotificationKind =
   | 'project_starred' | 'project_comment' | 'project_confirmed' | 'project_hidden'
