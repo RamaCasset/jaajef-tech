@@ -405,6 +405,7 @@ export type RunOutcome = {
   kopeks?: number
   streak_days?: number
   duration_ms?: number
+  rewarded?: boolean
   daily_quest?: boolean
   bonus_xp?: number
   bonus_kopeks?: number
@@ -1328,3 +1329,10 @@ export async function getSignInMethods(): Promise<{ email: string | null; github
   const email = list.find((i) => i.provider === 'email')
   return { email: (email?.identity_data?.email as string | undefined) ?? null, github: list.some((i) => i.provider === 'github') }
 }
+
+// ---- Quest arena ---------------------------------------------------------------------------------------
+export type PastDailyQuest = {
+  day: string; quest_id: string; slug: string; title: string; clan: ClanKey; mastery: MasteryKey
+  language: 'python' | 'javascript' | null; est_minutes: number; status: 'in_progress' | 'solved' | null
+}
+export const listPastDailyQuests = (days = 30) => rpc<PastDailyQuest[]>('list_past_daily_quests', { p_days: days })

@@ -155,7 +155,7 @@ export function Quest() {
         {outcome?.solved && !outcome.already_solved ? (
           <section className="panel quest-win" aria-label={p.solvedTitle}>
             <h2>{p.solvedTitle}</h2>
-            <p>{p.reward(outcome.xp ?? 0, outcome.kopeks ?? 0)}</p>
+            {outcome.rewarded === false ? <p>{p.noPoints}</p> : <p>{p.reward(outcome.xp ?? 0, outcome.kopeks ?? 0)}</p>}
             {outcome.streak_days ? <p className="muted">{p.streak(outcome.streak_days)}</p> : null}
             {outcome.daily_quest && ((outcome.bonus_xp ?? 0) > 0 || (outcome.bonus_kopeks ?? 0) > 0)
               ? <p className="muted">{p.bonus(outcome.bonus_xp ?? 0, outcome.bonus_kopeks ?? 0)}</p> : null}
