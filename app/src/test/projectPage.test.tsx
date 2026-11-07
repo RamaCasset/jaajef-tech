@@ -152,4 +152,14 @@ describe('Project page', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Réessayer' }))
     expect(await screen.findByRole('heading', { name: 'Teranga' })).toBeInTheDocument()
   })
+
+  it('offers "Signaler" on someone else\'s project but not on my own', async () => {
+    const view = mount()
+    expect(await screen.findByRole('button', { name: 'Signaler' })).toBeInTheDocument()
+    view.unmount()
+    api.getProjectFull.mockResolvedValue(project({ owner_id: 'me' }))
+    mount()
+    await screen.findByText('Votre projet')
+    expect(screen.queryByRole('button', { name: 'Signaler' })).not.toBeInTheDocument()
+  })
 })

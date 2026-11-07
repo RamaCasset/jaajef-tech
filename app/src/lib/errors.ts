@@ -15,6 +15,10 @@ export function friendlyError(error: unknown): string {
   if (m.includes('a suspension lasts')) return fr.errors.suspensionDays
   if (m.includes('nothing to remove for a member')) return fr.errors.nothingToRemove
   if (m.includes('give a reason for the rejection')) return fr.errors.giveReason
+  if (m.includes('too many reports today')) return fr.errors.reportTooMany
+  if (m.includes('target not found')) return fr.errors.reportTargetGone
+  if (m.includes('cannot report your own content')) return fr.errors.reportOwn
+  if (m.includes('already reported this')) return fr.errors.reportAlready
   if (m.includes('member not found')) return fr.errors.memberNotFound
   if (m.includes('this member is an admin')) return fr.errors.isAdmin
   if (m.includes('is not suspended')) return fr.errors.notSuspended

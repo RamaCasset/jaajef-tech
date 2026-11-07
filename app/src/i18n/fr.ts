@@ -526,6 +526,10 @@ export const fr = {
     memberNotFound: 'Membre introuvable.',
     isAdmin: "Ce membre est administrateur : les administrateurs sont gérés par le serveur.",
     notSuspended: "Ce membre n'est pas suspendu.",
+    reportTooMany: "Vous avez beaucoup signalé aujourd'hui. Réessayez demain.",
+    reportTargetGone: "Ce contenu n'existe plus ou n'est pas accessible.",
+    reportOwn: 'Vous ne pouvez pas signaler votre propre contenu.',
+    reportAlready: 'Vous avez déjà signalé ce contenu.',
   },
   communities: {
     title: 'Communautés',
@@ -836,6 +840,17 @@ export const fr = {
       done: 'Modification enregistrée.',
       empty: 'Aucun membre dans cette liste.',
     },
+  },
+  report: {
+    button: 'Signaler',
+    title: 'Signaler ce contenu',
+    intro: "L'équipe de la Cité lira votre signalement. La personne ne saura pas que c'est vous.",
+    reasonLabel: 'Pourquoi ?',
+    reasons: { spam: 'Spam', harassment: 'Harcèlement', inappropriate: 'Contenu inapproprié', scam: 'Arnaque', other: 'Autre' },
+    noteLabel: 'Précisions (facultatif)',
+    send: 'Envoyer le signalement',
+    cancel: 'Annuler',
+    sent: 'Merci, votre signalement a été envoyé.',
   },
 } as const
 

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
+import { ReportButton } from '../components/ReportButton'
 import { useAuth } from '../auth/AuthContext'
 import { fr } from '../i18n/fr'
 import { friendlyError } from '../lib/errors'
@@ -138,6 +139,7 @@ export function Community() {
                       {' · '}{new Date(m.created_at).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' })}
                     </div>
                     {m.deleted_at ? <em className="muted">{fr.community.deleted}</em> : <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{m.body}</p>}
+                    {!m.deleted_at && m.author_id !== me && <ReportButton type="message" id={m.id} />}
                     {!m.deleted_at && (m.author_id === me || canModerate) && (
                       <button type="button" className="btn" disabled={busy} onClick={() => void run(() => deleteMessage(m.id), loadMessages)}>{fr.community.deleteMessage}</button>
                     )}

@@ -1131,3 +1131,9 @@ export const listSoukSubmissions = (status: 'pending' | 'approved' | 'rejected',
   rpc<SoukSubmissionStaff[]>('list_souk_submissions', { p_status: status, p_limit: limit })
 export const reviewSoukSubmission = (id: string, approve: boolean, note: string, price: number | null) =>
   rpc<string | null>('review_souk_submission', { p_submission: id, p_approve: approve, p_note: note.trim() || null, p_price: approve ? price : null })
+
+// ---- Reporting content ------------------------------------------------------------------------------
+export type ReportTarget = 'message' | 'direct_message' | 'project' | 'member'
+export type ReportReason = 'spam' | 'harassment' | 'inappropriate' | 'scam' | 'other'
+export const reportContent = (type: ReportTarget, id: string, reason: ReportReason, note: string) =>
+  rpc<string>('report_content', { p_target_type: type, p_target_id: id, p_reason: reason, p_note: note.trim() || null })
