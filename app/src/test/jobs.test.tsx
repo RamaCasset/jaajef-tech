@@ -9,6 +9,7 @@ const listSavedOffers = vi.fn()
 const saveOffer = vi.fn()
 const unsaveOffer = vi.fn()
 const listMyApplications = vi.fn()
+const withdrawApplication = vi.fn()
 
 vi.mock('../lib/api', () => ({
   searchJobs: (...a: unknown[]) => searchJobs(...a),
@@ -16,6 +17,7 @@ vi.mock('../lib/api', () => ({
   saveOffer: (...a: unknown[]) => saveOffer(...a),
   unsaveOffer: (...a: unknown[]) => unsaveOffer(...a),
   listMyApplications: (...a: unknown[]) => listMyApplications(...a),
+  withdrawApplication: (...a: unknown[]) => withdrawApplication(...a),
 }))
 vi.mock('../auth/AuthContext', () => ({
   useAuth: () => ({ member: { kopeks: 1, profile: { display_name: 'Moussa' } }, signOut: vi.fn() }),
@@ -32,7 +34,7 @@ const lastFilters = () => searchJobs.mock.calls[searchJobs.mock.calls.length - 1
 const mount = () => render(<MemoryRouter><Jobs /></MemoryRouter>)
 
 beforeEach(() => {
-  for (const m of [searchJobs, listSavedOffers, saveOffer, unsaveOffer, listMyApplications]) m.mockReset()
+  for (const m of [searchJobs, listSavedOffers, saveOffer, unsaveOffer, listMyApplications, withdrawApplication]) m.mockReset()
   searchJobs.mockResolvedValue([job(1), job(2, { kind: 'freelance', employment_type: null, pay_min_fcfa: null, pay_max_fcfa: null, pay_unit: null, pay_negotiable: true })])
   listSavedOffers.mockResolvedValue([{ offer_id: 'j2', title: 'Poste 2', kind: 'freelance', location: 'Dakar', remote: 'remote', employer_name: 'SunuStack', closes_on: null, is_listed: false, saved_at: '2026-10-26' }])
   saveOffer.mockResolvedValue(undefined)
@@ -98,6 +100,28 @@ describe('Jobs page', () => {
     expect(await screen.findByText('Plus en ligne')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('tab', { name: 'Mes candidatures' }))
     expect(await screen.findByText('Retenue')).toBeInTheDocument()
+  })
+
+  it('withdraws an application after a click, and offers no button for ones already closed', async () => {
+    const app = (id: string, status: string) => ({ id, offer_id: 'j1', offer_title: `Poste ${id}`, employer_name: 'SunuStack', status, applied_at: '2026-10-27T00:00:00Z', updated_at: '2026-10-28T00:00:00Z', offer_open: true, has_cv: true })
+    listMyApplications.mockResolvedValueOnce([app('a1', 'submitted'), app('a2', 'declined'), app('a3', 'withdrawn')])
+    withdrawApplication.mockResolvedValue(undefined)
+    mount()
+    await screen.findByText('Poste 1')
+    await userEvent.click(screen.getByRole('tab', { name: 'Mes candidatures' }))
+    expect(await screen.findByRole('link', { name: 'Poste a1' })).toHaveAttribute('href', '/jobs/j1')
+    expect(screen.getAllByRole('button', { name: 'Retirer ma candidature' })).toHaveLength(1)
+    listMyApplications.mockResolvedValueOnce([app('a1', 'withdrawn'), app('a2', 'declined'), app('a3', 'withdrawn')])
+    await userEvent.click(screen.getByRole('button', { name: 'Retirer ma candidature' }))
+    expect(withdrawApplication).toHaveBeenCalledWith('a1')
+    expect(await screen.findByRole('status')).toHaveTextContent('Candidature retirée')
+    expect(screen.queryByRole('button', { name: 'Retirer ma candidature' })).not.toBeInTheDocument()
+  })
+
+  it('links each offer to its page', async () => {
+    mount()
+    expect(await screen.findByRole('link', { name: 'Poste 1' })).toHaveAttribute('href', '/jobs/j1')
+    expect(screen.getByRole('link', { name: 'Mon dossier de candidature' })).toHaveAttribute('href', '/dossier')
   })
 
   it('shows the empty state and the error state with retry', async () => {

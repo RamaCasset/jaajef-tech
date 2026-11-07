@@ -571,6 +571,55 @@ export async function listMyProjects(userId: string): Promise<MyProject[]> {
 export const publishProject = (repoUrl: string, title: string, summary: string | null) =>
   rpc<string>('publish_project', { p_repo_url: repoUrl, p_title: title, p_summary: summary, p_tags: [] })
 
+// ---- One job offer, applying, and my application file -----------------------------------------------------
+export type JobOfferDetail = JobOffer & { description: string }
+
+export async function getJobOffer(id: string): Promise<JobOfferDetail | null> {
+  const { data, error } = await supabase
+    .from('job_offers')
+    .select('id, title, kind, description, employment_type, location, remote, pay_min_fcfa, pay_max_fcfa, pay_unit, pay_negotiable, tags, closes_on, published_at, employer_id, employers(name, kind, logo_url)')
+    .eq('id', id)
+    .maybeSingle()
+  if (error) throw new Error(error.message)
+  if (!data) return null
+  const e = (data as unknown as { employers: { name: string; kind: string; logo_url: string | null } | null }).employers
+  const { employers: _drop, ...rest } = data as Record<string, unknown>
+  void _drop
+  return { ...(rest as Omit<JobOfferDetail, 'employer_name' | 'employer_kind' | 'employer_logo_url'>), employer_name: e?.name ?? '', employer_kind: e?.kind ?? '', employer_logo_url: e?.logo_url ?? null }
+}
+
+export const applyToOffer = (offerId: string, message: string, includeCv: boolean) =>
+  rpc<string>('apply_to_offer', { p_offer: offerId, p_message: message.trim() || null, p_include_cv: includeCv })
+export const withdrawApplication = (id: string) => rpc<void>('withdraw_application', { p_application: id })
+
+export type Availability = 'immediate' | 'within_month' | 'within_3_months' | 'not_looking'
+export type ApplicationFile = {
+  headline: string | null
+  summary: string | null
+  location: string | null
+  experience_years: number | null
+  availability: Availability | null
+  work_kinds: ('job' | 'freelance')[]
+  skills: string[]
+  website: string | null
+  linkedin_url: string | null
+  cv_name: string | null
+  portfolio_count: number
+  completion: number
+  missing: string[]
+}
+export async function myApplicationFile(): Promise<ApplicationFile> {
+  const rows = await rpc<ApplicationFile[]>('my_application_file')
+  return rows[0]
+}
+export const saveApplicationFile = (f: {
+  headline: string; summary: string; location: string; experience_years: number | null; availability: Availability | null
+  work_kinds: ('job' | 'freelance')[]; skills: string[]; website: string; linkedin_url: string
+}) =>
+  rpc<void>('save_application_file', {
+    p_headline: f.headline, p_summary: f.summary, p_location: f.location, p_experience_years: f.experience_years,
+    p_availability: f.availability, p_work_kinds: f.work_kinds, p_skills: f.skills, p_website: f.website, p_linkedin_url: f.linkedin_url,
+  })
 // ---- Notifications ---------------------------------------------------------------------------------------
 export type NotificationKind =
   | 'project_starred' | 'project_comment' | 'project_confirmed' | 'project_hidden'
