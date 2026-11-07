@@ -15,6 +15,41 @@ export function friendlyError(error: unknown): string {
   if (m.includes('a suspension lasts')) return fr.errors.suspensionDays
   if (m.includes('nothing to remove for a member')) return fr.errors.nothingToRemove
   if (m.includes('give a reason for the rejection')) return fr.errors.giveReason
+  if (m.includes('already have an employer')) return fr.errors.employerExists
+  if (m.includes('create your employer profile first') || m.includes('no employer profile')) return fr.errors.employerFirst
+  if (m.includes('employer profile was rejected')) return fr.errors.employerRejected
+  if (m.includes('company is waiting for approval')) return fr.errors.employerWaiting
+  if (m.includes('the title needs at least 3')) return fr.errors.offerTitleShort
+  if (m.includes('write a description first')) return fr.errors.offerDescription
+  if (m.includes('hidden by staff')) return fr.errors.offerHidden
+  if (m.includes('too many open offers')) return fr.errors.offerTooMany
+  if (m.includes('publishing too fast')) return fr.errors.offerTooFast
+  if (m.includes('pay is out of range') || m.includes('highest pay cannot') || m.includes('say what the pay is for')) return fr.errors.offerPay
+  if (m.includes('closing day must be')) return fr.errors.offerClosing
+  if (m.includes('closing day has passed')) return fr.errors.offerClosedPast
+  if (m.includes('offer not found') || m.includes('only your own published offer')) return fr.errors.offerNotFound
+  if (m.includes('application not found')) return fr.errors.applicationNotFound
+  if (m.includes('status cannot go back')) return fr.errors.applicationBack
+  if (m.includes('fill in your application file')) return fr.errors.talentNeedsHeadline
+  if (m.includes('set your availability')) return fr.errors.talentNeedsAvailability
+  if (m.includes('complete at least') && m.includes('directory')) return fr.errors.talentNeedsCompletion
+  if (m.includes('profile not found')) return fr.errors.talentNotFound
+  if (m.includes('cv is too large') || m.includes('exceeded the maximum allowed size')) return fr.errors.cvLarge
+  if (m.includes('cv must be a pdf')) return fr.errors.cvType
+  if (m.includes('title needs at least 2')) return fr.errors.portfolioTitleShort
+  if (m.includes('add a link or choose')) return fr.errors.portfolioNeedsLink
+  if (m.includes('portfolio is full')) return fr.errors.portfolioFullErr
+  if (m.includes('too many reports today')) return fr.errors.reportTooMany
+  if (m.includes('target not found')) return fr.errors.reportTargetGone
+  if (m.includes('cannot report your own content')) return fr.errors.reportOwn
+  if (m.includes('already reported this')) return fr.errors.reportAlready
+  if (m.includes('member not found')) return fr.errors.memberNotFound
+  if (m.includes('this member is an admin')) return fr.errors.isAdmin
+  if (m.includes('is not suspended')) return fr.errors.notSuspended
+  if (m.includes('give a reason for the rejection') || m.includes('say why the item is rejected')) return fr.errors.giveReason
+  if (m.includes('submission has already been handled')) return fr.errors.soukHandled
+  if (m.includes('cannot review your own submission')) return fr.errors.soukOwn
+  if (m.includes('submission not found')) return fr.errors.soukNotFound
   if (m.includes('not waiting for review')) return fr.errors.notWaiting
   if (m.includes('star your own')) return fr.errors.ownStar
   if (m.includes('collaborate on your own')) return fr.errors.ownCollab

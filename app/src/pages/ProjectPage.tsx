@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
+import { ReportButton } from '../components/ReportButton'
 import { useAuth } from '../auth/AuthContext'
 import { fr } from '../i18n/fr'
 import { friendlyError } from '../lib/errors'
@@ -84,6 +85,7 @@ export function ProjectPage() {
           <>
             <header className="page-head">
               <h1 className="page-title">{project.title}</h1>
+              {!isOwner && <ReportButton type="project" id={project.id} />}
               <p className="muted tiny">
                 <Link to={`/profil/${project.owner_username}`}>{fr.projectPage.by(project.owner_display_name || project.owner_username)}</Link>
                 {' · '}
