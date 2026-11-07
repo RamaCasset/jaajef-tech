@@ -11,6 +11,7 @@ export function friendlyError(error: unknown): string {
   if (m.includes('waiting for review as allowed')) return fr.errors.soukTooMany
   if (m.includes('give the item a name')) return fr.errors.soukName
   if (m.includes('price must be between')) return fr.errors.soukPrice
+  if (m.includes('profiles_display_name_check')) return fr.editProfile.nameEmpty
   if (m.includes('post not found')) return fr.errors.postNotFound
   if (m.includes('hidden by staff')) return fr.errors.postHidden
   if (m.includes('publishing too fast')) return fr.errors.publishingTooFast
