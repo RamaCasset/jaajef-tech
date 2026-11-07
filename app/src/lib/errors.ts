@@ -7,6 +7,15 @@ export function friendlyError(error: unknown): string {
   if (m.includes('invalid login credentials')) return fr.errors.invalidCredentials
   if (m.includes('already registered') || m.includes('already been registered')) return fr.errors.emailTaken
   if (m.includes('password should be at least') || m.includes('weak password')) return fr.errors.weakPassword
+  if (m.includes('only staff') || m.includes('only shop staff')) return fr.errors.staffOnly
+  if (m.includes('only an admin')) return fr.errors.adminOnly
+  if (m.includes('report has already been handled')) return fr.errors.reportHandled
+  if (m.includes('report not found')) return fr.errors.reportNotFound
+  if (m.includes('cannot be sanctioned') || m.includes('only an admin can sanction')) return fr.errors.cannotSanction
+  if (m.includes('a suspension lasts')) return fr.errors.suspensionDays
+  if (m.includes('nothing to remove for a member')) return fr.errors.nothingToRemove
+  if (m.includes('give a reason for the rejection')) return fr.errors.giveReason
+  if (m.includes('not waiting for review')) return fr.errors.notWaiting
   if (m.includes('already chosen')) return fr.errors.characterLocked
   if (m.includes('not enough kopeks')) return fr.errors.notEnoughKopeks
   if (m.includes('already own')) return fr.errors.alreadyOwned
