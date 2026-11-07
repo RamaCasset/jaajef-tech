@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
+import { ReportButton } from '../components/ReportButton'
 import { BuildBadge, ClanTag } from '../components/ProjectCard'
 import { useAuth } from '../auth/AuthContext'
 import { loadProfile, startConversation, type ProfileData } from '../lib/api'
@@ -79,6 +80,7 @@ function ProfileView({ data, viewerId }: { data: ProfileData; viewerId: string }
               {p.github_username ? <> · <a href={`https://github.com/${p.github_username}`} target="_blank" rel="noreferrer">github.com/{p.github_username}</a></> : null}
             </p>
             {p.id === viewerId && <p><Link className="btn" to="/parametres/profil">{fr.editProfile.edit}</Link></p>}
+            {p.id !== viewerId && <p><ReportButton type="member" id={p.id} /></p>}
             {p.id !== viewerId && (
               <p>
                 <button type="button" className="btn" onClick={() => void write()}>{fr.messages.write}</button>

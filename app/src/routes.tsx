@@ -20,11 +20,16 @@ import { ApplicationFile } from './pages/ApplicationFile'
 import { Employer } from './pages/Employer'
 import { OfferForm } from './pages/OfferForm'
 import { OfferApplicants } from './pages/OfferApplicants'
+import { Talents } from './pages/Talents'
+import { TalentProfile } from './pages/TalentProfile'
+import { CvPortfolio } from './pages/CvPortfolio'
 import { Profile } from './pages/Profile'
 import { Souk } from './pages/Souk'
 import { Staff } from './pages/Staff'
 import { StaffReports } from './pages/StaffReports'
 import { StaffReview } from './pages/StaffReview'
+import { StaffTeam } from './pages/StaffTeam'
+import { StaffSouk } from './pages/StaffSouk'
 import { SoukSell } from './pages/SoukSell'
 import { EditProfile } from './pages/EditProfile'
 import { Search } from './pages/Search'
@@ -85,6 +90,8 @@ export function AppRoutes() {
       <Route path="/projets" element={<RequireAuth><RequireCharacter><Projects /></RequireCharacter></RequireAuth>} />
       <Route path="/equipe" element={<RequireAuth><RequireCharacter><Staff /></RequireCharacter></RequireAuth>} />
       <Route path="/equipe/signalements" element={<RequireAuth><RequireCharacter><StaffReports /></RequireCharacter></RequireAuth>} />
+      <Route path="/equipe/equipe" element={<RequireAuth><RequireCharacter><StaffTeam /></RequireCharacter></RequireAuth>} />
+      <Route path="/equipe/souk" element={<RequireAuth><RequireCharacter><StaffSouk /></RequireCharacter></RequireAuth>} />
       <Route path="/equipe/validation" element={<RequireAuth><RequireCharacter><StaffReview /></RequireCharacter></RequireAuth>} />
       <Route path="/souk/vendre" element={<RequireAuth><RequireCharacter><SoukSell /></RequireCharacter></RequireAuth>} />
       <Route path="/parametres/profil" element={<RequireAuth><RequireCharacter><EditProfile /></RequireCharacter></RequireAuth>} />
@@ -103,6 +110,9 @@ export function AppRoutes() {
       <Route path="/employeur/offres/nouvelle" element={<RequireAuth><RequireCharacter><OfferForm /></RequireCharacter></RequireAuth>} />
       <Route path="/employeur/offres/:id" element={<RequireAuth><RequireCharacter><OfferForm /></RequireCharacter></RequireAuth>} />
       <Route path="/employeur/offres/:id/candidatures" element={<RequireAuth><RequireCharacter><OfferApplicants /></RequireCharacter></RequireAuth>} />
+      <Route path="/talents" element={<RequireAuth><RequireCharacter><Talents /></RequireCharacter></RequireAuth>} />
+      <Route path="/talents/:id" element={<RequireAuth><RequireCharacter><TalentProfile /></RequireCharacter></RequireAuth>} />
+      <Route path="/dossier/cv-portfolio" element={<RequireAuth><RequireCharacter><CvPortfolio /></RequireCharacter></RequireAuth>} />
       <Route path="/dossier" element={<RequireAuth><RequireCharacter><ApplicationFile /></RequireCharacter></RequireAuth>} />
       <Route path="/notifications" element={<RequireAuth><RequireCharacter><Notifications /></RequireCharacter></RequireAuth>} />
       <Route path="/parametres" element={<RequireAuth><RequireCharacter><Settings /></RequireCharacter></RequireAuth>} />

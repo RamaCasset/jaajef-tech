@@ -72,4 +72,16 @@ describe('Profile page', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Réessayer' }))
     expect(await screen.findByRole('heading', { name: /Moussa Diop/ })).toBeInTheDocument()
   })
+
+  it('offers "Signaler" on someone else\'s profile but not on my own', async () => {
+    const own = mount()
+    await screen.findByRole('heading', { name: /Moussa Diop/ })
+    expect(screen.queryByRole('button', { name: 'Signaler' })).not.toBeInTheDocument()
+    own.unmount()
+    const other = data()
+    other.profile = { ...other.profile, id: 'u2' }
+    loadProfile.mockResolvedValue(other)
+    mount()
+    expect(await screen.findByRole('button', { name: 'Signaler' })).toBeInTheDocument()
+  })
 })
