@@ -1098,3 +1098,87 @@ export type ReviewItem = { kind: 'employer' | 'offer'; id: string; title: string
 export const listReviewQueue = () => rpc<ReviewItem[]>('list_review_queue')
 export const reviewEmployer = (id: string, approve: boolean, note: string) => rpc<void>('review_employer', { p_employer: id, p_approve: approve, p_note: note.trim() || null })
 export const reviewJobOffer = (id: string, approve: boolean, note: string) => rpc<void>('review_job_offer', { p_offer: id, p_approve: approve, p_note: note.trim() || null })
+// ---- Employer side of jobs ---------------------------------------------------------------------------
+export type EmployerKind = 'company' | 'individual'
+export type MyEmployer = {
+  id: string; kind: EmployerKind; name: string; description: string | null; website: string | null
+  logo_url: string | null; location: string | null; status: 'pending' | 'approved' | 'rejected'; review_note: string | null
+}
+export type EmployerInput = { kind: EmployerKind; name: string; description: string; website: string; location: string }
+export async function getMyEmployer(userId: string): Promise<MyEmployer | null> {
+  const { data, error } = await supabase
+    .from('employers')
+    .select('id, kind, name, description, website, logo_url, location, status, review_note')
+    .eq('owner_id', userId)
+    .maybeSingle()
+  if (error) throw new Error(error.message)
+  return (data as MyEmployer | null) ?? null
+}
+export const createEmployer = (i: EmployerInput) =>
+  rpc<string>('create_employer', {
+    p_kind: i.kind, p_name: i.name, p_description: i.description || null, p_website: i.website || null, p_logo_url: null, p_location: i.location || null,
+  })
+export const updateEmployer = (i: EmployerInput, logo: string | null) =>
+  rpc<string>('update_employer', {
+    p_name: i.name, p_description: i.description || null, p_website: i.website || null, p_logo_url: logo, p_location: i.location || null,
+  })
+
+export type OfferStatus = 'draft' | 'pending_review' | 'published' | 'closed' | 'rejected'
+export type MyOffer = {
+  id: string; title: string; kind: 'job' | 'freelance'; description: string; employment_type: string | null; location: string | null
+  remote: string; pay_min_fcfa: number | null; pay_max_fcfa: number | null; pay_unit: string | null; pay_negotiable: boolean
+  tags: string[]; status: OfferStatus; review_note: string | null; staff_hidden: boolean; closes_on: string | null
+}
+const OFFER_COLUMNS = 'id, title, kind, description, employment_type, location, remote, pay_min_fcfa, pay_max_fcfa, pay_unit, pay_negotiable, tags, status, review_note, staff_hidden, closes_on'
+export async function listMyOffers(userId: string): Promise<MyOffer[]> {
+  const { data, error } = await supabase.from('job_offers').select(OFFER_COLUMNS).eq('posted_by', userId).order('created_at', { ascending: false })
+  if (error) throw new Error(error.message)
+  return (data ?? []) as MyOffer[]
+}
+export async function getMyOffer(userId: string, id: string): Promise<MyOffer | null> {
+  const { data, error } = await supabase.from('job_offers').select(OFFER_COLUMNS).eq('posted_by', userId).eq('id', id).maybeSingle()
+  if (error) throw new Error(error.message)
+  return (data as MyOffer | null) ?? null
+}
+export type OfferInput = {
+  title: string; kind: 'job' | 'freelance'; description: string; employment_type: string; location: string; remote: string
+  pay_min: string; pay_max: string; pay_unit: string; pay_negotiable: boolean; tags: string; closes_on: string
+}
+function offerArgs(i: OfferInput) {
+  const tags = i.tags.split(',').map((t) => t.trim()).filter(Boolean)
+  return {
+    p_title: i.title, p_kind: i.kind, p_description: i.description,
+    p_employment_type: i.kind === 'job' ? i.employment_type || null : null,
+    p_location: i.location || null, p_remote: i.remote,
+    p_pay_min: i.pay_min.trim() ? Number(i.pay_min) : null, p_pay_max: i.pay_max.trim() ? Number(i.pay_max) : null,
+    p_pay_unit: i.pay_unit || null, p_pay_negotiable: i.pay_negotiable, p_tags: tags, p_closes_on: i.closes_on || null,
+  }
+}
+export const createJobOffer = (i: OfferInput, publish: boolean) => rpc<string>('create_job_offer', { ...offerArgs(i), p_publish: publish })
+export const updateJobOffer = (id: string, i: OfferInput) => rpc<void>('update_job_offer', { p_offer: id, ...offerArgs(i) })
+export const publishJobOffer = (id: string) => rpc<'published' | 'pending_review'>('publish_job_offer', { p_offer: id })
+export const closeJobOffer = (id: string) => rpc<void>('close_job_offer', { p_offer: id })
+export const unpublishJobOffer = (id: string) => rpc<void>('unpublish_job_offer', { p_offer: id })
+export const deleteJobOffer = (id: string) => rpc<void>('delete_job_offer', { p_offer: id })
+
+export type ApplicantStatus = 'submitted' | 'seen' | 'shortlisted' | 'declined'
+export type Applicant = {
+  id: string; applicant_id: string; username: string; display_name: string; avatar_url: string | null; headline: string | null
+  skills: string[]; status: ApplicantStatus; applied_at: string; has_cv: boolean
+}
+export const listOfferApplicants = (offer: string, status: ApplicantStatus | '') =>
+  rpc<Applicant[]>('list_offer_applicants', { p_offer: offer, p_status: status || null, p_limit: 50, p_offset: 0 })
+export const setApplicationStatus = (id: string, status: 'seen' | 'shortlisted' | 'declined') =>
+  rpc<void>('set_application_status', { p_application: id, p_status: status })
+export type ApplicantDetail = { message: string | null; cv_path: string | null; cv_name: string | null; summary: string | null }
+export async function getApplicationDetail(id: string): Promise<ApplicantDetail> {
+  const { data, error } = await supabase.from('job_applications').select('message, cv_path, cv_name, profile_snapshot').eq('id', id).maybeSingle()
+  if (error || !data) throw new Error(error?.message ?? 'Application not found')
+  const snap = (data.profile_snapshot ?? {}) as { summary?: string | null }
+  return { message: data.message ?? null, cv_path: data.cv_path ?? null, cv_name: data.cv_name ?? null, summary: snap.summary ?? null }
+}
+export async function applicantCvLink(path: string): Promise<string> {
+  const { data, error } = await supabase.storage.from('cv-files').createSignedUrl(path, 60)
+  if (error || !data) throw new Error(error?.message ?? 'No link')
+  return data.signedUrl
+}

@@ -89,7 +89,7 @@ export function Jobs() {
         <header className="page-head">
           <h1 className="page-title">{fr.jobs.title}</h1>
           <p className="muted">{fr.jobs.subtitle}</p>
-          <p><Link to="/dossier">{fr.jobs.myFile}</Link></p>
+          <p><Link to="/dossier">{fr.jobs.myFile}</Link> · <Link to="/employeur">{fr.jobs.employerLink}</Link></p>
         </header>
 
         <div role="tablist" className="souk-tabs">
