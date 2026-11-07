@@ -22,6 +22,7 @@ import { Souk } from './pages/Souk'
 import { Staff } from './pages/Staff'
 import { StaffReports } from './pages/StaffReports'
 import { StaffReview } from './pages/StaffReview'
+import { StaffTeam } from './pages/StaffTeam'
 import { StaffSouk } from './pages/StaffSouk'
 import { SoukSell } from './pages/SoukSell'
 import { EditProfile } from './pages/EditProfile'
@@ -83,6 +84,7 @@ export function AppRoutes() {
       <Route path="/projets" element={<RequireAuth><RequireCharacter><Projects /></RequireCharacter></RequireAuth>} />
       <Route path="/equipe" element={<RequireAuth><RequireCharacter><Staff /></RequireCharacter></RequireAuth>} />
       <Route path="/equipe/signalements" element={<RequireAuth><RequireCharacter><StaffReports /></RequireCharacter></RequireAuth>} />
+      <Route path="/equipe/equipe" element={<RequireAuth><RequireCharacter><StaffTeam /></RequireCharacter></RequireAuth>} />
       <Route path="/equipe/souk" element={<RequireAuth><RequireCharacter><StaffSouk /></RequireCharacter></RequireAuth>} />
       <Route path="/equipe/validation" element={<RequireAuth><RequireCharacter><StaffReview /></RequireCharacter></RequireAuth>} />
       <Route path="/souk/vendre" element={<RequireAuth><RequireCharacter><SoukSell /></RequireCharacter></RequireAuth>} />

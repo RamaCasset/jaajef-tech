@@ -14,6 +14,10 @@ export function friendlyError(error: unknown): string {
   if (m.includes('cannot be sanctioned') || m.includes('only an admin can sanction')) return fr.errors.cannotSanction
   if (m.includes('a suspension lasts')) return fr.errors.suspensionDays
   if (m.includes('nothing to remove for a member')) return fr.errors.nothingToRemove
+  if (m.includes('give a reason for the rejection')) return fr.errors.giveReason
+  if (m.includes('member not found')) return fr.errors.memberNotFound
+  if (m.includes('this member is an admin')) return fr.errors.isAdmin
+  if (m.includes('is not suspended')) return fr.errors.notSuspended
   if (m.includes('give a reason for the rejection') || m.includes('say why the item is rejected')) return fr.errors.giveReason
   if (m.includes('submission has already been handled')) return fr.errors.soukHandled
   if (m.includes('cannot review your own submission')) return fr.errors.soukOwn
