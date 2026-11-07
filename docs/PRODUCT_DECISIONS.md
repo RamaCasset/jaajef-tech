@@ -7,6 +7,7 @@ Decisions given by the project owner. Newest first. Open points are marked "to c
 - Karma is removed. There will be no karma score anywhere.
 - Country rank is removed.
 - No ranked play and no seasons. The only competitive space is the Quest arena.
+- Quest arena: the place where quests live and are done. A member sees every quest they have done and can choose to redo an earlier one. One new quest appears each day. Redoing a quest pays nothing more (rewards are paid once per quest, already how the database works): to confirm with Marie.
 - Quest pool: 365 quests, one shown per day, visible to everyone. A new pool is created every year.
 - Learning paths become a space to learn software engineering (coding, UI, UX, backend, AI and more). It links out to free programs such as freeCodeCamp; the platform does not host the lessons. Which programs, and how they are ordered: to confirm with Marie.
 - Hosted repos: members can create a repository (a "depot") on the platform, import code from GitHub, show it, edit it in the browser the way they would in VS Code, and commit it back to GitHub if they want to.
