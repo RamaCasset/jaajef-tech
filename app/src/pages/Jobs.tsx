@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
 import { JobCard } from '../components/JobCard'
 import { useDebounced } from '../hooks'
 import {
-  listMyApplications, listSavedOffers, saveOffer, searchJobs, unsaveOffer,
+  listMyApplications, listSavedOffers, saveOffer, searchJobs, unsaveOffer, withdrawApplication,
   type JobFilters, type JobOffer, type MyApplication, type SavedOffer,
 } from '../lib/api'
 import { friendlyError } from '../lib/errors'
@@ -65,6 +66,20 @@ export function Jobs() {
     }
   }
 
+  async function withdraw(id: string) {
+    setBusyId(id)
+    setNotice(null)
+    try {
+      await withdrawApplication(id)
+      setApps(await listMyApplications())
+      setNotice(fr.jobs.withdrawn)
+    } catch (e) {
+      setNotice(friendlyError(e))
+    } finally {
+      setBusyId(null)
+    }
+  }
+
   const retry = () => setReload((n) => n + 1)
   const filtersOn = filters.query || filters.place || filters.kind || filters.contract || filters.remote
 
@@ -74,6 +89,7 @@ export function Jobs() {
         <header className="page-head">
           <h1 className="page-title">{fr.jobs.title}</h1>
           <p className="muted">{fr.jobs.subtitle}</p>
+          <p><Link to="/dossier">{fr.jobs.myFile}</Link></p>
         </header>
 
         <div role="tablist" className="souk-tabs">
@@ -82,7 +98,7 @@ export function Jobs() {
           ))}
         </div>
 
-        {notice ? <p role="alert" className="alert">{notice}</p> : null}
+        {notice ? <p role={notice === fr.jobs.withdrawn ? 'status' : 'alert'} className={notice === fr.jobs.withdrawn ? 'notice' : 'alert'}>{notice}</p> : null}
         {failed ? (
           <div role="alert" className="alert">
             {fr.jobs.error} <button type="button" className="btn" onClick={retry}>{fr.jobs.retry}</button>
@@ -144,7 +160,7 @@ export function Jobs() {
               {saved.map((s) => (
                 <article key={s.offer_id} className="panel job-card">
                   <div className="job-main">
-                    <h3>{s.title}</h3>
+                    <h3><Link to={`/jobs/${s.offer_id}`}>{s.title}</Link></h3>
                     <p className="muted">{s.employer_name} · {[s.location, fr.jobs.remotes[s.remote as keyof typeof fr.jobs.remotes]].filter(Boolean).join(' · ')}</p>
                     {!s.is_listed ? <span className="tag">{fr.jobs.notListed}</span> : null}
                   </div>
@@ -164,10 +180,13 @@ export function Jobs() {
               {apps.map((a) => (
                 <article key={a.id} className="panel job-card">
                   <div className="job-main">
-                    <h3>{a.offer_title}</h3>
+                    <h3><Link to={`/jobs/${a.offer_id}`}>{a.offer_title}</Link></h3>
                     <p className="muted">{a.employer_name} · {fr.jobs.appliedOn(new Date(a.applied_at).toLocaleDateString('fr-FR'))}</p>
                   </div>
                   <span className="tag">{fr.jobs.statuses[a.status]}</span>
+                  {a.status !== 'withdrawn' && a.status !== 'declined' ? (
+                    <button type="button" className="btn" disabled={busyId === a.id} onClick={() => void withdraw(a.id)}>{fr.jobs.withdraw}</button>
+                  ) : null}
                 </article>
               ))}
             </div>
