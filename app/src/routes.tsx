@@ -5,6 +5,8 @@ import { isConfigured } from './lib/supabase'
 import { fr } from './i18n/fr'
 import { Login } from './pages/Login'
 import { Signup } from './pages/Signup'
+import { ForgotPassword } from './pages/ForgotPassword'
+import { ResetPassword } from './pages/ResetPassword'
 import { ChooseClan } from './pages/ChooseClan'
 import { Home } from './pages/Home'
 import { Quests } from './pages/Quests'
@@ -15,6 +17,8 @@ import { Jobs } from './pages/Jobs'
 import { Profile } from './pages/Profile'
 import { Souk } from './pages/Souk'
 import { Search } from './pages/Search'
+import { Notifications } from './pages/Notifications'
+import { Settings } from './pages/Settings'
 import { Setup } from './pages/Setup'
 
 function Loading() {
@@ -50,6 +54,8 @@ export function AppRoutes() {
   return (
     <Routes>
       <Route path="/connexion" element={<PublicOnly><Login /></PublicOnly>} />
+      <Route path="/mot-de-passe-oublie" element={<PublicOnly><ForgotPassword /></PublicOnly>} />
+      <Route path="/nouveau-mot-de-passe" element={<ResetPassword />} />
       <Route path="/inscription" element={<PublicOnly><Signup /></PublicOnly>} />
       <Route path="/inscription/clan" element={<RequireAuth><ChooseClan /></RequireAuth>} />
       <Route path="/cite" element={<RequireAuth><RequireCharacter><Home /></RequireCharacter></RequireAuth>} />
@@ -58,6 +64,8 @@ export function AppRoutes() {
       <Route path="/projets/ajouter" element={<RequireAuth><RequireCharacter><ImportProject /></RequireCharacter></RequireAuth>} />
       <Route path="/projets" element={<RequireAuth><RequireCharacter><Projects /></RequireCharacter></RequireAuth>} />
       <Route path="/recherche" element={<RequireAuth><RequireCharacter><Search /></RequireCharacter></RequireAuth>} />
+      <Route path="/notifications" element={<RequireAuth><RequireCharacter><Notifications /></RequireCharacter></RequireAuth>} />
+      <Route path="/parametres" element={<RequireAuth><RequireCharacter><Settings /></RequireCharacter></RequireAuth>} />
       <Route path="/souk" element={<RequireAuth><RequireCharacter><Souk /></RequireCharacter></RequireAuth>} />
       <Route path="/profil/:username" element={<RequireAuth><RequireCharacter><Profile /></RequireCharacter></RequireAuth>} />
       <Route path="/jobs" element={<RequireAuth><RequireCharacter><Jobs /></RequireCharacter></RequireAuth>} />

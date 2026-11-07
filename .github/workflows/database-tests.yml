@@ -81,6 +81,9 @@ jobs:
       - name: Run the job-alert e-mail test (pretend database, pretend e-mail service)
         run: node --experimental-strip-types supabase/functions/job-digest/digest.test.mjs
 
+      - name: Run the account purge test (pretend database, pretend Storage)
+        run: node --experimental-strip-types supabase/functions/account-purge/purge.test.mjs
+
   app:
     runs-on: ubuntu-latest
     defaults:
