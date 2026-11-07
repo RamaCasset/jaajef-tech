@@ -620,3 +620,14 @@ export const saveApplicationFile = (f: {
     p_headline: f.headline, p_summary: f.summary, p_location: f.location, p_experience_years: f.experience_years,
     p_availability: f.availability, p_work_kinds: f.work_kinds, p_skills: f.skills, p_website: f.website, p_linkedin_url: f.linkedin_url,
   })
+// ---- Account: delete and download my data ----------------------------------------------------------------
+export type DeletionBlocker = { code: 'staff' | 'suspended' | 'community_owner' | 'employer_active'; count: number }
+export type AccountDeletion = { requested_at: string | null; delete_on: string | null; blockers: DeletionBlocker[] }
+
+export async function myAccountDeletion(): Promise<AccountDeletion> {
+  const rows = await rpc<AccountDeletion[]>('my_account_deletion')
+  return rows[0] ?? { requested_at: null, delete_on: null, blockers: [] }
+}
+export const requestAccountDeletion = () => rpc<string>('request_account_deletion')
+export const cancelAccountDeletion = () => rpc<void>('cancel_account_deletion')
+export const exportMyData = () => rpc<Record<string, unknown>>('export_my_data')
