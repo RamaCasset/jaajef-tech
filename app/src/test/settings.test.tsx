@@ -7,15 +7,26 @@ const myAccountDeletion = vi.fn()
 const requestAccountDeletion = vi.fn()
 const cancelAccountDeletion = vi.fn()
 const exportMyData = vi.fn()
+const listBlockedMembers = vi.fn()
+const unblockUser = vi.fn()
+const getJobEmailSetting = vi.fn()
+const setJobEmailSetting = vi.fn()
+const getSignInMethods = vi.fn()
+const updatePassword = vi.fn()
 
 vi.mock('../lib/api', () => ({
   myAccountDeletion: (...a: unknown[]) => myAccountDeletion(...a),
   requestAccountDeletion: (...a: unknown[]) => requestAccountDeletion(...a),
   cancelAccountDeletion: (...a: unknown[]) => cancelAccountDeletion(...a),
   exportMyData: (...a: unknown[]) => exportMyData(...a),
+  listBlockedMembers: (...a: unknown[]) => listBlockedMembers(...a),
+  unblockUser: (...a: unknown[]) => unblockUser(...a),
+  getJobEmailSetting: (...a: unknown[]) => getJobEmailSetting(...a),
+  setJobEmailSetting: (...a: unknown[]) => setJobEmailSetting(...a),
+  getSignInMethods: (...a: unknown[]) => getSignInMethods(...a),
 }))
 vi.mock('../auth/AuthContext', () => ({
-  useAuth: () => ({ member: { kopeks: 100, profile: { display_name: 'Moussa Diop' } }, signOut: vi.fn() }),
+  useAuth: () => ({ member: { kopeks: 100, profile: { id: 'me', display_name: 'Moussa Diop' } }, signOut: vi.fn(), updatePassword: (...a: unknown[]) => updatePassword(...a) }),
 }))
 
 import { Settings } from '../pages/Settings'
@@ -24,8 +35,14 @@ const free = { requested_at: null, delete_on: null, blockers: [] }
 const mount = () => render(<MemoryRouter><Settings /></MemoryRouter>)
 
 beforeEach(() => {
-  for (const m of [myAccountDeletion, requestAccountDeletion, cancelAccountDeletion, exportMyData]) m.mockReset()
+  for (const m of [myAccountDeletion, requestAccountDeletion, cancelAccountDeletion, exportMyData, listBlockedMembers, unblockUser, getJobEmailSetting, setJobEmailSetting, getSignInMethods, updatePassword]) m.mockReset()
   myAccountDeletion.mockResolvedValue(free)
+  listBlockedMembers.mockResolvedValue([])
+  getJobEmailSetting.mockResolvedValue(true)
+  getSignInMethods.mockResolvedValue({ email: 'moussa@exemple.sn', github: false })
+  unblockUser.mockResolvedValue(undefined)
+  setJobEmailSetting.mockResolvedValue(undefined)
+  updatePassword.mockResolvedValue(undefined)
   URL.createObjectURL = vi.fn(() => 'blob:x')
   URL.revokeObjectURL = vi.fn()
 })
@@ -98,5 +115,72 @@ describe('Settings', () => {
     mount()
     await userEvent.click(await screen.findByRole('button', { name: 'Réessayer' }))
     expect(await screen.findByRole('button', { name: 'Demander la suppression' })).toBeInTheDocument()
+  })
+})
+
+describe('Settings: more sections', () => {
+  it('shows how the member signs in', async () => {
+    getSignInMethods.mockResolvedValue({ email: 'moussa@exemple.sn', github: true })
+    mount()
+    expect(await screen.findByText('Email : moussa@exemple.sn')).toBeInTheDocument()
+    expect(screen.getByText('GitHub : connecté')).toBeInTheDocument()
+  })
+
+  it('says GitHub is not connected', async () => {
+    mount()
+    expect(await screen.findByText('GitHub : non connecté')).toBeInTheDocument()
+  })
+
+  it('changes the password when both fields match', async () => {
+    mount()
+    await userEvent.type(await screen.findByLabelText('Nouveau mot de passe'), 'motdepasse1')
+    await userEvent.type(screen.getByLabelText('Confirmer le nouveau mot de passe'), 'motdepasse1')
+    await userEvent.click(screen.getByRole('button', { name: 'Changer mon mot de passe' }))
+    await waitFor(() => expect(updatePassword).toHaveBeenCalledWith('motdepasse1'))
+    expect(await screen.findByText('Mot de passe changé.')).toBeInTheDocument()
+  })
+
+  it('refuses a password that is too short or does not match', async () => {
+    mount()
+    await userEvent.type(await screen.findByLabelText('Nouveau mot de passe'), 'court')
+    await userEvent.type(screen.getByLabelText('Confirmer le nouveau mot de passe'), 'court')
+    await userEvent.click(screen.getByRole('button', { name: 'Changer mon mot de passe' }))
+    expect(await screen.findByText(/trop court/)).toBeInTheDocument()
+    await userEvent.clear(screen.getByLabelText('Nouveau mot de passe'))
+    await userEvent.type(screen.getByLabelText('Nouveau mot de passe'), 'motdepasse1')
+    await userEvent.click(screen.getByRole('button', { name: 'Changer mon mot de passe' }))
+    expect(await screen.findByText('Les deux mots de passe ne sont pas identiques.')).toBeInTheDocument()
+    expect(updatePassword).not.toHaveBeenCalled()
+  })
+
+  it('lists blocked members and unblocks the right one', async () => {
+    listBlockedMembers.mockResolvedValue([
+      { id: 'b1', username: 'awa', display_name: 'Awa' },
+      { id: 'b2', username: 'omar', display_name: 'Omar' },
+    ])
+    mount()
+    await userEvent.click(await screen.findByRole('button', { name: 'Débloquer : Omar' }))
+    await waitFor(() => expect(unblockUser).toHaveBeenCalledWith('b2'))
+    expect(await screen.findByText('Membre débloqué.')).toBeInTheDocument()
+  })
+
+  it('says when nobody is blocked', async () => {
+    mount()
+    expect(await screen.findByText("Vous n'avez bloqué personne.")).toBeInTheDocument()
+  })
+
+  it('switches the job email off', async () => {
+    mount()
+    await userEvent.click(await screen.findByRole('checkbox', { name: /résumé quotidien/ }))
+    await waitFor(() => expect(setJobEmailSetting).toHaveBeenCalledWith(false))
+  })
+
+  it('puts the email switch back if saving fails', async () => {
+    setJobEmailSetting.mockRejectedValue(new Error('boom'))
+    mount()
+    const box = await screen.findByRole('checkbox', { name: /résumé quotidien/ })
+    await userEvent.click(box)
+    await waitFor(() => expect(box).toBeChecked())
+    expect(await screen.findAllByRole('alert')).not.toHaveLength(0)
   })
 })

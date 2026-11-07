@@ -1304,3 +1304,27 @@ export async function applicantCvLink(path: string): Promise<string> {
   if (error || !data) throw new Error(error?.message ?? 'No link')
   return data.signedUrl
 }
+
+// ---- Settings: blocked members, job email, sign-in methods -------------------------------------------
+export type BlockedMember = { id: string; username: string; display_name: string }
+export async function listBlockedMembers(userId: string): Promise<BlockedMember[]> {
+  const { data, error } = await supabase.from('blocks').select('blocked_id').eq('blocker_id', userId).order('created_at', { ascending: false })
+  if (error) throw new Error(error.message)
+  const ids = (data ?? []).map((r) => r.blocked_id as string)
+  if (ids.length === 0) return []
+  const people = await supabase.from('profiles').select('id, username, display_name').in('id', ids)
+  if (people.error) throw new Error(people.error.message)
+  return ids.map((id) => (people.data ?? []).find((p) => p.id === id)).filter(Boolean) as BlockedMember[]
+}
+export async function getJobEmailSetting(): Promise<boolean> {
+  const rows = await rpc<{ email_digest: boolean }[]>('my_job_alert_settings')
+  return rows[0]?.email_digest ?? true
+}
+export const setJobEmailSetting = (on: boolean) => rpc<void>('set_job_alert_email', { p_on: on })
+export async function getSignInMethods(): Promise<{ email: string | null; github: boolean }> {
+  const { data, error } = await supabase.auth.getUserIdentities()
+  if (error) throw new Error(error.message)
+  const list = data?.identities ?? []
+  const email = list.find((i) => i.provider === 'email')
+  return { email: (email?.identity_data?.email as string | undefined) ?? null, github: list.some((i) => i.provider === 'github') }
+}
