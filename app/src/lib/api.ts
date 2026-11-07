@@ -653,3 +653,14 @@ export const requestCollaboration = (projectId: string, message: string) => rpc<
 export const withdrawCollabRequest = (id: string) => rpc<void>('withdraw_collab_request', { p_request: id })
 export const decideCollabRequest = (id: string, accept: boolean) => rpc<void>('decide_collab_request', { p_request: id, p_accept: accept })
 export const removeCollaborator = (projectId: string, userId: string) => rpc<void>('remove_collaborator', { p_project: projectId, p_user: userId })
+// ---- Account: delete and download my data ----------------------------------------------------------------
+export type DeletionBlocker = { code: 'staff' | 'suspended' | 'community_owner' | 'employer_active'; count: number }
+export type AccountDeletion = { requested_at: string | null; delete_on: string | null; blockers: DeletionBlocker[] }
+
+export async function myAccountDeletion(): Promise<AccountDeletion> {
+  const rows = await rpc<AccountDeletion[]>('my_account_deletion')
+  return rows[0] ?? { requested_at: null, delete_on: null, blockers: [] }
+}
+export const requestAccountDeletion = () => rpc<string>('request_account_deletion')
+export const cancelAccountDeletion = () => rpc<void>('cancel_account_deletion')
+export const exportMyData = () => rpc<Record<string, unknown>>('export_my_data')
