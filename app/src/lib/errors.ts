@@ -16,6 +16,20 @@ export function friendlyError(error: unknown): string {
   if (m.includes('nothing to remove for a member')) return fr.errors.nothingToRemove
   if (m.includes('give a reason for the rejection')) return fr.errors.giveReason
   if (m.includes('not waiting for review')) return fr.errors.notWaiting
+  if (m.includes('star your own')) return fr.errors.ownStar
+  if (m.includes('collaborate on your own')) return fr.errors.ownCollab
+  if (m.includes('not looking for collaborators')) return fr.errors.notLooking
+  if (m.includes('most collaborators')) return fr.errors.tooManyCollabs
+  if (m.includes('project has too many requests')) return fr.errors.tooManyRequestsOnProject
+  if (m.includes('short message')) return fr.errors.collabShortMessage
+  if (m.includes('already collaborate')) return fr.errors.alreadyCollab
+  if (m.includes('request waiting for this project')) return fr.errors.alreadyRequested
+  if (m.includes('last request was declined; you can ask')) return fr.errors.declinedCollab
+  if (m.includes('commenting too fast')) return fr.errors.commentingFast
+  if (m.includes('submitting too fast')) return fr.errors.soukTooFast
+  if (m.includes('waiting for review as allowed')) return fr.errors.soukTooMany
+  if (m.includes('give the item a name')) return fr.errors.soukName
+  if (m.includes('price must be between')) return fr.errors.soukPrice
   if (m.includes('profiles_display_name_check')) return fr.editProfile.nameEmpty
   if (m.includes('post not found')) return fr.errors.postNotFound
   if (m.includes('hidden by staff')) return fr.errors.postHidden

@@ -12,6 +12,7 @@ import { Home } from './pages/Home'
 import { Quests } from './pages/Quests'
 import { Quest } from './pages/Quest'
 import { Projects } from './pages/Projects'
+import { ProjectPage } from './pages/ProjectPage'
 import { ImportProject } from './pages/ImportProject'
 import { Jobs } from './pages/Jobs'
 import { JobDetail } from './pages/JobDetail'
@@ -21,6 +22,7 @@ import { Souk } from './pages/Souk'
 import { Staff } from './pages/Staff'
 import { StaffReports } from './pages/StaffReports'
 import { StaffReview } from './pages/StaffReview'
+import { SoukSell } from './pages/SoukSell'
 import { EditProfile } from './pages/EditProfile'
 import { Search } from './pages/Search'
 import { Blog } from './pages/Blog'
@@ -76,10 +78,12 @@ export function AppRoutes() {
       <Route path="/quetes" element={<RequireAuth><RequireCharacter><Quests /></RequireCharacter></RequireAuth>} />
       <Route path="/quetes/:slug" element={<RequireAuth><RequireCharacter><Quest /></RequireCharacter></RequireAuth>} />
       <Route path="/projets/ajouter" element={<RequireAuth><RequireCharacter><ImportProject /></RequireCharacter></RequireAuth>} />
+      <Route path="/projets/:id" element={<RequireAuth><RequireCharacter><ProjectPage /></RequireCharacter></RequireAuth>} />
       <Route path="/projets" element={<RequireAuth><RequireCharacter><Projects /></RequireCharacter></RequireAuth>} />
       <Route path="/equipe" element={<RequireAuth><RequireCharacter><Staff /></RequireCharacter></RequireAuth>} />
       <Route path="/equipe/signalements" element={<RequireAuth><RequireCharacter><StaffReports /></RequireCharacter></RequireAuth>} />
       <Route path="/equipe/validation" element={<RequireAuth><RequireCharacter><StaffReview /></RequireCharacter></RequireAuth>} />
+      <Route path="/souk/vendre" element={<RequireAuth><RequireCharacter><SoukSell /></RequireCharacter></RequireAuth>} />
       <Route path="/parametres/profil" element={<RequireAuth><RequireCharacter><EditProfile /></RequireCharacter></RequireAuth>} />
       <Route path="/recherche" element={<RequireAuth><RequireCharacter><Search /></RequireCharacter></RequireAuth>} />
       <Route path="/blog" element={<RequireAuth><RequireCharacter><Blog /></RequireCharacter></RequireAuth>} />

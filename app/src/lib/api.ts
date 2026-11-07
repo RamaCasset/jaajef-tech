@@ -950,6 +950,113 @@ export async function loadMyProfileFields(userId: string): Promise<ProfileEdit> 
   if (error) throw new Error(error.message)
   return { display_name: data.display_name, bio: data.bio ?? '', location: data.location ?? '', available_to_collab: data.available_to_collab }
 }
+// ---- Selling in the Souk -----------------------------------------------------------------------------
+export type SoukSubmission = {
+  id: string
+  kind: SoukKind
+  name: string
+  description: string | null
+  data: Record<string, unknown>
+  proposed_price: number
+  status: 'pending' | 'approved' | 'rejected' | 'withdrawn'
+  review_note: string | null
+  created_at: string
+}
+export const listMySoukSubmissions = () => rpc<SoukSubmission[]>('list_my_souk_submissions')
+export const submitSoukItem = (kind: SoukKind, name: string, description: string, data: Record<string, unknown>, price: number) =>
+  rpc<string>('submit_souk_item', { p_kind: kind, p_name: name.trim(), p_description: description.trim() || null, p_data: data, p_price: price })
+export const withdrawSoukSubmission = (id: string) => rpc<void>('withdraw_souk_submission', { p_submission: id })
+
+export type CreatorSummary = { items_on_sale: number; sales_count: number; kopeks_earned: number; share_percent: number }
+export async function myCreatorSummary(): Promise<CreatorSummary> {
+  const rows = await rpc<CreatorSummary[]>('my_creator_summary')
+  const r = rows[0]
+  return { items_on_sale: Number(r.items_on_sale), sales_count: Number(r.sales_count), kopeks_earned: Number(r.kopeks_earned), share_percent: Number(r.share_percent) }
+}
+export type MySale = { id: number; item_name: string; price: number; share_percent: number; amount: number; sold_at: string }
+export const listMySales = () => rpc<MySale[]>('list_my_sales', { p_limit: 20, p_offset: 0 })
+// ---- One project: stars, comments, collaboration -------------------------------------------------------
+export type ProjectFull = {
+  id: string
+  title: string
+  summary: string | null
+  github_owner: string
+  github_repo: string
+  language: string | null
+  tags: string[]
+  github_stars: number
+  owner_id: string
+  owner_username: string
+  owner_display_name: string
+  star_count: number
+  starred_by_me: boolean
+}
+export async function getProjectFull(id: string): Promise<ProjectFull | null> {
+  const { data, error } = await supabase
+    .from('projects')
+    .select('id, title, summary, github_owner, github_repo, language, tags, github_stars, owner_id, profiles:owner_id(username, display_name)')
+    .eq('id', id)
+    .maybeSingle()
+  if (error) throw new Error(error.message)
+  if (!data) return null
+  const [stats, mine] = await Promise.all([
+    supabase.from('project_stats').select('star_count').eq('project_id', id).maybeSingle(),
+    supabase.from('project_stars').select('project_id').eq('project_id', id).limit(1),
+  ])
+  const { profiles, ...rest } = data as unknown as Omit<ProjectFull, 'owner_username' | 'owner_display_name' | 'star_count' | 'starred_by_me'> & { profiles: { username: string; display_name: string } | null }
+  return {
+    ...rest,
+    owner_username: profiles?.username ?? '',
+    owner_display_name: profiles?.display_name ?? '',
+    star_count: Number(stats.data?.star_count ?? 0),
+    starred_by_me: (mine.data ?? []).length > 0,
+  }
+}
+export const starProject = (id: string) => rpc<void>('star_project', { p_project: id })
+export const unstarProject = (id: string) => rpc<void>('unstar_project', { p_project: id })
+
+export type ProjectComment = { id: number; author_id: string; body: string; created_at: string; author_username: string }
+export async function listProjectComments(projectId: string): Promise<ProjectComment[]> {
+  const { data, error } = await supabase
+    .from('project_comments')
+    .select('id, author_id, body, created_at, profiles:author_id(username)')
+    .eq('project_id', projectId)
+    .order('created_at')
+    .limit(200)
+  if (error) throw new Error(error.message)
+  type Row = Omit<ProjectComment, 'author_username'> & { profiles: { username: string } | null }
+  return ((data ?? []) as unknown as Row[]).map(({ profiles, ...c }) => ({ ...c, author_username: profiles?.username ?? '' }))
+}
+export const postProjectComment = (projectId: string, body: string) => rpc<number>('post_project_comment', { p_project: projectId, p_body: body })
+export const deleteProjectComment = (id: number) => rpc<void>('delete_project_comment', { p_comment: id })
+
+export type Collaborator = { user_id: string; username: string; display_name: string }
+export async function listCollaborators(projectId: string): Promise<Collaborator[]> {
+  const { data, error } = await supabase
+    .from('project_collaborators')
+    .select('user_id, profiles:user_id(username, display_name)')
+    .eq('project_id', projectId)
+  if (error) throw new Error(error.message)
+  type Row = { user_id: string; profiles: { username: string; display_name: string } | null }
+  return ((data ?? []) as unknown as Row[]).map((r) => ({ user_id: r.user_id, username: r.profiles?.username ?? '', display_name: r.profiles?.display_name ?? '' }))
+}
+export type CollabRequest = { id: string; requester_id: string; message: string; status: 'pending' | 'accepted' | 'declined' | 'withdrawn'; requester_username: string }
+/** Requests I can see on this project: all of them for the owner, only mine for anyone else. */
+export async function listCollabRequests(projectId: string): Promise<CollabRequest[]> {
+  const { data, error } = await supabase
+    .from('collab_requests')
+    .select('id, requester_id, message, status, profiles:requester_id(username)')
+    .eq('project_id', projectId)
+    .in('status', ['pending'])
+    .order('created_at')
+  if (error) throw new Error(error.message)
+  type Row = Omit<CollabRequest, 'requester_username'> & { profiles: { username: string } | null }
+  return ((data ?? []) as unknown as Row[]).map(({ profiles, ...r }) => ({ ...r, requester_username: profiles?.username ?? '' }))
+}
+export const requestCollaboration = (projectId: string, message: string) => rpc<string>('request_collaboration', { p_project: projectId, p_message: message.trim() })
+export const withdrawCollabRequest = (id: string) => rpc<void>('withdraw_collab_request', { p_request: id })
+export const decideCollabRequest = (id: string, accept: boolean) => rpc<void>('decide_collab_request', { p_request: id, p_accept: accept })
+export const removeCollaborator = (projectId: string, userId: string) => rpc<void>('remove_collaborator', { p_project: projectId, p_user: userId })
 // ---- Staff area ---------------------------------------------------------------------------------------
 export type StaffAccess = { role: 'admin' | 'moderator' | null; shopManager: boolean; questWriter: boolean; shopOwner: boolean }
 export async function getMyStaffAccess(userId: string): Promise<StaffAccess> {

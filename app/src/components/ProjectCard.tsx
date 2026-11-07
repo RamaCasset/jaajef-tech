@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { fr, type ClanKey } from '../i18n/fr'
 import type { BuildStatus, ProjectRow } from '../lib/api'
 
@@ -16,9 +17,7 @@ export function ProjectCard({ project, build }: { project: ProjectRow; build?: B
     <article className="panel project-card">
       <header className="project-head">
         <h3>
-          <a href={`https://github.com/${project.github_owner}/${project.github_repo}`} target="_blank" rel="noreferrer">
-            {project.github_repo}
-          </a>
+          <Link to={`/projets/${project.project_id}`}>{project.github_repo}</Link>
         </h3>
         <span className="muted tiny">{fr.projects.public}</span>
       </header>
