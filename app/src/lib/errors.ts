@@ -19,6 +19,13 @@ export function friendlyError(error: unknown): string {
   if (m.includes('target not found')) return fr.errors.reportTargetGone
   if (m.includes('cannot report your own content')) return fr.errors.reportOwn
   if (m.includes('already reported this')) return fr.errors.reportAlready
+  if (m.includes('member not found')) return fr.errors.memberNotFound
+  if (m.includes('this member is an admin')) return fr.errors.isAdmin
+  if (m.includes('is not suspended')) return fr.errors.notSuspended
+  if (m.includes('give a reason for the rejection') || m.includes('say why the item is rejected')) return fr.errors.giveReason
+  if (m.includes('submission has already been handled')) return fr.errors.soukHandled
+  if (m.includes('cannot review your own submission')) return fr.errors.soukOwn
+  if (m.includes('submission not found')) return fr.errors.soukNotFound
   if (m.includes('not waiting for review')) return fr.errors.notWaiting
   if (m.includes('star your own')) return fr.errors.ownStar
   if (m.includes('collaborate on your own')) return fr.errors.ownCollab
