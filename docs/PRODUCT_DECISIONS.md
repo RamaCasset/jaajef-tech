@@ -11,7 +11,7 @@ Decisions given by the project owner. Newest first. Open points are marked "to c
 - Learning paths become a space to learn software engineering (coding, UI, UX, backend, AI and more). It links out to free programs such as freeCodeCamp; the platform does not host the lessons. Which programs, and how they are ordered: to confirm with Marie.
 - Hosted repos: members can create a repository (a "depot") on the platform, import code from GitHub, show it, edit it in the browser the way they would in VS Code, and commit it back to GitHub if they want to.
 - Onboarding is a how-to guide for using the platform.
-- The monthly challenge becomes an occasional virtual hackathon, individual or in groups, run by third parties and external to the platform. The platform does not hold prizes or pay anyone, so it depends on no payments. What the platform shows about it (for example an announcements page that links out) is to confirm with Marie.
+- The monthly challenge becomes an occasional virtual hackathon, individual or in groups. The whole project runs inside the platform. Sponsors fund it, and the prize payments are handled by a third party, not by the platform. Rules, judging and the entry flow: to confirm with Marie.
 - The talent directory is open to every signed-in member (not to visitors). Members still choose to appear in it.
 
 ## What these decisions change in the existing build
