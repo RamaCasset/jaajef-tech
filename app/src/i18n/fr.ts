@@ -201,6 +201,7 @@ export const fr = {
     communities: 'Communautés',
     messages: 'Messages',
     blog: 'Blog',
+    search: 'Recherche',
   },
   souk: {
     eyebrow: 'Créé par la Cité. Pour la Cité.',
@@ -628,6 +629,17 @@ export const fr = {
     saveAndPublish: 'Publier',
     saved: 'Enregistré.',
     plainText: 'Le texte est affiché tel quel, sans mise en forme.',
+  },
+  search: {
+    title: 'Recherche',
+    subtitle: 'Projets, membres, communautés et quêtes.',
+    label: 'Que cherchez-vous ?',
+    tooShort: 'Tapez au moins 2 lettres.',
+    none: (q: string) => `Aucun résultat pour « ${q} ».`,
+    failed: 'La recherche a échoué.',
+    retry: 'Réessayer',
+    groups: { project: 'Projets', member: 'Membres', community: 'Communautés', quest: 'Quêtes' },
+    openOnGithub: 'voir sur GitHub',
   },
   soukSell: {
     title: 'Vendre au Souk',

@@ -927,6 +927,10 @@ export const requestAccountDeletion = () => rpc<string>('request_account_deletio
 export const cancelAccountDeletion = () => rpc<void>('cancel_account_deletion')
 export const exportMyData = () => rpc<Record<string, unknown>>('export_my_data')
 
+// ---- Search everything ---------------------------------------------------------------------------------
+export type SearchKind = 'project' | 'member' | 'community' | 'quest'
+export type SearchHit = { kind: SearchKind; pos: number; id: string; slug: string; title: string; subtitle: string | null; image_url: string | null }
+export const searchEverything = (query: string) => rpc<SearchHit[]>('search_everything', { p_query: query.trim(), p_limit_each: 8 })
 // ---- Selling in the Souk -----------------------------------------------------------------------------
 export type SoukSubmission = {
   id: string
