@@ -35,3 +35,10 @@ The code runner (E2B) is used only for quests today. The editor does not need it
 - The database keeps a points leaderboard per season. It is unused if there are no seasons.
 - The talent directory used to be browsable only by approved companies. It is now open to signed-in members (separate PR).
 - Hosted repos are a large feature: a browser code editor, import from GitHub, creating repositories and committing back. It needs more GitHub permission than sign-in alone (the GitHub app settings must change), and a safe way to hold each member's GitHub access on the server, never in the browser. Where the code lives while a member edits it (our storage or only GitHub) is to decide before building.
+
+## Onboarding guide (built as a static page at /guide)
+Assumptions to confirm with Marie:
+- The guide is one page with nine short sections (Cité, quests, points, Souk, projects, communities and messages, jobs and talent directory, blog, rules), reached from a "Guide" link in the top bar.
+- It gives no point values; each quest shows its own reward. Real numbers can be added once the bonus values are decided.
+- There is no first-visit pop-up or step-by-step tour yet. Marie decides whether a new member should be sent to it after sign-up.
+- The wording is a first draft in French, to be rewritten with Marie.
