@@ -1098,3 +1098,20 @@ export type ReviewItem = { kind: 'employer' | 'offer'; id: string; title: string
 export const listReviewQueue = () => rpc<ReviewItem[]>('list_review_queue')
 export const reviewEmployer = (id: string, approve: boolean, note: string) => rpc<void>('review_employer', { p_employer: id, p_approve: approve, p_note: note.trim() || null })
 export const reviewJobOffer = (id: string, approve: boolean, note: string) => rpc<void>('review_job_offer', { p_offer: id, p_approve: approve, p_note: note.trim() || null })
+export type SoukSubmissionStaff = {
+  id: string
+  creator_id: string
+  creator_username: string
+  kind: SoukKind
+  name: string
+  description: string | null
+  data: Record<string, unknown>
+  proposed_price: number
+  status: 'pending' | 'approved' | 'rejected' | 'withdrawn'
+  review_note: string | null
+  created_at: string
+}
+export const listSoukSubmissions = (status: 'pending' | 'approved' | 'rejected', limit = 50) =>
+  rpc<SoukSubmissionStaff[]>('list_souk_submissions', { p_status: status, p_limit: limit })
+export const reviewSoukSubmission = (id: string, approve: boolean, note: string, price: number | null) =>
+  rpc<string | null>('review_souk_submission', { p_submission: id, p_approve: approve, p_note: note.trim() || null, p_price: approve ? price : null })
