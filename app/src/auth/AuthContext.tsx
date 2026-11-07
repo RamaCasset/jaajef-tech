@@ -11,6 +11,8 @@ type AuthState = {
   member: MemberState | null
   signIn: (email: string, password: string) => Promise<void>
   signUp: (email: string, password: string) => Promise<SignUpResult>
+  requestPasswordReset: (email: string) => Promise<void>
+  updatePassword: (newPassword: string) => Promise<void>
   signOut: () => Promise<void>
   refreshMember: () => Promise<void>
 }
@@ -52,9 +54,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error) throw new Error(error.message)
     },
     async signUp(email, password) {
-      const { data, error } = await supabase.auth.signUp({ email, password })
+      const { data, error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: `${window.location.origin}/connexion` } })
       if (error) throw new Error(error.message)
       return data.session ? 'signed_in' : 'confirm_email'
+    },
+    async requestPasswordReset(email) {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/nouveau-mot-de-passe` })
+      if (error) throw new Error(error.message)
+    },
+    async updatePassword(newPassword) {
+      const { error } = await supabase.auth.updateUser({ password: newPassword })
+      if (error) throw new Error(error.message)
     },
     async signOut() { await supabase.auth.signOut() },
     async refreshMember() { await refreshFor(session) },
