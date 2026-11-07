@@ -17,6 +17,7 @@ export function friendlyError(error: unknown): string {
   if (m.includes('request waiting for this project')) return fr.errors.alreadyRequested
   if (m.includes('last request was declined; you can ask')) return fr.errors.declinedCollab
   if (m.includes('commenting too fast')) return fr.errors.commentingFast
+  if (m.includes('profiles_display_name_check')) return fr.editProfile.nameEmpty
   if (m.includes('post not found')) return fr.errors.postNotFound
   if (m.includes('hidden by staff')) return fr.errors.postHidden
   if (m.includes('publishing too fast')) return fr.errors.publishingTooFast

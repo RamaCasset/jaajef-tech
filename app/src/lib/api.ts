@@ -931,6 +931,25 @@ export const exportMyData = () => rpc<Record<string, unknown>>('export_my_data')
 export type SearchKind = 'project' | 'member' | 'community' | 'quest'
 export type SearchHit = { kind: SearchKind; pos: number; id: string; slug: string; title: string; subtitle: string | null; image_url: string | null }
 export const searchEverything = (query: string) => rpc<SearchHit[]>('search_everything', { p_query: query.trim(), p_limit_each: 8 })
+// ---- Edit my profile ---------------------------------------------------------------------------------
+export type ProfileEdit = { display_name: string; bio: string; location: string; available_to_collab: boolean }
+export async function updateMyProfile(userId: string, e: ProfileEdit): Promise<void> {
+  const { error } = await supabase
+    .from('profiles')
+    .update({
+      display_name: e.display_name.trim(),
+      bio: e.bio.trim() || null,
+      location: e.location.trim() || null,
+      available_to_collab: e.available_to_collab,
+    })
+    .eq('id', userId)
+  if (error) throw new Error(error.message)
+}
+export async function loadMyProfileFields(userId: string): Promise<ProfileEdit> {
+  const { data, error } = await supabase.from('profiles').select('display_name, bio, location, available_to_collab').eq('id', userId).single()
+  if (error) throw new Error(error.message)
+  return { display_name: data.display_name, bio: data.bio ?? '', location: data.location ?? '', available_to_collab: data.available_to_collab }
+}
 // ---- One project: stars, comments, collaboration -------------------------------------------------------
 export type ProjectFull = {
   id: string
