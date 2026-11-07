@@ -950,3 +950,28 @@ export async function loadMyProfileFields(userId: string): Promise<ProfileEdit> 
   if (error) throw new Error(error.message)
   return { display_name: data.display_name, bio: data.bio ?? '', location: data.location ?? '', available_to_collab: data.available_to_collab }
 }
+// ---- Selling in the Souk -----------------------------------------------------------------------------
+export type SoukSubmission = {
+  id: string
+  kind: SoukKind
+  name: string
+  description: string | null
+  data: Record<string, unknown>
+  proposed_price: number
+  status: 'pending' | 'approved' | 'rejected' | 'withdrawn'
+  review_note: string | null
+  created_at: string
+}
+export const listMySoukSubmissions = () => rpc<SoukSubmission[]>('list_my_souk_submissions')
+export const submitSoukItem = (kind: SoukKind, name: string, description: string, data: Record<string, unknown>, price: number) =>
+  rpc<string>('submit_souk_item', { p_kind: kind, p_name: name.trim(), p_description: description.trim() || null, p_data: data, p_price: price })
+export const withdrawSoukSubmission = (id: string) => rpc<void>('withdraw_souk_submission', { p_submission: id })
+
+export type CreatorSummary = { items_on_sale: number; sales_count: number; kopeks_earned: number; share_percent: number }
+export async function myCreatorSummary(): Promise<CreatorSummary> {
+  const rows = await rpc<CreatorSummary[]>('my_creator_summary')
+  const r = rows[0]
+  return { items_on_sale: Number(r.items_on_sale), sales_count: Number(r.sales_count), kopeks_earned: Number(r.kopeks_earned), share_percent: Number(r.share_percent) }
+}
+export type MySale = { id: number; item_name: string; price: number; share_percent: number; amount: number; sold_at: string }
+export const listMySales = () => rpc<MySale[]>('list_my_sales', { p_limit: 20, p_offset: 0 })
