@@ -49,7 +49,7 @@ export function Login() {
           <input id="password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
         </div>
         <p style={{ textAlign: 'right', margin: '0 0 20px', fontSize: 13 }}>
-          <a href="#oublie" onClick={(e) => { e.preventDefault(); setNotice(fr.login.forgotSoon) }}>{fr.login.forgot}</a>
+          <Link to="/mot-de-passe-oublie">{fr.login.forgot}</Link>
         </p>
 
         <button className="btn btn-cta" type="submit" disabled={busy || !email || !password} style={{ width: '100%' }}>
