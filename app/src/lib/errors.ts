@@ -15,6 +15,10 @@ export function friendlyError(error: unknown): string {
   if (m.includes('a suspension lasts')) return fr.errors.suspensionDays
   if (m.includes('nothing to remove for a member')) return fr.errors.nothingToRemove
   if (m.includes('give a reason for the rejection')) return fr.errors.giveReason
+  if (m.includes('fill in your application file')) return fr.errors.talentNeedsHeadline
+  if (m.includes('set your availability')) return fr.errors.talentNeedsAvailability
+  if (m.includes('complete at least') && m.includes('directory')) return fr.errors.talentNeedsCompletion
+  if (m.includes('profile not found')) return fr.errors.talentNotFound
   if (m.includes('not waiting for review')) return fr.errors.notWaiting
   if (m.includes('star your own')) return fr.errors.ownStar
   if (m.includes('collaborate on your own')) return fr.errors.ownCollab
