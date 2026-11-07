@@ -9,9 +9,9 @@ Decisions given by the project owner. Newest first. Open points are marked "to c
 - No ranked play and no seasons. The only competitive space is the Quest arena.
 - Quest pool: 365 quests, one shown per day, visible to everyone. A new pool is created every year.
 - Learning paths become a space to learn software engineering (coding, UI, UX, backend, AI and more). It links out to free programs such as freeCodeCamp; the platform does not host the lessons. Which programs, and how they are ordered: to confirm with Marie.
-- Hosted repos: members show their code. Whether they can edit it on the platform and commit back to GitHub is undecided. Members must be able to create a repository (a "depot") from the platform.
+- Hosted repos: members can create a repository (a "depot") on the platform, import code from GitHub, show it, edit it in the browser the way they would in VS Code, and commit it back to GitHub if they want to.
 - Onboarding is a how-to guide for using the platform.
-- The monthly challenge becomes an occasional virtual hackathon, individual or in groups. It needs a real prize (money, or a funded project where the collaborators are paid), so it happens when funding exists, not on a fixed monthly date.
+- The monthly challenge becomes an occasional virtual hackathon, individual or in groups, run by third parties and external to the platform. The platform does not hold prizes or pay anyone, so it depends on no payments. What the platform shows about it (for example an announcements page that links out) is to confirm with Marie.
 - The talent directory is open to every signed-in member (not to visitors). Members still choose to appear in it.
 
 ## What these decisions change in the existing build
@@ -20,4 +20,4 @@ Decisions given by the project owner. Newest first. Open points are marked "to c
 - The badge "Champion du Sahel" needs a ranking tier. With ranked play gone it needs a new rule or removal: to confirm.
 - The database keeps a points leaderboard per season. It is unused if there are no seasons.
 - The talent directory used to be browsable only by approved companies. It is now open to signed-in members (separate PR).
-- Creating a repository on GitHub needs more GitHub permission than sign-in alone: the GitHub app settings must change when this is built.
+- Hosted repos are a large feature: a browser code editor, import from GitHub, creating repositories and committing back. It needs more GitHub permission than sign-in alone (the GitHub app settings must change), and a safe way to hold each member's GitHub access on the server, never in the browser. Where the code lives while a member edits it (our storage or only GitHub) is to decide before building.
