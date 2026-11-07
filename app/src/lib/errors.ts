@@ -7,6 +7,16 @@ export function friendlyError(error: unknown): string {
   if (m.includes('invalid login credentials')) return fr.errors.invalidCredentials
   if (m.includes('already registered') || m.includes('already been registered')) return fr.errors.emailTaken
   if (m.includes('password should be at least') || m.includes('weak password')) return fr.errors.weakPassword
+  if (m.includes('star your own')) return fr.errors.ownStar
+  if (m.includes('collaborate on your own')) return fr.errors.ownCollab
+  if (m.includes('not looking for collaborators')) return fr.errors.notLooking
+  if (m.includes('most collaborators')) return fr.errors.tooManyCollabs
+  if (m.includes('project has too many requests')) return fr.errors.tooManyRequestsOnProject
+  if (m.includes('short message')) return fr.errors.collabShortMessage
+  if (m.includes('already collaborate')) return fr.errors.alreadyCollab
+  if (m.includes('request waiting for this project')) return fr.errors.alreadyRequested
+  if (m.includes('last request was declined; you can ask')) return fr.errors.declinedCollab
+  if (m.includes('commenting too fast')) return fr.errors.commentingFast
   if (m.includes('submitting too fast')) return fr.errors.soukTooFast
   if (m.includes('waiting for review as allowed')) return fr.errors.soukTooMany
   if (m.includes('give the item a name')) return fr.errors.soukName
