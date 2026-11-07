@@ -1184,3 +1184,38 @@ export async function cvLink(path: string): Promise<string> {
   if (error || !data) throw new Error(error?.message ?? 'No link')
   return data.signedUrl
 }
+
+// ---- Talent directory --------------------------------------------------------------------------------
+export type TalentFilters = { query: string; place: string; kind: '' | 'job' | 'freelance'; availability: string }
+export type TalentCard = {
+  user_id: string; username: string; display_name: string; avatar_url: string | null; headline: string; summary: string | null
+  location: string | null; experience_years: number | null; availability: string | null; work_kinds: string[]; skills: string[]
+  portfolio_count: number; listed_at: string
+}
+export type TalentDetail = Omit<TalentCard, 'portfolio_count' | 'listed_at'> & {
+  website: string | null; linkedin_url: string | null
+  portfolio: { title: string; description: string | null; url: string | null }[]
+}
+export type MyTalentListing = { listed: boolean; visible: boolean; hidden_by_staff: boolean }
+export const searchTalent = (f: TalentFilters) =>
+  rpc<TalentCard[]>('search_talent', {
+    p_query: f.query.trim() || null,
+    p_skill: null,
+    p_location: f.place.trim() || null,
+    p_work_kind: f.kind || null,
+    p_availability: f.availability || null,
+    p_min_years: null,
+    p_limit: 30,
+    p_offset: 0,
+  })
+export async function getTalent(userId: string): Promise<TalentDetail> {
+  const rows = await rpc<TalentDetail[]>('get_talent', { p_user: userId })
+  if (!rows || rows.length === 0) throw new Error('Profile not found')
+  return rows[0]
+}
+export async function myTalentListing(): Promise<MyTalentListing> {
+  const rows = await rpc<MyTalentListing[]>('my_talent_listing')
+  return rows[0] ?? { listed: false, visible: false, hidden_by_staff: false }
+}
+export const joinTalentDirectory = () => rpc<void>('join_talent_directory')
+export const leaveTalentDirectory = () => rpc<void>('leave_talent_directory')
