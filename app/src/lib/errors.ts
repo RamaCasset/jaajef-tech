@@ -7,6 +7,12 @@ export function friendlyError(error: unknown): string {
   if (m.includes('invalid login credentials')) return fr.errors.invalidCredentials
   if (m.includes('already registered') || m.includes('already been registered')) return fr.errors.emailTaken
   if (m.includes('password should be at least') || m.includes('weak password')) return fr.errors.weakPassword
+  if (m.includes('post not found')) return fr.errors.postNotFound
+  if (m.includes('hidden by staff')) return fr.errors.postHidden
+  if (m.includes('publishing too fast')) return fr.errors.publishingTooFast
+  if (m.includes('title needs at least')) return fr.errors.titleShort
+  if (m.includes('write something first')) return fr.errors.writeSomething
+  if (m.includes('cover image must be')) return fr.errors.coverSecure
   if (m.includes('cannot message this person')) return fr.errors.cannotMessage
   if (m.includes('cannot message yourself')) return fr.errors.cannotMessageSelf
   if (m.includes('message is empty')) return fr.errors.emptyMessage
