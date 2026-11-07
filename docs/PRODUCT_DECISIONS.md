@@ -24,6 +24,8 @@ GitHub stays the home of the code. The platform shows it and offers a browser ed
 
 The platform does not store members' code itself.
 
+Editor layout (decided): a list of files on the left, tabs on top, the code in the middle, and a box at the bottom to describe the change and commit it. The editor itself is Monaco, the open-source editor that powers VS Code. Marie can restyle the screen around it.
+
 The code runner (E2B) is used only for quests today. The editor does not need it to edit and commit. Whether the editor can also run a project's code (the old "live demo / Run Sandbox" idea) is open: to confirm with Marie.
 
 ## What these decisions change in the existing build
