@@ -83,9 +83,11 @@ export function MyRepos() {
               <h1 className="page-title">{t.title} {repos ? <span className="count-pill">{all.length}</span> : null}</h1>
               <p className="muted">{t.subtitle}</p>
             </div>
-            <Link className="btn btn-cta btn-icon" to="/projets/ajouter"><Icon name="plus" size={16} /> {t.newRepo}</Link>
+            <div className="head-actions">
+              <SpaceToggle active="personal" />
+              <Link className="btn btn-cta btn-icon" to="/projets/ajouter"><Icon name="plus" size={16} /> {t.newRepo}</Link>
+            </div>
           </div>
-          <SpaceToggle active="personal" />
           {repos ? (
             <p className="repo-counts tiny">
               <span>{t.publicCount(publicCount)}</span><span>{t.privateCount(privateCount)}</span><span>{t.pinnedCount(pinned.length)}</span>

@@ -183,7 +183,7 @@ export function ImportProject() {
             </p>
             {created ? (
               <p role="status" className="notice">
-                {newVisibility === 'private' ? t.afterCreatePrivate : t.afterCreatePublic}{' '}
+                <span>{newVisibility === 'private' ? t.afterCreatePrivate : t.afterCreatePublic}</span>
                 <button type="button" className="btn" onClick={() => { setMode('import'); setReload((n) => n + 1) }}>{t.afterCreateDone}</button>
               </p>
             ) : null}

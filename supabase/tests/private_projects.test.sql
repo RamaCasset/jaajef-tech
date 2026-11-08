@@ -71,6 +71,30 @@ begin
     raise exception 'FAIL: the public checker would look at a private repository';
   end if;
   raise notice 'OK 3: never public, never sent to the public checker';
+
+  -- 4. When the repository becomes public on GitHub, the project joins the community list and is rewarded once
+  perform ppk.as_user(1);
+  perform ppk.must_fail('a member runs the private check', format('select public.record_private_check(%L, true, %L)', p, 'dia-pp'), 'permission denied');
+  reset role;
+  update public.projects set github_synced_at = now() - interval '2 days' where id = p;
+  if not exists (select 1 from public.private_projects_to_check(10) where project_id = p) then raise exception 'FAIL: the private project is not due for a check'; end if;
+  if public.record_private_check(p, false) then raise exception 'FAIL: still private but reported as public'; end if;
+  if exists (select 1 from public.private_projects_to_check(10) where project_id = p) then raise exception 'FAIL: a just-checked private project is listed again'; end if;
+  if public.record_private_check(p, true, 'someone-else') then raise exception 'FAIL: a repository of another owner turned the project public'; end if;
+  if not (select repo_private from public.projects where id = p) then raise exception 'FAIL: the project left private on a wrong owner'; end if;
+
+  if not public.record_private_check(p, true, 'Dia-PP') then raise exception 'FAIL: the project did not turn public'; end if;
+  select * into r from public.projects where id = p;
+  if r.repo_private or not r.is_public or r.verified_at is not null or r.github_synced_at is not null then
+    raise exception 'FAIL: a project turned public must wait for the usual check';
+  end if;
+  if not exists (select 1 from public.projects_to_sync(200) where project_id = p) then raise exception 'FAIL: the usual check will not pick it up'; end if;
+  perform public.record_github_sync(p, true, 'dia-pp', 'Un projet prive', 'Python', 2);
+  select count(*) into n from public.xp_events where user_id = ppk.uid(1) and reason = 'project_published';
+  if n <> 1 then raise exception 'FAIL: expected one reward, got %', n; end if;
+  if (select verified_at from public.projects where id = p) is null then raise exception 'FAIL: not confirmed'; end if;
+  if public.record_private_check(p, true, 'dia-pp') then raise exception 'FAIL: a public project was handled as private'; end if;
+  raise notice 'OK 4: private turned public is confirmed and rewarded once';
 end $$;
 
 delete from public.projects where github_owner = 'dia-pp';

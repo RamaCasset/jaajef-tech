@@ -69,7 +69,7 @@ describe('Projects page', () => {
 
   it('has a button that leads to the page for adding a project', async () => {
     mount()
-    expect(screen.getByRole('link', { name: 'Ajouter un projet' })).toHaveAttribute('href', '/projets/ajouter')
+    expect(screen.getByRole('link', { name: 'Ajouter un dépôt' })).toHaveAttribute('href', '/projets/ajouter')
   })
 
   it('searches after typing stops, passing the text to the database', async () => {

@@ -13,7 +13,7 @@
 import assert from 'node:assert/strict'
 import { execFileSync } from 'node:child_process'
 import http from 'node:http'
-import { handler, runExtras, runSync } from './index.ts'
+import { handler, runExtras, runPrivateCheck, runSync } from './index.ts'
 
 // ---- helpers -------------------------------------------------------------------
 
@@ -58,6 +58,17 @@ const server = http.createServer((req, res) => {
             p_description := j ->> 'p_description',
             p_language := j ->> 'p_language',
             p_stars := (j ->> 'p_stars')::int)
+          from (select :'payload'::jsonb as j) x;`
+      } else if (name === 'private_projects_to_check') {
+        sql = `set role service_role;
+          select coalesce(jsonb_agg(t), '[]'::jsonb)
+            from public.private_projects_to_check(p_limit := (:'payload'::jsonb ->> 'p_limit')::int) t;`
+      } else if (name === 'record_private_check') {
+        sql = `set role service_role;
+          select to_jsonb(public.record_private_check(
+            p_project := (j ->> 'p_project')::uuid,
+            p_now_public := (j ->> 'p_now_public')::boolean,
+            p_owner_login := j ->> 'p_owner_login'))
           from (select :'payload'::jsonb as j) x;`
       } else if (name === 'projects_for_extras') {
         sql = `set role service_role;
@@ -250,6 +261,40 @@ try {
   assert.ok(slow.checked < 3, 'the run must stop before doing everything')
   ok('a run that takes too long stops cleanly')
 
+  // ---- 10a. A private project that becomes public on GitHub joins the community list and is rewarded -------------
+  psql(`update public.projects set github_synced_at = now();
+        select public.adopt_private_project('a9a9a9a9-0000-0000-0000-000000000001', 'secret-app', 'Secret', null, null);
+        update public.projects set github_synced_at = now() - interval '2 days' where github_repo = 'secret-app';`)
+  const state = () => psql(`select repo_private, is_public, verified_at is not null from public.projects where github_repo = 'secret-app';`)
+  const xpNow = () => Number(psql(`select xp from public.profiles where id = 'a9a9a9a9-0000-0000-0000-000000000001';`))
+  const xpBefore = xpNow()
+  githubScript['sync-ama/secret-app'] = { status: 404 } // still private: GitHub hides it from us
+  githubCalls.length = 0
+  const still = await runPrivateCheck(env(), fakeFetch)
+  assert.deepEqual([still.checked, still.now_public], [1, 0])
+  assert.equal(state(), 't|f|t', 'a repository that is still private stays private and untouched')
+  assert.equal((await runPrivateCheck(env(), fakeFetch)).checked, 0, 'a private project is looked at once a day')
+  ok('a private project that is still private is left alone, and looked at only once a day')
+
+  psql(`update public.projects set github_synced_at = now() - interval '2 days' where github_repo = 'secret-app';`)
+  githubScript['sync-ama/secret-app'] = found('Sync-Ama', { private: true }) // visible to a token but marked private
+  assert.equal((await runPrivateCheck(env(), fakeFetch)).now_public, 0)
+  assert.equal(state(), 't|f|t', 'a private repository is never turned public')
+  psql(`update public.projects set github_synced_at = now() - interval '2 days' where github_repo = 'secret-app';`)
+  githubScript['sync-ama/secret-app'] = found('someone-else')
+  assert.equal((await runPrivateCheck(env(), fakeFetch)).now_public, 0)
+  assert.equal(state(), 't|f|t', 'a repository of another owner changes nothing')
+  psql(`update public.projects set github_synced_at = now() - interval '2 days' where github_repo = 'secret-app';`)
+  githubScript['sync-ama/secret-app'] = found('sync-ama')
+  const turned = await runPrivateCheck(env(), fakeFetch)
+  assert.equal(turned.now_public, 1)
+  assert.equal(state(), 'f|t|f', 'now a public project waiting for the usual check')
+  const confirmed = await runSync(env(), fakeFetch)
+  assert.ok(confirmed.verified >= 1)
+  assert.equal(state(), 'f|t|t', 'confirmed by the usual check')
+  assert.equal(xpNow() - xpBefore, 50, 'the one-time reward is paid')
+  ok('a private repository that becomes public on GitHub is listed publicly, confirmed and rewarded once')
+
   // ---- 10b. Build status and good first issues --------------------------------------------------------------
   const due = (...repos) =>
     psql(`update public.projects set extras_synced_at = now(); update public.projects set extras_synced_at = null where github_repo in (${repos.map((r) => `'${r}'`).join(',')});`)
@@ -412,7 +457,7 @@ try {
   const good = await handler(post({ 'x-cron-secret': CRON_SECRET }), getEnv(), fakeFetch)
   assert.equal(good.status, 200)
   const goodBody = await good.json()
-  assert.deepEqual(Object.keys(goodBody).sort(), ['checked', 'extras', 'hidden', 'skipped', 'stopped', 'verified'])
+  assert.deepEqual(Object.keys(goodBody).sort(), ['checked', 'extras', 'hidden', 'private_check', 'skipped', 'stopped', 'verified'])
   assert.deepEqual(Object.keys(goodBody.extras).sort(), ['checked', 'skipped', 'stopped'], 'the second pass reports a short summary too')
   ok('only a caller with the secret can start a run; the answer is a short summary')
 
