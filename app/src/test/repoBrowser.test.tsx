@@ -20,6 +20,7 @@ vi.mock('@monaco-editor/react', () => ({
   default: ({ value, onChange, path, options }: { value: string; onChange: (v: string) => void; path: string; options?: { readOnly?: boolean } }) => (
     <textarea aria-label={`code ${path}`} value={value} readOnly={options?.readOnly} onChange={(e) => onChange(e.target.value)} />
   ),
+  DiffEditor: ({ original, modified }: { original: string; modified: string }) => <div data-testid="diff">{`${original} => ${modified}`}</div>,
 }))
 
 import { RepoBrowser, slugBranch } from '../pages/RepoBrowser'
@@ -482,5 +483,78 @@ describe('Repository: several files in one save', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Annuler la suppression' }))
     expect(await screen.findByLabelText('code main.py')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Enregistrer' })).toBeDisabled()
+  })
+})
+
+describe('Repository: review, rename, folder and upload', () => {
+  async function startEditing(url: string) {
+    mount(url)
+    await userEvent.click(await screen.findByRole('button', { name: 'Modifier ce fichier' }))
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Modifier ce fichier' })).toBeDisabled())
+  }
+  const submitBtn = () => screen.getAllByRole('button', { name: 'Enregistrer' }).find((b) => (b as HTMLButtonElement).type === 'submit') as HTMLElement
+
+  it('shows before and after for each changed file before saving', async () => {
+    await startEditing('/projets/p1/code?fichier=main.py')
+    await userEvent.type(await screen.findByLabelText('code main.py'), 'Z')
+    await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Voir mes changements' }))
+    expect(await screen.findByTestId('diff')).toHaveTextContent('contenu de main.py => contenu de main.pyZ')
+    await userEvent.click(screen.getByRole('button', { name: 'Masquer mes changements' }))
+    expect(screen.queryByTestId('diff')).toBeNull()
+  })
+
+  it('renames a file and saves it as a move', async () => {
+    await startEditing('/projets/p1/code?fichier=main.py')
+    await userEvent.click(screen.getByRole('button', { name: 'Renommer ou déplacer' }))
+    const input = screen.getByLabelText('Nouveau chemin du fichier')
+    await userEvent.clear(input)
+    await userEvent.type(input, 'src/app.py')
+    await userEvent.click(screen.getByRole('button', { name: 'Renommer' }))
+    expect(await screen.findByTestId('where')).toHaveTextContent('fichier=src%2Fapp.py')
+    await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+    await userEvent.type(screen.getByLabelText('Décrivez votre modification'), 'Déplace')
+    await userEvent.click(submitBtn())
+    await waitFor(() => expect(api.editorCommitTo.mock.calls[0]?.[1].files).toEqual([{ path: 'src/app.py', move_from: 'main.py' }]))
+  })
+
+  it('refuses a name that already exists', async () => {
+    await startEditing('/projets/p1/code?fichier=main.py')
+    await userEvent.click(screen.getByRole('button', { name: 'Renommer ou déplacer' }))
+    const input = screen.getByLabelText('Nouveau chemin du fichier')
+    await userEvent.clear(input)
+    await userEvent.type(input, 'README.md')
+    await userEvent.click(screen.getByRole('button', { name: 'Renommer' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('existe déjà')
+    expect(api.editorCommitTo).not.toHaveBeenCalled()
+  })
+
+  it('creates a folder with a placeholder file', async () => {
+    await startEditing('/projets/p1/code?fichier=main.py')
+    await userEvent.click(screen.getByRole('button', { name: 'Nouveau dossier' }))
+    await userEvent.type(screen.getByLabelText('Chemin du dossier'), 'docs')
+    await userEvent.click(screen.getByRole('button', { name: 'Créer' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+    await userEvent.type(screen.getByLabelText('Décrivez votre modification'), 'Dossier')
+    await userEvent.click(submitBtn())
+    await waitFor(() => expect(api.editorCommitTo.mock.calls[0]?.[1].files).toEqual([{ path: 'docs/.gitkeep', content: '' }]))
+  })
+
+  it('uploads a small file as base64 and refuses a file over 1 MB', async () => {
+    await startEditing('/projets/p1/code?fichier=src%2Futil.py')
+    const input = screen.getByLabelText('Téléverser un fichier', { selector: 'input' })
+    await userEvent.upload(input, new File(['hello'], 'logo.txt', { type: 'text/plain' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Enregistrer' }))
+    await userEvent.type(screen.getByLabelText('Décrivez votre modification'), 'Logo')
+    await userEvent.click(submitBtn())
+    await waitFor(() => expect(api.editorCommitTo.mock.calls[0]?.[1].files).toEqual([{ path: 'src/logo.txt', content_base64: 'aGVsbG8=' }]))
+  })
+
+  it('refuses an upload over 1 MB', async () => {
+    await startEditing('/projets/p1/code?fichier=main.py')
+    const big = new File(['x'], 'big.bin')
+    Object.defineProperty(big, 'size', { value: 1_000_001 })
+    await userEvent.upload(screen.getByLabelText('Téléverser un fichier', { selector: 'input' }), big)
+    expect(await screen.findByRole('alert')).toHaveTextContent('1 Mo')
   })
 })
