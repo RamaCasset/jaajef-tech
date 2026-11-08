@@ -10,14 +10,14 @@ import { createHash, createPublicKey, createVerify, generateKeyPairSync } from '
 import { appJwt, cleanPath, handler, pkcs1ToPkcs8 } from './index.ts'
 
 const SERVICE_KEY = 'test-service-key-0123456789'
-const U = { awa: 'e1000000-0000-0000-0000-000000000001', cara: 'e1000000-0000-0000-0000-000000000002', nolink: 'e1000000-0000-0000-0000-000000000003' }
+const U = { awa: 'e1000000-0000-0000-0000-000000000001', cara: 'e1000000-0000-0000-0000-000000000002', nolink: 'e1000000-0000-0000-0000-000000000003', rate: 'e1000000-0000-0000-0000-000000000004' }
 const P_AWA = 'e2000000-0000-0000-0000-000000000001'
 const P_BOB = 'e2000000-0000-0000-0000-000000000002'
 // awa owns the project 'appli'; the member 'nolink' (no GitHub account) collaborates on it
-const PROJECTS = { [P_AWA]: { owner: 'awa', repo: 'appli', members: [U.awa, U.nolink] }, [P_BOB]: { owner: 'bob', repo: 'secret', members: [] } }
-const TOKENS = { 't-awa': U.awa, 't-cara': U.cara, 't-nolink': U.nolink }
-const USERNAMES = { [U.awa]: 'awa_dev', [U.cara]: 'cara', [U.nolink]: 'ndeye_k' }
-const GITHUB_NAMES = { [U.awa]: 'awa', [U.cara]: 'cara', [U.nolink]: null }
+const PROJECTS = { [P_AWA]: { owner: 'awa', repo: 'appli', members: [U.awa, U.nolink, U.rate] }, [P_BOB]: { owner: 'bob', repo: 'secret', members: [] } }
+const TOKENS = { 't-awa': U.awa, 't-cara': U.cara, 't-nolink': U.nolink, 't-rate': U.rate }
+const USERNAMES = { [U.awa]: 'awa_dev', [U.cara]: 'cara', [U.nolink]: 'ndeye_k', [U.rate]: 'rate_user' }
+const GITHUB_NAMES = { [U.awa]: 'awa', [U.cara]: 'cara', [U.nolink]: null, [U.rate]: null }
 
 const pkcs1 = generateKeyPairSync('rsa', { modulusLength: 2048, privateKeyEncoding: { type: 'pkcs1', format: 'pem' }, publicKeyEncoding: { type: 'spki', format: 'pem' } })
 const pkcs8 = generateKeyPairSync('rsa', { modulusLength: 2048, privateKeyEncoding: { type: 'pkcs8', format: 'pem' }, publicKeyEncoding: { type: 'spki', format: 'pem' } })
@@ -198,7 +198,7 @@ async function pretendGithub(url, init) {
     const files = commit ? repo.trees.get(commit.tree) : null
     if (!files) return jsonRes(404, { message: 'not found' })
     const tree = []
-    for (const [p, c] of Object.entries(files)) tree.push({ path: p, type: 'blob', size: c.length })
+    for (const [p, c] of Object.entries(files)) { repo.blobs.set(sha(c), c); tree.push({ path: p, type: 'blob', size: c.length, sha: sha(c) }) }
     return jsonRes(200, { tree: [{ path: 'src', type: 'tree' }, ...tree], truncated: false })
   }
   r = rest.match(/^\/git\/commits\/([0-9a-f]+)$/)
@@ -211,12 +211,24 @@ async function pretendGithub(url, init) {
     const p = decodeURIComponent(r[1].split('?')[0])
     const text = repo.files[p]
     if (text === undefined) return jsonRes(404, { message: 'Not Found' })
-    return jsonRes(200, { type: 'file', encoding: 'base64', size: Buffer.byteLength(text), content: Buffer.from(text).toString('base64') })
+    repo.blobs.set(sha(text), text)
+    if (text.length > 1_000_000) return jsonRes(200, { type: 'file', encoding: 'none', size: text.length, content: '', sha: sha(text) })
+    const kind = repo.binaryShas?.has(sha(text)) ? 'latin1' : 'utf8'
+    return jsonRes(200, { type: 'file', encoding: 'base64', size: Buffer.byteLength(text, kind), sha: sha(text), content: Buffer.from(text, kind).toString('base64') })
   }
   if (rest === '/git/blobs' && method === 'POST') {
-    const id = sha(body.content)
-    repo.blobs.set(id, body.content)
+    const text = body.encoding === 'base64' ? Buffer.from(body.content, 'base64').toString('latin1') : body.content
+    const id = sha(text)
+    repo.blobs.set(id, text)
+    if (body.encoding === 'base64') (repo.binaryShas ??= new Set()).add(id)
     return jsonRes(201, { sha: id })
+  }
+  r = rest.match(/^\/git\/blobs\/([0-9a-f]+)$/)
+  if (r && method === 'GET') {
+    const text = repo.blobs.get(r[1])
+    if (text === undefined) return jsonRes(404, { message: 'Not Found' })
+    gh.blobReads = (gh.blobReads ?? 0) + 1
+    return jsonRes(200, { encoding: 'base64', content: Buffer.from(text, repo.binaryShas?.has(r[1]) ? 'latin1' : 'utf8').toString('base64') })
   }
   if (rest === '/git/trees' && method === 'POST') {
     const base = repo.trees.get(body.base_tree)
@@ -302,7 +314,7 @@ async function pretendFetch(input, init = {}) {
 function envFor(privateKey) {
   const values = {
     SUPABASE_URL: 'http://supa.test', SUPABASE_SERVICE_ROLE_KEY: SERVICE_KEY, GITHUB_APP_ID: '12345', GITHUB_APP_SLUG: 'jaajef-tech-editor',
-    GITHUB_APP_PRIVATE_KEY: privateKey, GITHUB_API_URL: 'http://gh.test',
+    GITHUB_APP_PRIVATE_KEY: privateKey, GITHUB_API_URL: 'http://gh.test', EDITOR_RATE_PER_MINUTE: '100000',
   }
   return (name) => values[name]
 }
@@ -839,6 +851,124 @@ await test('declining tells the author; withdrawing your own proposal tells nobo
   gh.repos['awa/appli'].pulls[1].conflict = true
   assert.equal((await call('t-awa', { action: 'pr_merge', project: P_AWA, number: 2, sha: branch2 })).status, 409)
   assert.deepEqual(notified, [])
+})
+
+const PNG = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0xff, 0xfe, 0x80])
+const withLogo = () => {
+  const repo = gh.repos['awa/appli']
+  const text = PNG.toString('latin1')
+  repo.binaryShas = new Set([sha(text)])
+  commitFiles(repo, { ...repo.files, 'img/logo.png': text }, repo.head, 'add logo')
+  return repo
+}
+const send = (token, files, extra = {}) => call(token, { action: 'commit', project: P_AWA, branch: 'main', base_sha: headOfAwa(), message: 'm', files, ...extra })
+
+await test('upload: a file of any kind is saved byte for byte, and bad uploads are refused before GitHub is called', async () => {
+  const b64 = PNG.toString('base64')
+  const r = await send('t-awa', [{ path: 'img/new.png', content_base64: b64 }, { path: 'notes.txt', content: 'héllo' }])
+  assert.equal(r.status, 200)
+  const repo = gh.repos['awa/appli']
+  assert.equal(Buffer.from(repo.files['img/new.png'], 'latin1').equals(PNG), true)
+  assert.equal(repo.files['notes.txt'], 'héllo')
+  const before = githubCallsMade()
+  const bad = [
+    [{ path: 'a.png', content_base64: 'not base64!' }], [{ path: 'a.png', content_base64: 'abc' }],
+    [{ path: 'a.png', content_base64: 'A'.repeat(1_400_004) }], [{ path: 'a.png', content_base64: b64, content: 'x' }],
+    [{ path: '../a.png', content_base64: b64 }], [{ path: 'a.png', content_base64: 12 }],
+  ]
+  for (const files of bad) assert.equal((await send('t-awa', files)).status, 400, JSON.stringify(files).slice(0, 60))
+  assert.equal(githubCallsMade(), before)
+  // a collaborator uploads to their own branch, and is still kept out of .github
+  const c = await call('t-nolink', { action: 'commit', project: P_AWA, branch: 'ndeye_k/logo', create_from: 'main', base_sha: headOfAwa(), message: 'Logo', files: [{ path: 'logo.png', content_base64: b64 }] })
+  assert.equal(c.status, 200)
+})
+
+await test('rename and move: the file keeps its content and kind, the old path disappears, odd requests are refused', async () => {
+  const repo = withLogo()
+  const r = await send('t-awa', [{ path: 'src/helpers.py', move_from: 'src/util.py' }, { path: 'assets/logo.png', move_from: 'img/logo.png' }])
+  assert.equal(r.status, 200)
+  assert.equal(repo.files['src/helpers.py'], 'x = 1\n')
+  assert.equal(repo.files['src/util.py'], undefined)
+  assert.equal(Buffer.from(repo.files['assets/logo.png'], 'latin1').equals(PNG), true)
+  assert.equal(repo.files['img/logo.png'], undefined)
+  assert.equal((await send('t-awa', [{ path: 'b.py', move_from: 'nope.py' }])).json.error, 'file_not_found')
+  const before = githubCallsMade()
+  for (const files of [[{ path: 'a.py', move_from: 'a.py' }], [{ path: 'a.py', move_from: '../x' }], [{ path: 'a.py', move_from: 'main.py', content: 'x' }],
+    [{ path: 'a.py', move_from: 'main.py' }, { path: 'main.py', content: 'x' }], [{ path: 'a.py', move_from: 'main.py' }, { path: 'main.py', delete: true }], [{ path: 'a.py', move_from: 7 }]]) {
+    assert.equal((await send('t-awa', files)).status, 400, JSON.stringify(files))
+  }
+  assert.equal(githubCallsMade(), before)
+})
+
+await test('a collaborator can move files on their own branch but never on main', async () => {
+  const base = headOfAwa()
+  assert.equal((await send('t-nolink', [{ path: 'x.py', move_from: 'main.py' }])).json.error, 'branch_not_yours')
+  const r = await call('t-nolink', { action: 'commit', project: P_AWA, branch: 'ndeye_k/mv', create_from: 'main', base_sha: base, message: 'mv', files: [{ path: 'x.py', move_from: 'main.py' }] })
+  assert.equal(r.status, 200)
+  assert.equal(headOfAwa(), base)
+})
+
+await test('blob: a file as base64 for previews, with the same access rules as reading', async () => {
+  withLogo()
+  const r = await call('t-nolink', { action: 'blob', project: P_AWA, path: 'img/logo.png', ref: 'main' })
+  assert.deepEqual([r.status, r.json.size, r.json.content_base64], [200, PNG.length, PNG.toString('base64')])
+  assert.equal((await call('t-awa', { action: 'blob', project: P_AWA, path: 'main.py', ref: 'main' })).status, 200)
+  assert.equal((await call('t-nolink', { action: 'blob', project: P_AWA, path: 'ghost.png', ref: 'main' })).json.error, 'file_not_found')
+  gh.repos['awa/appli'].files['big.bin'] = 'x'.repeat(1_000_001)
+  assert.equal((await call('t-awa', { action: 'blob', project: P_AWA, path: 'big.bin', ref: 'main' })).status, 413)
+  assert.equal((await call('t-cara', { action: 'blob', project: P_AWA, path: 'main.py', ref: 'main' })).status, 403)
+  for (const bad of [{ path: '../x' }, { ref: 'a b' }, { path: undefined }]) assert.equal((await call('t-awa', { action: 'blob', project: P_AWA, path: 'main.py', ref: 'main', ...bad })).status, 400, JSON.stringify(bad))
+})
+
+await test('search: finds text in the files of a branch, case does not matter, skips what is not text, and stays small', async () => {
+  const repo = gh.repos['awa/appli']
+  commitFiles(repo, {
+    ...repo.files, 'src/app.py': 'import os\nHELLO = 1\nprint("hello")\n', 'node_modules/x/index.js': 'hello', 'logo.png': 'hello',
+    'many.txt': Array.from({ length: 9 }, (_, i) => `hello ${i}`).join('\n'),
+  }, repo.head, 'more files')
+  const r = await call('t-nolink', { action: 'search', project: P_AWA, q: 'HeLLo' })
+  assert.equal(r.status, 200)
+  const found = r.json.matches.map((m) => `${m.path}:${m.line}`)
+  assert.deepEqual(found.filter((f) => f.startsWith('src/app.py')), ['src/app.py:2', 'src/app.py:3'])
+  assert.equal(found.filter((f) => f.startsWith('many.txt')).length, 5)
+  assert.equal(found.some((f) => f.startsWith('node_modules') || f.startsWith('logo.png')), false)
+  assert.deepEqual(r.json.matches.find((m) => m.path === 'src/app.py' && m.line === 3), { path: 'src/app.py', line: 3, text: 'print("hello")' })
+  assert.equal(r.json.more, false)
+  assert.equal((await call('t-awa', { action: 'search', project: P_AWA, q: 'zzzz-nothing' })).json.matches.length, 0)
+  // another branch
+  repo.branches['ndeye_k/side'] = commitSide(repo, { 'only-here.txt': 'needle in a haystack\n' }, repo.head, 'side')
+  assert.deepEqual((await call('t-nolink', { action: 'search', project: P_AWA, q: 'needle', branch: 'ndeye_k/side' })).json.matches.map((m) => m.path), ['only-here.txt'])
+  assert.equal((await call('t-awa', { action: 'search', project: P_AWA, q: 'needle' })).json.matches.length, 0)
+})
+
+await test('search: refused for strangers and bad input, capped in files read and in matches, and writes nothing', async () => {
+  const before = githubCallsMade()
+  for (const bad of [{ q: 'a' }, { q: 'x'.repeat(101) }, { q: 7 }, { branch: 'a b' }]) assert.equal((await call('t-awa', { action: 'search', project: P_AWA, q: 'hello', ...bad })).status, 400, JSON.stringify(bad))
+  assert.equal((await call('t-awa', { action: 'search', repo: 'appli', q: 'hello' })).status, 400) // only through a project
+  assert.equal((await call('t-cara', { action: 'search', project: P_AWA, q: 'hello' })).status, 403)
+  assert.equal(githubCallsMade(), before)
+  const repo = gh.repos['awa/appli']
+  const files = { ...repo.files }
+  for (let i = 0; i < 200; i++) files[`f/${String(i).padStart(3, '0')}.txt`] = `needle ${i}`
+  commitFiles(repo, files, repo.head, 'many')
+  const r = await call('t-awa', { action: 'search', project: P_AWA, q: 'needle' })
+  assert.equal(r.json.matches.length, 100)
+  assert.equal(r.json.more, true)
+  assert.ok(r.json.scanned <= 150)
+  assert.ok(r.json.skipped >= 50)
+  assert.equal(gh.calls.filter((c) => c.method !== 'GET' && !c.path.startsWith('/app/')).length, 0) // nothing was written
+})
+
+await test('rate limit: a member who calls too often is slowed, a search costs more, others are not affected', async () => {
+  const limited = (name) => (name === 'EDITOR_RATE_PER_MINUTE' ? '25' : getEnv(name))
+  const s = (q) => call('t-rate', { action: 'search', project: P_AWA, q }, { env: limited })
+  assert.equal((await s('hello')).status, 200)
+  assert.equal((await s('hello')).status, 200)
+  const third = await s('hello')
+  assert.deepEqual([third.status, third.json.error], [429, 'too_many_requests'])
+  for (let i = 0; i < 5; i++) assert.equal((await call('t-rate', { action: 'branches', project: P_AWA }, { env: limited })).status, 200)
+  assert.equal((await call('t-rate', { action: 'branches', project: P_AWA }, { env: limited })).status, 429)
+  assert.equal((await call('t-awa', { action: 'status' })).status, 200) // counted per member: another member is not slowed
 })
 
 console.log(`ALL ${n} REPO EDITOR TESTS PASSED`)

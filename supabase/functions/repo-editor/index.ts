@@ -13,6 +13,11 @@
 //   adopt    -> list one PRIVATE repository of the member on the platform (stays private)
 //   branches -> the branches of a project's repository (owner and collaborators)
 //   tree also accepts { branch } to read another branch than the default one
+//   blob     -> one file as base64 (for image previews), up to 1 MB
+//   search   -> text search across the files of a branch (owner and collaborators), plain text, capped
+//   commit files may also be { path, content_base64 } (an uploaded file, up to 1 MB) or
+//             { path, move_from } (rename or move a file, whatever its kind) next to the usual { path, content } / { path, delete }
+//   Every member is limited to EDITOR_RATE_PER_MINUTE calls per minute (default 120; a search counts 10).
 //   prs      -> the open proposals (pull requests) of a project, from branches of the same repository
 //   pr_open  -> propose a branch to the main code (owner: any branch; collaborator: only their own)
 //   pr_merge -> merge a proposal into the main code (owner only)
@@ -43,6 +48,14 @@ const REF = /^[A-Za-z0-9._\/-]{1,100}$/
 const MAX_FILES = 20
 const MAX_FILE_CHARS = 1_000_000
 const MAX_TOTAL_CHARS = 3_000_000
+const MAX_BINARY_B64 = 1_400_000 // about 1 MB once decoded
+const B64 = /^[A-Za-z0-9+/]*={0,2}$/
+const SEARCH_MAX_FILES = 150
+const SEARCH_MAX_FILE_BYTES = 100_000
+const SEARCH_MAX_TOTAL_BYTES = 4_000_000
+const SEARCH_MAX_MATCHES = 100
+const SEARCH_SKIP = /(^|\/)(node_modules|\.git|dist|build|\.next|venv|__pycache__|vendor)\//
+const BINARY_FILE = /\.(png|jpe?g|gif|webp|ico|svg|pdf|zip|gz|tar|woff2?|ttf|otf|mp[34]|mov|wasm|exe|bin|so|dll|class|jar|lock)$/i
 
 const CORS_HEADERS = {
   'access-control-allow-origin': '*',
@@ -197,7 +210,7 @@ export function cleanPath(path: unknown): string | null {
   return path
 }
 
-type FileChange = { path: string; content?: string; delete?: boolean }
+type FileChange = { path: string; content?: string; content_base64?: string; delete?: boolean; move_from?: string }
 function cleanChanges(raw: unknown): FileChange[] | null {
   if (!Array.isArray(raw) || raw.length === 0 || raw.length > MAX_FILES) return null
   const seen = new Set<string>()
@@ -208,6 +221,21 @@ function cleanChanges(raw: unknown): FileChange[] | null {
     if (!path || seen.has(path)) return null
     seen.add(path)
     if (item.delete === true) { out.push({ path, delete: true }); continue }
+    if (typeof item.move_from === 'string') {
+      // A rename or move: the file keeps its content (any kind of file), only its path changes.
+      const from = cleanPath(item.move_from)
+      if (!from || from === path || seen.has(from) || item.content !== undefined || item.content_base64 !== undefined) return null
+      seen.add(from)
+      out.push({ path, move_from: from })
+      continue
+    }
+    if (typeof item.content_base64 === 'string') {
+      if (item.content !== undefined || item.content_base64.length > MAX_BINARY_B64 || !B64.test(item.content_base64) || item.content_base64.length % 4 !== 0) return null
+      total += item.content_base64.length
+      if (total > MAX_TOTAL_CHARS) return null
+      out.push({ path, content_base64: item.content_base64 })
+      continue
+    }
     if (typeof item.content !== 'string' || item.content.length > MAX_FILE_CHARS) return null
     total += item.content.length
     if (total > MAX_TOTAL_CHARS) return null
@@ -400,6 +428,71 @@ async function doFile(owner: string, repo: string, path: string, ref: string, ct
   return { path, content: new TextDecoder().decode(bytes) }
 }
 
+/** One file as base64 (for previews of images), up to 1 MB. */
+async function doBlob(owner: string, repo: string, path: string, ref: string, ctx: Ctx): Promise<unknown | Fail> {
+  const installation = await findInstallation(owner, ctx)
+  if (isFail(installation)) return installation
+  if (installation === null) return fail('not_installed', 409)
+  const token = await repoToken(installation, repo, false, ctx)
+  if (isFail(token)) return token
+  const r = await gh(ctx, 'GET', `/repos/${owner}/${repo}/contents/${path.split('/').map(encodeURIComponent).join('/')}?ref=${encodeURIComponent(ref)}`, token)
+  if (r.status === 404) return fail('file_not_found', 404)
+  if (!r.ok || r.body?.type !== 'file') return fail('github_failed', 502)
+  if (Number(r.body.size) > 1_000_000 || r.body?.encoding !== 'base64') return fail('file_too_big', 413)
+  return { path, size: Number(r.body.size), content_base64: String(r.body.content).replace(/\s+/g, '') }
+}
+
+/** Text search in the files of a branch: plain text (not a pattern), case does not matter, small files only. */
+async function doSearch(owner: string, repo: string, branch: string | null, query: string, ctx: Ctx): Promise<unknown | Fail> {
+  const installation = await findInstallation(owner, ctx)
+  if (isFail(installation)) return installation
+  if (installation === null) return fail('not_installed', 409)
+  const token = await repoToken(installation, repo, false, ctx)
+  if (isFail(token)) return token
+  const info = await gh(ctx, 'GET', `/repos/${owner}/${repo}`, token)
+  if (info.status === 404) return fail('repo_not_found', 404)
+  if (!info.ok) return fail('github_failed', 502)
+  const name = branch ?? String(info.body?.default_branch ?? 'main')
+  const ref = await gh(ctx, 'GET', `/repos/${owner}/${repo}/git/ref/heads/${name.split('/').map(encodeURIComponent).join('/')}`, token)
+  if (ref.status === 404 || ref.status === 409) return { matches: [], scanned: 0, skipped: 0, more: false }
+  if (!ref.ok) return fail('github_failed', 502)
+  const tree = await gh(ctx, 'GET', `/repos/${owner}/${repo}/git/trees/${String(ref.body?.object?.sha ?? '')}?recursive=1`, token)
+  if (!tree.ok) return fail('github_failed', 502)
+  const all = (Array.isArray(tree.body?.tree) ? tree.body.tree : [])
+    .filter((e: any) => e.type === 'blob' && !BINARY_FILE.test(String(e.path)) && !SEARCH_SKIP.test(String(e.path)) && Number(e.size ?? 0) <= SEARCH_MAX_FILE_BYTES)
+    .sort((a: any, b: any) => String(a.path).localeCompare(String(b.path)))
+  const files: any[] = []
+  let bytes = 0
+  for (const e of all) {
+    if (files.length >= SEARCH_MAX_FILES || bytes + Number(e.size ?? 0) > SEARCH_MAX_TOTAL_BYTES) break
+    files.push(e)
+    bytes += Number(e.size ?? 0)
+  }
+  const needle = query.toLowerCase()
+  const matches: { path: string; line: number; text: string }[] = []
+  let more = false
+  for (let i = 0; i < files.length && !more; i += 8) {
+    const batch = await Promise.all(files.slice(i, i + 8).map((e) => gh(ctx, 'GET', `/repos/${owner}/${repo}/git/blobs/${encodeURIComponent(String(e.sha))}`, token)))
+    for (let k = 0; k < batch.length && !more; k++) {
+      const r = batch[k]
+      if (!r.ok || r.body?.encoding !== 'base64') continue
+      const raw = atob(String(r.body.content).replace(/\s+/g, ''))
+      const bytesArr = new Uint8Array(raw.length)
+      for (let j = 0; j < raw.length; j++) bytesArr[j] = raw.charCodeAt(j)
+      const lines = new TextDecoder().decode(bytesArr).split('\n')
+      let inFile = 0
+      for (let n = 0; n < lines.length; n++) {
+        if (!lines[n].toLowerCase().includes(needle)) continue
+        if (matches.length >= SEARCH_MAX_MATCHES) { more = true; break }
+        if (inFile >= 5) break
+        inFile += 1
+        matches.push({ path: String(files[i + k].path), line: n + 1, text: lines[n].trim().slice(0, 200) })
+      }
+    }
+  }
+  return { matches, scanned: files.length, skipped: all.length - files.length, more }
+}
+
 /** A collaborator may only use a branch that starts with their own username and a slash. */
 export function isOwnBranch(branch: string, username: string | null): boolean {
   return !!username && branch.startsWith(`${username}/`) && branch.length > username.length + 1
@@ -552,7 +645,16 @@ async function doCommit(
   const tree: unknown[] = []
   for (const change of changes) {
     if (change.delete) { tree.push({ path: change.path, mode: '100644', type: 'blob', sha: null }); continue }
-    const blob = await gh(ctx, 'POST', `${base}/git/blobs`, token, { content: change.content, encoding: 'utf-8' })
+    if (change.move_from) {
+      const found = await gh(ctx, 'GET', `${base}/contents/${change.move_from.split('/').map(encodeURIComponent).join('/')}?ref=${head}`, token)
+      if (found.status === 404) return fail('file_not_found', 404)
+      if (!found.ok || found.body?.type !== 'file' || typeof found.body?.sha !== 'string') return fail('github_failed', 502)
+      tree.push({ path: change.move_from, mode: '100644', type: 'blob', sha: null })
+      tree.push({ path: change.path, mode: '100644', type: 'blob', sha: found.body.sha })
+      continue
+    }
+    const blob = await gh(ctx, 'POST', `${base}/git/blobs`, token, change.content_base64 !== undefined
+      ? { content: change.content_base64, encoding: 'base64' } : { content: change.content, encoding: 'utf-8' })
     if (!blob.ok) return fail('github_failed', 502)
     tree.push({ path: change.path, mode: '100644', type: 'blob', sha: blob.body.sha })
   }
@@ -566,6 +668,16 @@ async function doCommit(
   if (moved.status === 422 || moved.status === 409) return fail('branch_moved', 409)
   if (!moved.ok) return fail('github_failed', 502)
   return { commit_sha: String(created.body.sha), html_url: `https://github.com/${owner}/${repo}/commit/${created.body.sha}` }
+}
+
+// ---- A simple limit per member (kept in the memory of the running function, so it is a best effort) ----------------------
+const hits = new Map<string, number[]>()
+function overLimit(userId: string, cost: number, perMinute: number, now = Date.now()): boolean {
+  const recent = (hits.get(userId) ?? []).filter((t) => now - t < 60_000)
+  if (recent.length + cost > perMinute) { hits.set(userId, recent); return true }
+  for (let i = 0; i < cost; i++) recent.push(now)
+  hits.set(userId, recent)
+  return false
 }
 
 // ---- Entry point -----------------------------------------------------------------------------------------------
@@ -593,12 +705,15 @@ export async function handler(request: Request, getEnv: (name: string) => string
   try { body = await request.json() } catch { return jsonResponse({ error: 'bad_request' }, 400) }
   if (typeof body !== 'object' || body === null) return jsonResponse({ error: 'bad_request' }, 400)
 
+  const perMinute = Number(getEnv('EDITOR_RATE_PER_MINUTE')) || 120
+  if (overLimit(userId, body.action === 'search' ? 10 : 1, perMinute)) return jsonResponse({ error: 'too_many_requests' }, 429)
+
   // Reading the code of a project: the owner and the collaborators, through the owner's installation.
   // The caller's own GitHub account is not needed (a collaborator may have none).
   let owner: string | null
   let projectRepo: string | null = null
   let isProjectOwner = false
-  if (typeof body.project === 'string' && ['tree', 'file', 'history', 'branches', 'commit', 'prs', 'pr_open', 'pr_merge', 'pr_close'].includes(body.action)) {
+  if (typeof body.project === 'string' && ['tree', 'file', 'blob', 'search', 'history', 'branches', 'commit', 'prs', 'pr_open', 'pr_merge', 'pr_close'].includes(body.action)) {
     if (!UUID.test(body.project)) return jsonResponse({ error: 'bad_request' }, 400)
     const access = await memberProject(userId, body.project, ctx)
     if (!access) return jsonResponse({ error: 'repo_not_allowed' }, 403)
@@ -632,6 +747,21 @@ export async function handler(request: Request, getEnv: (name: string) => string
         const path = cleanPath(body.path)
         const ref = typeof body.ref === 'string' && body.ref.length > 0 && body.ref.length <= 200 ? body.ref : null
         result = repo && path && ref ? await doFile(owner, repo, path, ref, ctx) : fail('bad_request', 400)
+        break
+      }
+      case 'blob': {
+        const repo = needRepo()
+        const path = cleanPath(body.path)
+        const ref = typeof body.ref === 'string' && REF.test(body.ref) ? body.ref : null
+        result = repo && path && ref ? await doBlob(owner, repo, path, ref, ctx) : fail('bad_request', 400)
+        break
+      }
+      case 'search': {
+        const repo = needRepo()
+        const q = typeof body.q === 'string' ? body.q.trim() : ''
+        const wanted = body.branch === undefined || body.branch === null ? null : (typeof body.branch === 'string' && REF.test(body.branch) ? body.branch : 'bad')
+        result = repo && projectRepo !== null && q.length >= 2 && q.length <= 100 && wanted !== 'bad'
+          ? await doSearch(owner, repo, wanted, q, ctx) : fail('bad_request', 400)
         break
       }
       case 'history': {
