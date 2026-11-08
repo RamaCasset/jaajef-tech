@@ -3,12 +3,20 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { Logo } from '../components/Logo'
+import { Icon } from '../components/Icon'
+import { Companion } from '../components/Companion'
 import { Stepper } from '../components/Stepper'
 import { fr, type ClanKey, type MasteryKey } from '../i18n/fr'
 import { friendlyError } from '../lib/errors'
 import { setCharacter, setOnboardingStep } from '../lib/api'
 
 const CLANS = Object.keys(fr.clans) as ClanKey[]
+const CLAN_ICONS: Record<ClanKey, [string, string]> = {
+  griot_du_code: ['code', 'note'],
+  forgeron: ['anvil', 'pen'],
+  saltigue: ['eye', 'chart'],
+  buur_linguere: ['shield', 'terminal'],
+}
 const MASTERIES = Object.keys(fr.masteries) as MasteryKey[]
 
 export function ChooseClan() {
@@ -64,6 +72,7 @@ export function ChooseClan() {
                 className={`choice ${clan === key ? 'choice-on' : ''}`}
                 onClick={() => setClan(key)}
               >
+                <span className="choice-icons"><Icon name={CLAN_ICONS[key][0]} size={26} /><Icon name={CLAN_ICONS[key][1]} size={18} /></span>
                 <strong>{fr.clans[key].name}</strong>
                 <span className="choice-role">{fr.clans[key].role}</span>
                 <span className="muted choice-tag">{fr.clans[key].tagline}</span>
@@ -82,7 +91,7 @@ export function ChooseClan() {
                 className={`pill ${mastery === key ? 'pill-on' : ''}`}
                 onClick={() => setMastery(key)}
               >
-                {fr.masteries[key].name} <span className="muted">({fr.masteries[key].level})</span>
+                <span className="radio-dot" aria-hidden="true" />{fr.masteries[key].name} <span className="muted">({fr.masteries[key].level})</span>
               </button>
             ))}
           </div>
@@ -92,6 +101,7 @@ export function ChooseClan() {
         <aside className="preview" aria-label={fr.clan.previewLabel}>
           <div className="preview-head"><span className="eyebrow" style={{ color: 'var(--fg-muted)' }}>{fr.clan.previewLabel}</span><span className="live">● LIVE</span></div>
           <div className="avatar" aria-hidden="true">{(profile?.display_name ?? username ?? '?').slice(0, 1).toUpperCase() || '?'}</div>
+          {clan && <div className="preview-companion"><Companion clan={clan} size={72} /></div>}
           <h3 style={{ textAlign: 'center', fontSize: 22 }}>{profile?.display_name ?? username}</h3>
           <p className="muted" style={{ textAlign: 'center', margin: '2px 0 14px', fontSize: 13 }}>@{username}</p>
           <p style={{ textAlign: 'center', minHeight: 24 }}>
@@ -109,8 +119,9 @@ export function ChooseClan() {
       </section>
 
       <footer className="clan-footer">
-        <span className="muted">{fr.clan.adventure}</span>
-        <button className="btn btn-cta" type="button" onClick={enter} disabled={!ready || busy}>{fr.clan.enter} →</button>
+        <button className="btn back-btn" type="button" onClick={() => navigate(-1)}><Icon name="back" size={16} /> {fr.common.back}</button>
+        <span className="muted clan-footer-note">{fr.clan.adventure}</span>
+        <button className="btn btn-cta" type="button" onClick={enter} disabled={!ready || busy}><Icon name="forward" size={16} /> {fr.clan.enter}</button>
       </footer>
     </main>
   )
