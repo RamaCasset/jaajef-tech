@@ -187,6 +187,22 @@ begin
   perform cpk.must_fail('a visitor lists invitations', format('select * from public.project_invites(%L)', p), 'permission denied');
   reset role;
   raise notice 'OK 5: invitations expire after 7 days and can be sent again';
+
+  -- 6. The server decides who may read a project's code: the owner and the collaborators only
+  perform cpk.as_user(1);
+  perform cpk.must_fail('a member asks who may read code', format('select * from public.project_for_member(%L, %L)', cpk.uid(1), p), 'permission denied');
+  reset role;
+  set local role service_role;
+  select count(*) into n from public.project_for_member(cpk.uid(1), p) where is_owner and github_owner = 'haby-cp' and github_repo = 'secret';
+  if n <> 1 then raise exception 'FAIL: the owner may not read the code'; end if;
+  select count(*) into n from public.project_for_member(cpk.uid(3), q) where not is_owner;
+  if n <> 1 then raise exception 'FAIL: a collaborator may not read the code'; end if;
+  select count(*) into n from public.project_for_member(cpk.uid(2), p);
+  if n <> 0 then raise exception 'FAIL: someone who left may read the code'; end if;
+  select count(*) into n from public.project_for_member(cpk.uid(3), p);
+  if n <> 0 then raise exception 'FAIL: someone with only a waiting invitation may read the code'; end if;
+  reset role;
+  raise notice 'OK 6: only the owner and the collaborators may read the code';
 end $$;
 
 delete from public.projects where github_owner = 'haby-cp';

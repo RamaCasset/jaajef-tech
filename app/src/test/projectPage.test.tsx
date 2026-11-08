@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const api = vi.hoisted(() => ({
   getProjectFull: vi.fn(), starProject: vi.fn(), unstarProject: vi.fn(), listProjectComments: vi.fn(), postProjectComment: vi.fn(),
   deleteProjectComment: vi.fn(), listCollaborators: vi.fn(), listCollabRequests: vi.fn(), requestCollaboration: vi.fn(),
-  withdrawCollabRequest: vi.fn(), decideCollabRequest: vi.fn(), removeCollaborator: vi.fn(), getRepoTree: vi.fn(), getLastCommits: vi.fn(),
+  withdrawCollabRequest: vi.fn(), decideCollabRequest: vi.fn(), removeCollaborator: vi.fn(), loadRepoTree: vi.fn(), getLastCommits: vi.fn(),
   GithubError: class GithubError extends Error { code = 'failed' },
   projectCoverUrl: vi.fn(), saveProjectShowcase: vi.fn(), uploadProjectCover: vi.fn(), inviteCollaborator: vi.fn(), listProjectInvites: vi.fn(), cancelCollabInvite: vi.fn(),
 }))
@@ -37,7 +37,7 @@ beforeEach(() => {
   api.listCollaborators.mockResolvedValue([{ user_id: 'u4', username: 'cheikh', display_name: 'Cheikh' }])
   api.listCollabRequests.mockResolvedValue([])
   api.listProjectInvites.mockResolvedValue([])
-  api.getRepoTree.mockResolvedValue({ branch: 'main', truncated: false, entries: [{ path: 'src', type: 'tree', size: 0 }, { path: 'app.py', type: 'blob', size: 10 }] })
+  api.loadRepoTree.mockResolvedValue({ branch: 'main', truncated: false, entries: [{ path: 'src', type: 'tree', size: 0 }, { path: 'app.py', type: 'blob', size: 10 }] })
   api.getLastCommits.mockResolvedValue({})
   for (const f of [api.starProject, api.unstarProject, api.postProjectComment, api.deleteProjectComment, api.requestCollaboration, api.withdrawCollabRequest, api.decideCollabRequest, api.removeCollaborator, api.inviteCollaborator, api.cancelCollabInvite]) f.mockResolvedValue(undefined)
 })
@@ -208,7 +208,7 @@ describe('Project page', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent("Aucun membre n'a ce nom d'utilisateur.")
   })
 
-  it('a private project has no stars, comments or join requests, says who can see it, and waits for the private code view', async () => {
+  it('a private project has no stars, comments or join requests, says who can see it, and shows its files to members', async () => {
     api.getProjectFull.mockResolvedValue(project({ is_public: false, repo_private: true }))
     api.listCollaborators.mockResolvedValue([{ user_id: 'me', username: 'moussa', display_name: 'Moussa' }])
     mount()
@@ -218,8 +218,9 @@ describe('Project page', () => {
     expect(screen.queryByRole('button', { name: /étoile/i })).toBeNull()
     expect(screen.queryByText('Commentaires')).toBeNull()
     expect(screen.queryByLabelText('Dites pourquoi vous voulez collaborer')).toBeNull()
-    expect(screen.getByText(/Le code des dépôts privés s'affiche bientôt/)).toBeInTheDocument()
-    expect(api.getRepoTree).not.toHaveBeenCalled()
+    expect(await screen.findByRole('table')).toBeInTheDocument()
+    expect(api.loadRepoTree).toHaveBeenCalledWith(expect.objectContaining({ id: 'p1', repo_private: true }))
+    expect(screen.getByRole('link', { name: 'Historique' })).toHaveAttribute('href', '/projets/p1/historique')
     expect(await screen.findByText('Moussa')).toBeInTheDocument()
   })
 

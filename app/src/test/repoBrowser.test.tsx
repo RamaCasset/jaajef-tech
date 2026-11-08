@@ -4,7 +4,7 @@ import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const api = vi.hoisted(() => ({
-  getProjectFull: vi.fn(), getRepoTree: vi.fn(), getRepoFile: vi.fn(), getLastCommits: vi.fn(),
+  getProjectFull: vi.fn(), loadRepoTree: vi.fn(), loadRepoFile: vi.fn(), getLastCommits: vi.fn(),
   editorStatus: vi.fn(), editorTree: vi.fn(), editorCommit: vi.fn(),
 }))
 vi.mock('../lib/api', async () => {
@@ -27,7 +27,7 @@ const { EditorError } = await vi.importActual<typeof import('../lib/api')>('../l
 
 const HEAD = 'a'.repeat(40)
 const NEW_HEAD = 'b'.repeat(40)
-const project = { id: 'p1', title: 'Mon appli', github_owner: 'awa', github_repo: 'appli', owner_id: 'me' }
+const project = { id: 'p1', title: 'Mon appli', github_owner: 'awa', github_repo: 'appli', owner_id: 'me', repo_private: false }
 const publicTree = {
   branch: 'main', truncated: false,
   entries: [
@@ -52,8 +52,8 @@ beforeEach(() => {
   vi.resetAllMocks()
   auth.id = 'me'
   api.getProjectFull.mockResolvedValue(project)
-  api.getRepoTree.mockResolvedValue(publicTree)
-  api.getRepoFile.mockImplementation(async (_o: string, _r: string, _b: string, path: string) => `contenu de ${path}`)
+  api.loadRepoTree.mockResolvedValue(publicTree)
+  api.loadRepoFile.mockImplementation(async (_p: unknown, _b: string, path: string) => `contenu de ${path}`)
   api.getLastCommits.mockResolvedValue({})
   api.editorStatus.mockResolvedValue({ installed: true, install_url: 'https://github.com/apps/x/installations/new', github_name: 'awa' })
   api.editorTree.mockResolvedValue({ branch: 'main', head: HEAD, truncated: false, entries: [] })
@@ -214,5 +214,33 @@ describe('Repository: editing, saving and deleting', () => {
     mount('/projets/p1/code?fichier=main.py')
     await userEvent.click(await screen.findByRole('button', { name: 'Modifier ce fichier' }))
     expect(await screen.findByText("Ce dépôt n'est pas autorisé")).toBeInTheDocument()
+  })
+})
+
+describe('Repository: private code for members', () => {
+  it('a collaborator reads the files and a file of a private project, read-only, with no edit buttons', async () => {
+    auth.id = 'collab'
+    api.getProjectFull.mockResolvedValue({ ...project, owner_id: 'owner', repo_private: true })
+    mount('/projets/p1/code?fichier=main.py')
+    expect(await screen.findByLabelText('code main.py')).toHaveValue('contenu de main.py')
+    expect(api.loadRepoTree).toHaveBeenCalledWith(expect.objectContaining({ id: 'p1', repo_private: true }))
+    expect(api.loadRepoFile).toHaveBeenCalledWith(expect.objectContaining({ repo_private: true }), 'main', 'main.py')
+    expect(screen.getByLabelText('code main.py')).toHaveAttribute('readonly')
+    expect(screen.queryByRole('button', { name: /Modifier|Enregistrer|Supprimer/ })).toBeNull()
+    expect(screen.getByRole('link', { name: 'Historique du fichier' })).toHaveAttribute('href', '/projets/p1/historique?fichier=main.py')
+  })
+
+  it('the file list of a private project does not ask for last-commit messages from the public side', async () => {
+    api.getProjectFull.mockResolvedValue({ ...project, repo_private: true })
+    mount('/projets/p1/code?dossier=')
+    await screen.findByRole('table')
+    expect(api.getLastCommits).not.toHaveBeenCalled()
+  })
+
+  it('shows the app error when the owner has not allowed the app on that repository', async () => {
+    api.getProjectFull.mockResolvedValue({ ...project, repo_private: true })
+    api.loadRepoTree.mockRejectedValue(new EditorError('not_installed'))
+    mount('/projets/p1/code?dossier=')
+    expect(await screen.findByRole('alert')).toHaveTextContent("L'application GitHub n'est pas encore installée.")
   })
 })

@@ -27,6 +27,7 @@ import { OfferApplicants } from './pages/OfferApplicants'
 import { Talents } from './pages/Talents'
 import { TalentProfile } from './pages/TalentProfile'
 import { CvPortfolio } from './pages/CvPortfolio'
+import { RepoHistory } from './pages/RepoHistory'
 import { RepoBrowser } from './pages/RepoBrowser'
 import { Profile } from './pages/Profile'
 import { Souk } from './pages/Souk'
@@ -92,6 +93,7 @@ export function AppRoutes() {
       <Route path="/quetes/:slug" element={<RequireAuth><RequireCharacter><Quest /></RequireCharacter></RequireAuth>} />
       <Route path="/projets/ajouter" element={<RequireAuth><RequireCharacter><ImportProject /></RequireCharacter></RequireAuth>} />
       <Route path="/projets/:id/modifier" element={<RequireAuth><RequireCharacter><RepoBrowser /></RequireCharacter></RequireAuth>} />
+      <Route path="/projets/:id/historique" element={<RequireAuth><RequireCharacter><RepoHistory /></RequireCharacter></RequireAuth>} />
       <Route path="/projets/:id/code" element={<RequireAuth><RequireCharacter><RepoBrowser /></RequireCharacter></RequireAuth>} />
       <Route path="/projets/:id" element={<RequireAuth><RequireCharacter><ProjectPage /></RequireCharacter></RequireAuth>} />
       <Route path="/depots/etoiles" element={<RequireAuth><RequireCharacter><MyStars /></RequireCharacter></RequireAuth>} />

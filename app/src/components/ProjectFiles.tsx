@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Icon } from './Icon'
 import { dateLocale } from '../i18n/lang'
 import { fr } from '../i18n/fr'
-import { getLastCommits, getRepoTree, GithubError, type LastCommit, type ProjectFull, type RepoEntry, type RepoTree } from '../lib/api'
+import { EditorError, getLastCommits, GithubError, loadRepoTree, type LastCommit, type ProjectFull, type RepoEntry, type RepoTree } from '../lib/api'
 
 export const dirUrl = (id: string, dir: string) => (dir ? `/projets/${id}/code?dossier=${encodeURIComponent(dir)}` : `/projets/${id}`)
 export const fileUrl = (id: string, path: string) => `/projets/${id}/code?fichier=${encodeURIComponent(path)}`
@@ -36,9 +36,9 @@ export function ProjectFiles({ project, dir, canEdit, tree: given, onTree }: Pro
   useEffect(() => {
     if (given) return
     let alive = true
-    getRepoTree(project.github_owner, project.github_repo)
+    loadRepoTree(project)
       .then((tr) => { if (alive) { setOwn(tr); onTree?.(tr) } })
-      .catch((e) => { if (alive) setError(e instanceof GithubError ? fr.repoViewer.errors[e.code] : fr.repoViewer.errors.failed) })
+      .catch((e) => { if (alive) setError(e instanceof GithubError ? fr.repoViewer.errors[e.code] : e instanceof EditorError ? (fr.editor.errors[e.code] ?? fr.editor.errors.unknown) : fr.repoViewer.errors.failed) })
     return () => { alive = false }
     // The tree is loaded once per project.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -47,12 +47,13 @@ export function ProjectFiles({ project, dir, canEdit, tree: given, onTree }: Pro
   const rows = useMemo(() => childrenOf(tree?.entries ?? [], dir), [tree, dir])
   const wanted = rows.slice(0, 40).map((r) => r.path).join('\n')
   useEffect(() => {
-    if (!wanted) return
+    // The last-commit columns are read from GitHub's public side only.
+    if (!wanted || project.repo_private) return
     let alive = true
     // The last message and date are a convenience: when they cannot be loaded, the columns stay empty.
     getLastCommits(project.id, wanted.split('\n')).then((c) => { if (alive) setCommits(c) }).catch(() => undefined)
     return () => { alive = false }
-  }, [project.id, wanted])
+  }, [project.id, project.repo_private, wanted])
 
   function onCreate(e: FormEvent) {
     e.preventDefault()
@@ -66,6 +67,7 @@ export function ProjectFiles({ project, dir, canEdit, tree: given, onTree }: Pro
     <section className="panel files-panel" aria-label={t.filesTitle}>
       <header className="files-head">
         <h2>{t.filesTitle}</h2>
+        <Link className="btn" to={`/projets/${project.id}/historique`}>{t.history}</Link>
         {canEdit && !adding && <button type="button" className="btn" onClick={() => setAdding(true)}>{t.newFile}</button>}
         {canEdit && adding && (
           <form className="files-new" onSubmit={onCreate} noValidate>

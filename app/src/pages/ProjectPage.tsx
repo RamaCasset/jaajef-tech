@@ -133,9 +133,7 @@ export function ProjectPage() {
             {error && <div className="alert" role="alert">{error}</div>}
             {notice && <div className="notice" role="status">{notice}</div>}
 
-            {project.repo_private
-              ? <section className="panel panel-pad stack-gap"><p className="muted">{fr.projectPage.privateCodeSoon}</p></section>
-              : <div className="stack-gap"><ProjectFiles project={project} dir="" canEdit={isOwner} /></div>}
+            <div className="stack-gap"><ProjectFiles project={project} dir="" canEdit={isOwner} /></div>
 
             {isOwner && <ProjectShowcase projectId={project.id} userId={me} demoUrl={project.demo_url} coverPath={project.cover_path} onSaved={load} />}
 
