@@ -91,16 +91,16 @@ describe('Cité home', () => {
     expect(within(stats).getByText('Étoiles et j’aimes reçus')).toBeInTheDocument()
   })
 
-  it('shows my projects and badges, and opens the other tabs', async () => {
+  it('shows my projects and badges, and opens the blog tab', async () => {
     mount()
     expect(await screen.findByRole('link', { name: 'moussa-diop / teranga-ui' })).toHaveAttribute('href', '/projets/p1')
     expect(screen.getByText('Première quête')).toBeInTheDocument()
     expect(screen.getByText('Bâtisseur')).toBeInTheDocument()
-    await userEvent.click(screen.getByRole('tab', { name: 'Articles de blog' }))
+    await userEvent.click(screen.getByRole('tab', { name: 'Mes blogs' }))
     expect(await screen.findByRole('link', { name: 'Mon article' })).toHaveAttribute('href', '/blog/mon-article')
     expect(screen.queryByText('Brouillon')).toBeNull()
-    await userEvent.click(screen.getByRole('tab', { name: 'Badges et succès' }))
-    expect(screen.getByText('Première quête')).toBeInTheDocument()
+    expect(screen.queryByRole('tab', { name: /Badges/ })).toBeNull()
+    expect(screen.getByRole('tab', { name: 'Mes projets' })).toBeInTheDocument()
   })
 
   it('says so when I have no badge yet', async () => {
@@ -141,40 +141,10 @@ describe('Cité home', () => {
     expect(await screen.findByText("Pas de quête aujourd'hui. Revenez bientôt.")).toBeInTheDocument()
   })
 
-  it('shows the streak, the record, the chest and the freezes, with a warning when it is at risk', async () => {
-    mount()
-    const card = await screen.findByRole('region', { name: 'Série' })
-    expect(await within(card).findByText('4 jours')).toBeInTheDocument()
-    expect(within(card).getByText("Résolvez une quête aujourd'hui pour garder votre série.")).toBeInTheDocument()
-    expect(within(card).getByText('Record : 9 jours')).toBeInTheDocument()
-    expect(within(card).getByText('Coffre dans 3 jours : +100 Kopeks')).toBeInTheDocument()
-    expect(within(card).getByText('Gels de série : 1 sur 2')).toBeInTheDocument()
-  })
-
-  it('tells the other streak situations apart', async () => {
-    getMyStreak.mockResolvedValue(streak({ done_today: true, at_risk: false }))
-    const a = mount()
-    expect(await screen.findByText("C'est fait pour aujourd'hui.")).toBeInTheDocument()
-    expect(screen.queryByText(/pour garder votre série/)).toBeNull()
-    a.unmount()
-    getMyStreak.mockResolvedValue(streak({ protected_by_freeze: true }))
-    const b = mount()
-    expect(await screen.findByText(/protégée par un gel/)).toBeInTheDocument()
-    expect(screen.queryByText(/pour garder votre série/)).toBeNull()
-    b.unmount()
-    getMyStreak.mockResolvedValue(streak({ current_streak: 0, at_risk: false, next_chest_in: 7, chest_kopeks: 0, freeze_max: 0, longest_streak: 0 }))
-    mount()
-    expect(await screen.findByText('0 jours')).toBeInTheDocument()
-    expect(screen.getByText(/Aucune série en cours/)).toBeInTheDocument()
-    expect(screen.queryByText(/Coffre dans/)).toBeNull()
-    expect(screen.queryByText(/Gels de série/)).toBeNull()
-  })
-
   it('keeps the other blocks when one of them fails', async () => {
     getDailyQuest.mockRejectedValue(new Error('boom'))
     mount()
     expect(await screen.findByText('Impossible de charger la quête du jour.')).toBeInTheDocument()
-    expect(await screen.findByText('4 jours')).toBeInTheDocument()
     expect(await screen.findByText('Première quête')).toBeInTheDocument()
     expect(await screen.findByText('Niveau 3 (5000 / 10000 XP)')).toBeInTheDocument()
   })
