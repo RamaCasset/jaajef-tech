@@ -42,3 +42,16 @@ Assumptions to confirm with Marie:
 - It gives no point values; each quest shows its own reward. Real numbers can be added once the bonus values are decided.
 - There is no first-visit pop-up or step-by-step tour yet. Marie decides whether a new member should be sent to it after sign-up.
 - The wording is a first draft in French, to be rewritten with Marie.
+
+## Decisions of 8 November
+- Languages: the site is available in French and English, chosen by the member. Names that are not French (Griot du Code, Saltigué, Ndongo, Bagne, Borom Xam-Xam, Kopeks, Teranga, Souk) are never translated.
+- Content in two languages: official content written by the team (quests, badge names, team shop items) is stored in both languages. Member-written content (blog, messages, project text, creator shop items) stays in the language it was written in. Database change to come before the quests are written.
+- Badges (agreed): "Champion du Sahel" is earned by finishing in the top 10 of the monthly leaderboard (XP earned in the month). "Teranga legendaire" is earned by receiving 100 stars and likes in total on a member's projects and articles. Both are still to build.
+- Karma and Rank are removed from the profile. They will not be built.
+- Voice rooms, live stream and "Telegram files" are left out for now. File attachments in chat remain on the list, later.
+- Repositories stay on GitHub. The "Nouveau dépôt" form sends the member to GitHub's new-repository page with name, description and visibility filled in, then imports it.
+- Project demos: the owner adds a demo link and the project shows a "Voir la démo" button. No running of projects on the platform in the first version.
+- Hackathon: an admin form (title, dates, rules, prizes, team size) used whenever a hackathon is organised. Nothing is preset.
+- Editor commits show as made by the GitHub app ("Saved from jaajef.tech by @username"). Accepted.
+- Bonus values and payments (PayDunya) are placeholders until the end.
+- The 365 quests are written by Claude, in batches, each tested with the code runner, after the main features.
