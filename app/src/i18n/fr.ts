@@ -222,6 +222,10 @@ export const fr = {
     blog: 'Blog',
     search: 'Recherche',
     arena: 'Arène',
+    searchHint: 'Rechercher dans la Cité',
+    account: 'Menu du compte',
+    profile: 'Mon profil',
+    railLabel: 'Espaces',
   },
   souk: {
     eyebrow: 'Créé par la Cité. Pour la Cité.',
