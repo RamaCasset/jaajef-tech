@@ -89,7 +89,7 @@ export function ProjectPage() {
               <p className="muted tiny">
                 <Link to={`/profil/${project.owner_username}`}>{fr.projectPage.by(project.owner_display_name || project.owner_username)}</Link>
                 {' · '}
-                <a href={`https://github.com/${project.github_owner}/${project.github_repo}`} target="_blank" rel="noreferrer">{fr.projectPage.github}</a> · <Link to={`/projets/${project.id}/code`}>{fr.repoViewer.link}</Link>
+                <a href={`https://github.com/${project.github_owner}/${project.github_repo}`} target="_blank" rel="noreferrer">{fr.projectPage.github}</a> · <Link to={`/projets/${project.id}/code`}>{fr.repoViewer.link}</Link>{isOwner && <>{' · '}<Link to={`/projets/${project.id}/modifier`}>{fr.editor.link}</Link></>}
               </p>
               {project.summary && <p>{project.summary}</p>}
               <div className="project-tags">
