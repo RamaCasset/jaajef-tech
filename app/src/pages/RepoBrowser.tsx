@@ -7,7 +7,7 @@ import { Icon } from '../components/Icon'
 import { ProjectFiles, dirUrl, fileUrl, parentOf } from '../components/ProjectFiles'
 import { useAuth } from '../auth/AuthContext'
 import {
-  EditorError, editorCommitTo, editorStatus, editorTreeOf, getProjectFull, GithubError, isViewable, listCollaborators, loadBranches, loadRepoFile, loadRepoTree,
+  EditorError, editorCommitTo, editorPropose, editorStatus, editorTreeOf, getProjectFull, GithubError, isViewable, listCollaborators, loadBranches, loadRepoFile, loadRepoTree,
   pullRequestUrl, type BranchList, type EditorStatus, type ProjectFull, type RepoTree,
 } from '../lib/api'
 import { fr } from '../i18n/fr'
@@ -52,6 +52,10 @@ export function RepoBrowser() {
   const [branches, setBranches] = useState<BranchList | null>(null)
   const [target, setTarget] = useState<'here' | 'new'>('here')
   const [newBranch, setNewBranch] = useState<string | null>(null)
+  const [proposing, setProposing] = useState(false)
+  const [proposalTitle, setProposalTitle] = useState('')
+  const [proposalText, setProposalText] = useState('')
+  const [proposed, setProposed] = useState<{ existed: boolean } | null>(null)
 
   const isOwner = !!project && project.owner_id === me
   const isMember = isOwner || isCollab
@@ -197,6 +201,24 @@ export function RepoBrowser() {
     }
   }
 
+  async function sendProposal(e: FormEvent) {
+    e.preventDefault()
+    if (!project || !shownBranch || !proposalTitle.trim()) return
+    setActionError(null)
+    setBusy(true)
+    try {
+      const r = await editorPropose(project.id, { branch: shownBranch, title: proposalTitle.trim(), body: proposalText.trim() || undefined })
+      setProposed({ existed: r.existed })
+      setProposing(false)
+      setProposalTitle('')
+      setProposalText('')
+    } catch (err) {
+      setActionError(errorText(err))
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const guard = (ev: MouseEvent) => { if (dirty && !window.confirm(fr.editor.leaveWarning)) ev.preventDefault() }
 
   const allFiles = useMemo(() => {
@@ -240,7 +262,9 @@ export function RepoBrowser() {
           {branchOptions.map((b) => <option key={b} value={b}>{b === mainBranch ? `${b} (${t.mainBranch})` : b}</option>)}
         </select>
       )}
-      {shownBranch && <a className="crumbs-link" href={pullRequestUrl(project.github_owner, project.github_repo, mainBranch, shownBranch)} target="_blank" rel="noopener noreferrer">{t.openPullRequest}</a>}
+      {shownBranch && isMember && <button type="button" className="btn crumbs-btn" onClick={() => { setProposed(null); setProposing(true) }}>{t.propose}</button>}
+      {shownBranch && !isMember && <a className="crumbs-link" href={pullRequestUrl(project.github_owner, project.github_repo, mainBranch, shownBranch)} target="_blank" rel="noopener noreferrer">{t.openPullRequest}</a>}
+      {isMember && <Link className="crumbs-link" to={`/projets/${project.id}/propositions`}>{t.proposals}</Link>}
       <a className="crumbs-link" href={githubUrl} target="_blank" rel="noopener noreferrer">{t.openGithub}</a>
     </nav>
   )
@@ -256,7 +280,22 @@ export function RepoBrowser() {
             {!path && crumbsEl}
 
             {done && <div className="notice" role="status">{fr.editor.saved} <a href={done} target="_blank" rel="noopener noreferrer">{fr.editor.seeCommit}</a>
-              {shownBranch && <> <a href={pullRequestUrl(project.github_owner, project.github_repo, mainBranch, shownBranch)} target="_blank" rel="noopener noreferrer">{t.openPullRequest}</a></>}</div>}
+              {shownBranch && isMember && <> <button type="button" className="btn" onClick={() => { setProposed(null); setProposing(true) }}>{t.propose}</button></>}</div>}
+            {proposed && <div className="notice" role="status">{proposed.existed ? t.proposalExists : t.proposalSent} <Link to={`/projets/${project.id}/propositions`}>{t.seeProposals}</Link></div>}
+            {proposing && shownBranch && (
+              <form className="panel panel-pad proposal-form" onSubmit={(e) => void sendProposal(e)} noValidate>
+                <h2>{t.proposeTitle(mainBranch)}</h2>
+                <p className="muted">{t.proposeHelp(shownBranch)}</p>
+                <label htmlFor="proposal-title">{t.proposalTitleLabel}</label>
+                <input id="proposal-title" maxLength={200} value={proposalTitle} onChange={(e) => setProposalTitle(e.target.value)} autoFocus />
+                <label htmlFor="proposal-text">{t.proposalTextLabel}</label>
+                <textarea id="proposal-text" rows={3} maxLength={2000} value={proposalText} onChange={(e) => setProposalText(e.target.value)} />
+                <div className="commit-actions">
+                  <button type="button" className="btn" onClick={() => setProposing(false)}>{t.cancel}</button>
+                  <button type="submit" className="btn btn-cta" disabled={busy || !proposalTitle.trim()}>{t.proposeSend}</button>
+                </div>
+              </form>
+            )}
             {actionError && <div className="alert" role="alert">{actionError}</div>}
             {install && (
               <section className="panel panel-pad">

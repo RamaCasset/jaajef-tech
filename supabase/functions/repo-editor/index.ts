@@ -13,6 +13,10 @@
 //   adopt    -> list one PRIVATE repository of the member on the platform (stays private)
 //   branches -> the branches of a project's repository (owner and collaborators)
 //   tree also accepts { branch } to read another branch than the default one
+//   prs      -> the open proposals (pull requests) of a project, from branches of the same repository
+//   pr_open  -> propose a branch to the main code (owner: any branch; collaborator: only their own)
+//   pr_merge -> merge a proposal into the main code (owner only)
+//   pr_close -> close a proposal (owner, or the member who made it)
 //   commit also accepts { project }: the owner may save to any branch; a collaborator only to a branch
 //             that starts with their own username and a slash (never the main code). { create_from }
 //             makes the branch first, from that branch, in the same call.
@@ -171,11 +175,13 @@ async function findInstallation(owner: string, ctx: Ctx): Promise<number | null 
 }
 
 /** A token for ONE repository. Read-only unless `write`. */
-async function repoToken(installation: number, repo: string, write: boolean, ctx: Ctx): Promise<string | Fail> {
+async function repoToken(installation: number, repo: string, write: boolean, ctx: Ctx, pulls: 'read' | 'write' | null = null): Promise<string | Fail> {
   const jwt = await appJwt(ctx.env)
   const r = await gh(ctx, 'POST', `/app/installations/${installation}/access_tokens`, jwt, {
-    repositories: [repo], permissions: { contents: write ? 'write' : 'read' },
+    repositories: [repo], permissions: { contents: write ? 'write' : 'read', ...(pulls ? { pull_requests: pulls } : {}) },
   })
+  // The owner accepted the app before it could handle proposals: GitHub says the permission is not granted yet.
+  if (r.status === 422 && pulls && /permission/i.test(String(r.body?.message ?? ''))) return fail('pulls_permission_missing', 409)
   if (r.status === 404 || r.status === 422) return fail('repo_not_allowed', 403)
   if (!r.ok || typeof r.body?.token !== 'string') return fail('github_failed', 502)
   return r.body.token
@@ -393,6 +399,111 @@ async function doFile(owner: string, repo: string, path: string, ref: string, ct
   return { path, content: new TextDecoder().decode(bytes) }
 }
 
+/** A collaborator may only use a branch that starts with their own username and a slash. */
+export function isOwnBranch(branch: string, username: string | null): boolean {
+  return !!username && branch.startsWith(`${username}/`) && branch.length > username.length + 1
+    && !branch.endsWith('/') && !branch.includes('..') && !branch.includes('//')
+}
+
+const PROPOSED_BY = /Proposed from jaajef\.tech by (\S+)/g
+
+type Pull = { number: number; title: string; branch: string; sha: string; author: string; url: string; created_at: string }
+function toPull(p: any, repoFull: string): Pull | null {
+  if (String(p?.head?.repo?.full_name ?? '').toLowerCase() !== repoFull.toLowerCase()) return null // proposals from forks are left to GitHub
+  // Our own line is always the last one in the text, so text a member typed cannot pose as someone else.
+  const marks = [...String(p?.body ?? '').matchAll(PROPOSED_BY)]
+  const by = marks.length > 0 ? marks[marks.length - 1] : null
+  return {
+    number: Number(p.number), title: String(p.title ?? '').slice(0, 200), branch: String(p.head?.ref ?? ''), sha: String(p.head?.sha ?? ''),
+    author: by ? by[1] : String(p?.user?.login ?? ''), url: String(p.html_url ?? ''), created_at: String(p.created_at ?? ''),
+  }
+}
+
+async function doPrs(owner: string, repo: string, ctx: Ctx): Promise<unknown | Fail> {
+  const installation = await findInstallation(owner, ctx)
+  if (isFail(installation)) return installation
+  if (installation === null) return fail('not_installed', 409)
+  const token = await repoToken(installation, repo, false, ctx, 'read')
+  if (isFail(token)) return token
+  const info = await gh(ctx, 'GET', `/repos/${owner}/${repo}`, token)
+  if (!info.ok) return fail(info.status === 404 ? 'repo_not_found' : 'github_failed', info.status === 404 ? 404 : 502)
+  const base = String(info.body?.default_branch ?? 'main')
+  const r = await gh(ctx, 'GET', `/repos/${owner}/${repo}/pulls?state=open&per_page=50&base=${encodeURIComponent(base)}`, token)
+  if (!r.ok || !Array.isArray(r.body)) return fail('github_failed', 502)
+  const pulls = r.body.map((p: any) => toPull(p, `${owner}/${repo}`)).filter((p: Pull | null): p is Pull => p !== null)
+  return { default_branch: base, pulls }
+}
+
+async function doPrOpen(owner: string, repo: string, branch: string, title: string, text: string, by: string, ctx: Ctx): Promise<unknown | Fail> {
+  const installation = await findInstallation(owner, ctx)
+  if (isFail(installation)) return installation
+  if (installation === null) return fail('not_installed', 409)
+  const token = await repoToken(installation, repo, false, ctx, 'write')
+  if (isFail(token)) return token
+  const info = await gh(ctx, 'GET', `/repos/${owner}/${repo}`, token)
+  if (!info.ok) return fail(info.status === 404 ? 'repo_not_found' : 'github_failed', info.status === 404 ? 404 : 502)
+  const base = String(info.body?.default_branch ?? 'main')
+  if (branch === base) return fail('bad_request', 400)
+  const body = `${text}${text ? '\n\n' : ''}Proposed from jaajef.tech by ${by}`
+  const made = await gh(ctx, 'POST', `/repos/${owner}/${repo}/pulls`, token, { title, head: branch, base, body })
+  if (made.ok) return { number: Number(made.body?.number), url: String(made.body?.html_url ?? ''), existed: false }
+  if (made.status === 422) {
+    const messages = (Array.isArray(made.body?.errors) ? made.body.errors : []).map((e: any) => String(e?.message ?? '')).join(' ')
+    if (/already exists/i.test(messages)) {
+      const found = await gh(ctx, 'GET', `/repos/${owner}/${repo}/pulls?state=open&head=${encodeURIComponent(`${owner}:${branch}`)}`, token)
+      const first = found.ok && Array.isArray(found.body) ? found.body[0] : null
+      if (first) return { number: Number(first.number), url: String(first.html_url ?? ''), existed: true }
+    }
+    if (/no commits between/i.test(messages)) return fail('nothing_to_propose', 409)
+    return fail('branch_not_found', 404)
+  }
+  return fail('github_failed', 502)
+}
+
+/** Loads one proposal and checks it is an open proposal into the main branch, from a branch of this same repository. */
+async function openPull(owner: string, repo: string, number: number, token: string, ctx: Ctx): Promise<any | Fail> {
+  const info = await gh(ctx, 'GET', `/repos/${owner}/${repo}`, token)
+  if (!info.ok) return fail('github_failed', 502)
+  const r = await gh(ctx, 'GET', `/repos/${owner}/${repo}/pulls/${number}`, token)
+  if (r.status === 404) return fail('pr_not_found', 404)
+  if (!r.ok) return fail('github_failed', 502)
+  const same = String(r.body?.head?.repo?.full_name ?? '').toLowerCase() === `${owner}/${repo}`.toLowerCase()
+  if (r.body?.state !== 'open' || !same || r.body?.base?.ref !== String(info.body?.default_branch ?? 'main')) return fail('pr_not_found', 404)
+  return r.body
+}
+
+async function doPrMerge(owner: string, repo: string, number: number, seenSha: string, ctx: Ctx): Promise<unknown | Fail> {
+  const installation = await findInstallation(owner, ctx)
+  if (isFail(installation)) return installation
+  if (installation === null) return fail('not_installed', 409)
+  const token = await repoToken(installation, repo, true, ctx, 'write')
+  if (isFail(token)) return token
+  const pull = await openPull(owner, repo, number, token, ctx)
+  if (isFail(pull)) return pull
+  // Only what the owner looked at is merged: if the branch got a new commit since, nothing is merged.
+  if (String(pull.head?.sha ?? '') !== seenSha) return fail('branch_moved', 409)
+  const merged = await gh(ctx, 'PUT', `/repos/${owner}/${repo}/pulls/${number}/merge`, token, { merge_method: 'merge', sha: seenSha })
+  if (merged.status === 405) return fail('not_mergeable', 409)
+  if (merged.status === 409) return fail('branch_moved', 409)
+  if (!merged.ok) return fail('github_failed', 502)
+  return { merged: true, url: String(pull.html_url ?? '') }
+}
+
+async function doPrClose(owner: string, repo: string, number: number, onlyBy: string | null, ctx: Ctx): Promise<unknown | Fail> {
+  const installation = await findInstallation(owner, ctx)
+  if (isFail(installation)) return installation
+  if (installation === null) return fail('not_installed', 409)
+  const token = await repoToken(installation, repo, false, ctx, 'write')
+  if (isFail(token)) return token
+  const pull = await openPull(owner, repo, number, token, ctx)
+  if (isFail(pull)) return pull
+  // A collaborator can only withdraw their own proposal.
+  if (onlyBy !== null && toPull(pull, `${owner}/${repo}`)?.author !== onlyBy) return fail('not_yours', 403)
+  const closed = await gh(ctx, 'PATCH', `/repos/${owner}/${repo}/pulls/${number}`, token, { state: 'closed' })
+  if (!closed.ok) return fail('github_failed', 502)
+  return { closed: true }
+}
+
 async function doCommit(
   owner: string, repo: string, branch: string, baseSha: string, message: string, changes: FileChange[], ctx: Ctx,
   by: string = `@${owner}`, createFrom: string | null = null,
@@ -473,7 +584,7 @@ export async function handler(request: Request, getEnv: (name: string) => string
   let owner: string | null
   let projectRepo: string | null = null
   let isProjectOwner = false
-  if (typeof body.project === 'string' && ['tree', 'file', 'history', 'branches', 'commit'].includes(body.action)) {
+  if (typeof body.project === 'string' && ['tree', 'file', 'history', 'branches', 'commit', 'prs', 'pr_open', 'pr_merge', 'pr_close'].includes(body.action)) {
     if (!UUID.test(body.project)) return jsonResponse({ error: 'bad_request' }, 400)
     const access = await memberProject(userId, body.project, ctx)
     if (!access) return jsonResponse({ error: 'repo_not_allowed' }, 403)
@@ -526,6 +637,40 @@ export async function handler(request: Request, getEnv: (name: string) => string
         result = repo ? await doAdopt(userId, owner, repo, title, summary, ctx) : fail('bad_request', 400)
         break
       }
+      case 'prs': {
+        const repo = needRepo()
+        result = repo ? await doPrs(owner, repo, ctx) : fail('bad_request', 400)
+        break
+      }
+      case 'pr_open': {
+        const repo = needRepo()
+        const branch = typeof body.branch === 'string' && REF.test(body.branch) ? body.branch : null
+        const title = typeof body.title === 'string' ? body.title.trim() : ''
+        const text = typeof body.body === 'string' ? body.body.trim() : ''
+        if (!(repo && projectRepo !== null && branch && title.length > 0 && title.length <= 200 && text.length <= 2000)) { result = fail('bad_request', 400); break }
+        const username = await usernameOf(userId, ctx)
+        if (!username) { result = fail('bad_request', 400); break }
+        if (!isProjectOwner && !isOwnBranch(branch, username)) { result = fail('branch_not_yours', 403); break }
+        result = await doPrOpen(owner, repo, branch, title, text, username, ctx)
+        break
+      }
+      case 'pr_merge': {
+        const repo = needRepo()
+        const number = Number.isInteger(body.number) && body.number >= 1 && body.number <= 10_000_000 ? body.number : null
+        const seen = typeof body.sha === 'string' && /^[0-9a-f]{40}$/.test(body.sha) ? body.sha : null
+        if (!(repo && projectRepo !== null && number && seen)) { result = fail('bad_request', 400); break }
+        result = isProjectOwner ? await doPrMerge(owner, repo, number, seen, ctx) : fail('owner_only', 403)
+        break
+      }
+      case 'pr_close': {
+        const repo = needRepo()
+        const number = Number.isInteger(body.number) && body.number >= 1 && body.number <= 10_000_000 ? body.number : null
+        if (!(repo && projectRepo !== null && number)) { result = fail('bad_request', 400); break }
+        const username = isProjectOwner ? null : await usernameOf(userId, ctx)
+        if (!isProjectOwner && !username) { result = fail('not_yours', 403); break }
+        result = await doPrClose(owner, repo, number, username, ctx)
+        break
+      }
       case 'commit': {
         const repo = needRepo()
         const changes = cleanChanges(body.files)
@@ -538,10 +683,12 @@ export async function handler(request: Request, getEnv: (name: string) => string
         if (projectRepo !== null && !isProjectOwner) {
           // A collaborator never writes to the main code: only to a branch named after them.
           const username = await usernameOf(userId, ctx)
-          if (!username || !branch.startsWith(`${username}/`) || branch.length === username.length + 1 || branch.endsWith('/') || branch.includes('..') || branch.includes('//')) {
+          if (!isOwnBranch(branch, username)) {
             result = fail('branch_not_yours', 403)
             break
           }
+          // Automation files (GitHub Actions and friends) can run code with the repository's secrets: only the owner changes them.
+          if (changes.some((c) => /^\.github\//i.test(c.path))) { result = fail('path_not_allowed', 403); break }
           by = username
         }
         result = await doCommit(owner, repo, branch, baseSha, message, changes, ctx, by, createFrom)

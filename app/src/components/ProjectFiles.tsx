@@ -71,6 +71,7 @@ export function ProjectFiles({ project, dir, canEdit, tree: given, onTree, branc
       <header className="files-head">
         <h2>{t.filesTitle}</h2>
         <Link className="btn" to={`/projets/${project.id}/historique`}>{t.history}</Link>
+        {canEdit && <Link className="btn" to={`/projets/${project.id}/propositions`}>{t.proposals}</Link>}
         {canEdit && !adding && <button type="button" className="btn" onClick={() => setAdding(true)}>{t.newFile}</button>}
         {canEdit && adding && (
           <form className="files-new" onSubmit={onCreate} noValidate>
