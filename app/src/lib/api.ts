@@ -169,6 +169,7 @@ export type PublicProfile = {
   display_name: string
   avatar_url: string | null
   banner_url: string | null
+  headline?: string | null
   bio: string | null
   location: string | null
   github_username: string | null
@@ -207,7 +208,7 @@ export type ProfileData = {
 export async function loadProfile(username: string, viewerId: string): Promise<ProfileData | null> {
   const found = await supabase
     .from('profiles')
-    .select('id, username, display_name, avatar_url, banner_url, bio, location, github_username, clan, mastery, xp, available_to_collab, is_verified, created_at')
+    .select('id, username, display_name, avatar_url, banner_url, headline, bio, location, github_username, clan, mastery, xp, available_to_collab, is_verified, created_at')
     .eq('username', username)
     .maybeSingle()
   if (found.error) throw new Error(found.error.message)
@@ -937,12 +938,14 @@ export type SearchKind = 'project' | 'member' | 'community' | 'quest'
 export type SearchHit = { kind: SearchKind; pos: number; id: string; slug: string; title: string; subtitle: string | null; image_url: string | null }
 export const searchEverything = (query: string) => rpc<SearchHit[]>('search_everything', { p_query: query.trim(), p_limit_each: 8 })
 // ---- Edit my profile ---------------------------------------------------------------------------------
-export type ProfileEdit = { display_name: string; bio: string; location: string; available_to_collab: boolean }
+export type ProfileEdit = { display_name: string; headline: string; bio: string; location: string; available_to_collab: boolean }
+export type MyProfileFields = ProfileEdit & { avatar_url: string | null; banner_url: string | null }
 export async function updateMyProfile(userId: string, e: ProfileEdit): Promise<void> {
   const { error } = await supabase
     .from('profiles')
     .update({
       display_name: e.display_name.trim(),
+      headline: e.headline.trim() || null,
       bio: e.bio.trim() || null,
       location: e.location.trim() || null,
       available_to_collab: e.available_to_collab,
@@ -950,10 +953,49 @@ export async function updateMyProfile(userId: string, e: ProfileEdit): Promise<v
     .eq('id', userId)
   if (error) throw new Error(error.message)
 }
-export async function loadMyProfileFields(userId: string): Promise<ProfileEdit> {
-  const { data, error } = await supabase.from('profiles').select('display_name, bio, location, available_to_collab').eq('id', userId).single()
+export async function loadMyProfileFields(userId: string): Promise<MyProfileFields> {
+  const { data, error } = await supabase.from('profiles').select('display_name, headline, bio, location, available_to_collab, avatar_url, banner_url').eq('id', userId).single()
   if (error) throw new Error(error.message)
-  return { display_name: data.display_name, bio: data.bio ?? '', location: data.location ?? '', available_to_collab: data.available_to_collab }
+  return { display_name: data.display_name, headline: data.headline ?? '', bio: data.bio ?? '', location: data.location ?? '', available_to_collab: data.available_to_collab, avatar_url: data.avatar_url, banner_url: data.banner_url }
+}
+
+// ---- Profile pictures ------------------------------------------------------------------------------------
+export type ProfileImageKind = 'avatar' | 'cover'
+export const PROFILE_IMAGE_MAX_BYTES = 2 * 1024 * 1024
+const PROFILE_IMAGE_TYPES: Record<string, string> = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp' }
+const PROFILE_BUCKET = 'profile-images'
+
+/** The file name inside the bucket, when this address points at one of our pictures. */
+function profileImagePath(url: string | null): string | null {
+  const marker = `/${PROFILE_BUCKET}/`
+  const i = url ? url.indexOf(marker) : -1
+  return url && i >= 0 ? decodeURIComponent(url.slice(i + marker.length)) : null
+}
+
+/** Uploads a picture, makes it the member's avatar or cover, and deletes the previous file. Returns the new address. */
+export async function uploadProfileImage(userId: string, kind: ProfileImageKind, file: File, oldUrl: string | null): Promise<string> {
+  const ext = PROFILE_IMAGE_TYPES[file.type]
+  if (!ext) throw new Error('image-type')
+  if (file.size > PROFILE_IMAGE_MAX_BYTES) throw new Error('image-size')
+  const path = `${userId}/${kind}-${crypto.randomUUID()}.${ext}`
+  const up = await supabase.storage.from(PROFILE_BUCKET).upload(path, file, { contentType: file.type, upsert: false })
+  if (up.error) throw new Error(up.error.message)
+  const url = supabase.storage.from(PROFILE_BUCKET).getPublicUrl(path).data.publicUrl
+  const { error } = await supabase.from('profiles').update({ [kind === 'avatar' ? 'avatar_url' : 'banner_url']: url }).eq('id', userId)
+  if (error) {
+    await supabase.storage.from(PROFILE_BUCKET).remove([path])
+    throw new Error(error.message)
+  }
+  const old = profileImagePath(oldUrl)
+  if (old) await supabase.storage.from(PROFILE_BUCKET).remove([old])
+  return url
+}
+
+export async function removeProfileImage(userId: string, kind: ProfileImageKind, oldUrl: string | null): Promise<void> {
+  const { error } = await supabase.from('profiles').update({ [kind === 'avatar' ? 'avatar_url' : 'banner_url']: null }).eq('id', userId)
+  if (error) throw new Error(error.message)
+  const old = profileImagePath(oldUrl)
+  if (old) await supabase.storage.from(PROFILE_BUCKET).remove([old])
 }
 // ---- Selling in the Souk -----------------------------------------------------------------------------
 export type SoukSubmission = {

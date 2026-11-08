@@ -55,6 +55,7 @@ export function ProfileView({ data, viewerId, extra }: { data: ProfileData; view
           </div>
           <div className="profile-main">
             <h1 className="page-title">{p.display_name}{p.is_verified ? <span className="tag" style={{ marginLeft: 8 }}>{t.verified}</span> : null}</h1>
+            {p.headline ? <p className="profile-headline">{p.headline}</p> : null}
             <p className="mono profile-handle">@{p.username}</p>
             <p><ClanTag clan={p.clan} /></p>
             {p.bio ? <p>{p.bio}</p> : null}
