@@ -141,6 +141,16 @@ describe('Cité home', () => {
     expect(await screen.findByText("Pas de quête aujourd'hui. Revenez bientôt.")).toBeInTheDocument()
   })
 
+  it('shows the streak as a small line inside the quest box', async () => {
+    mount()
+    const line = await screen.findByLabelText('Série')
+    expect(within(line).getByText('Série : 4 jours')).toBeInTheDocument()
+    expect(within(line).getByText(/Record : 9 jours/)).toBeInTheDocument()
+    expect(within(line).getByText("Résolvez une quête aujourd'hui pour garder votre série.")).toBeInTheDocument()
+    expect(within(line).getByText('Coffre dans 3 jours : +100 Kopeks')).toBeInTheDocument()
+    expect(within(line).getByText('Gels de série : 1 sur 2')).toBeInTheDocument()
+  })
+
   it('keeps the other blocks when one of them fails', async () => {
     getDailyQuest.mockRejectedValue(new Error('boom'))
     mount()

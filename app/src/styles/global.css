@@ -477,6 +477,8 @@ select { appearance: none; -webkit-appearance: none; background-color: var(--pan
 .profile-stats { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
 .home-strip { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
 .home-strip .home-quest { grid-column: auto; }
+.quest-streak { border-top: 1px solid var(--line); margin-top: 14px; padding-top: 12px; }
+.quest-streak p { margin: 2px 0; }
 .profile-tabs { display: flex; gap: 28px; border-bottom: 1px solid var(--line); margin-top: 8px; }
 .profile-tab { background: none; border: 0; padding: 14px 0; color: var(--fg-muted); font: 600 15px var(--font-body); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
 .profile-tab:hover { color: var(--fg); }
