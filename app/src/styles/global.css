@@ -682,3 +682,16 @@ select { appearance: none; -webkit-appearance: none; background-color: var(--pan
 .panel-form-actions { display: flex; gap: 8px; justify-content: flex-end; }
 .rename-form { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 10px 16px; border-bottom: 1px solid var(--line); }
 .rename-form input { flex: 1 1 240px; min-width: 0; }
+
+.file-search { display: grid; gap: 8px; padding: 0 12px 10px; }
+.file-search input { width: 100%; }
+.search-results { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; max-height: 240px; overflow: auto; font: 13px var(--font-mono); }
+.search-results a { overflow-wrap: anywhere; }
+.search-line { color: var(--fg-muted); overflow-wrap: anywhere; }
+.image-preview { padding: 16px; display: grid; place-items: center; background: repeating-conic-gradient(#0f182b 0% 25%, #0b1120 0% 50%) 50% / 20px 20px; }
+.image-preview img { max-width: 100%; max-height: 70vh; }
+.preview-body { padding: 16px 20px; overflow: auto; max-height: max(460px, calc(100vh - 320px)); }
+.file-search input, .panel-form input, .rename-form input { background: #060b17; border: 1px solid var(--line); border-radius: 10px; color: var(--fg); padding: 9px 12px; font: 13px var(--font-mono); }
+.file-search .btn, .panel-tools .btn, .panel-form .btn, .rename-form .btn, .file-actions .btn { padding: 7px 12px; font-size: 13px; border-radius: 10px; }
+.file-actions .btn { white-space: nowrap; }
+.file-bar .btn { padding: 7px 12px; font-size: 13px; border-radius: 10px; white-space: nowrap; }

@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const api = vi.hoisted(() => ({
   getProjectFull: vi.fn(), loadRepoTree: vi.fn(), loadRepoFile: vi.fn(), getLastCommits: vi.fn(),
-  editorStatus: vi.fn(), editorTreeOf: vi.fn(), editorCommitTo: vi.fn(), listCollaborators: vi.fn(), loadBranches: vi.fn(), editorPropose: vi.fn(),
+  editorStatus: vi.fn(), editorSearch: vi.fn(), editorBlob: vi.fn(), editorTreeOf: vi.fn(), editorCommitTo: vi.fn(), listCollaborators: vi.fn(), loadBranches: vi.fn(), editorPropose: vi.fn(),
 }))
 vi.mock('../lib/api', async () => {
   const real = await vi.importActual<typeof import('../lib/api')>('../lib/api')
@@ -160,7 +160,8 @@ describe('Repository: viewing a file', () => {
   })
 
   it('says so when a file cannot be shown', async () => {
-    mount('/projets/p1/code?fichier=logo.png')
+    api.loadRepoTree.mockResolvedValue({ ...publicTree, entries: [...publicTree.entries, { path: 'data.zip', type: 'blob', size: 900 }] })
+    mount('/projets/p1/code?fichier=data.zip')
     expect(await screen.findByRole('alert')).toHaveTextContent('ne peut pas être affiché')
   })
 })
@@ -556,5 +557,68 @@ describe('Repository: review, rename, folder and upload', () => {
     Object.defineProperty(big, 'size', { value: 1_000_001 })
     await userEvent.upload(screen.getByLabelText('Téléverser un fichier', { selector: 'input' }), big)
     expect(await screen.findByRole('alert')).toHaveTextContent('1 Mo')
+  })
+})
+
+describe('Repository: previews and search', () => {
+  it('shows a README as formatted text and goes back to the code', async () => {
+    api.loadRepoFile.mockResolvedValue('# Titre du projet\n\nUn **texte**.')
+    mount('/projets/p1/code?fichier=README.md')
+    await screen.findByLabelText('code README.md')
+    await userEvent.click(screen.getByRole('button', { name: 'Aperçu' }))
+    expect(await screen.findByRole('heading', { name: 'Titre du projet' })).toBeInTheDocument()
+    expect(screen.queryByLabelText('code README.md')).toBeNull()
+    await userEvent.click(screen.getByRole('button', { name: 'Code' }))
+    expect(await screen.findByLabelText('code README.md')).toBeInTheDocument()
+  })
+
+  it('shows an image of a public repository straight from GitHub', async () => {
+    mount('/projets/p1/code?fichier=logo.png')
+    const img = await screen.findByRole('img', { name: 'Image logo.png' })
+    expect(img).toHaveAttribute('src', 'https://raw.githubusercontent.com/awa/appli/main/logo.png')
+    expect(api.loadRepoFile).not.toHaveBeenCalled()
+  })
+
+  it('reads an image of a private repository through the editor function', async () => {
+    api.getProjectFull.mockResolvedValue({ ...project, repo_private: true })
+    api.editorBlob.mockResolvedValue({ path: 'logo.png', size: 3, content_base64: 'AAEC' })
+    mount('/projets/p1/code?fichier=logo.png')
+    expect(await screen.findByRole('img', { name: 'Image logo.png' })).toHaveAttribute('src', 'data:image/png;base64,AAEC')
+    expect(api.editorBlob).toHaveBeenCalledWith('p1', 'logo.png', 'main')
+  })
+
+  it('finds files by name as you type', async () => {
+    mount('/projets/p1/code?fichier=main.py')
+    await screen.findByLabelText('code main.py')
+    await userEvent.type(screen.getByLabelText('Chercher un fichier (Ctrl+P)'), 'util')
+    const list = screen.getByRole('list', { name: 'Fichiers trouvés' })
+    expect(within(list).getByRole('link', { name: 'src/util.py' })).toHaveAttribute('href', '/projets/p1/code?fichier=src%2Futil.py')
+    await userEvent.type(screen.getByLabelText('Chercher un fichier (Ctrl+P)'), 'zzz')
+    expect(await screen.findByText('Aucun fichier trouvé.')).toBeInTheDocument()
+  })
+
+  it('Ctrl+P puts the cursor in the search box', async () => {
+    mount('/projets/p1/code?fichier=main.py')
+    await screen.findByLabelText('code main.py')
+    await userEvent.keyboard('{Control>}p{/Control}')
+    await waitFor(() => expect(screen.getByLabelText('Chercher un fichier (Ctrl+P)')).toHaveFocus())
+  })
+
+  it('members can search the text inside the files', async () => {
+    api.editorSearch.mockResolvedValue({ matches: [{ path: 'src/util.py', line: 3, text: 'def bonjour():' }], scanned: 4, skipped: 0, more: false })
+    mount('/projets/p1/code?fichier=main.py')
+    await screen.findByLabelText('code main.py')
+    await userEvent.type(screen.getByLabelText('Chercher un fichier (Ctrl+P)'), 'bonjour')
+    await userEvent.click(screen.getByRole('button', { name: 'Chercher dans le texte des fichiers' }))
+    expect(await screen.findByText('def bonjour():')).toBeInTheDocument()
+    expect(api.editorSearch).toHaveBeenCalledWith('p1', 'bonjour', null)
+  })
+
+  it('visitors only get the file name search', async () => {
+    auth.id = 'someone-else'
+    mount('/projets/p1/code?fichier=main.py')
+    await screen.findByLabelText('code main.py')
+    await userEvent.type(screen.getByLabelText('Chercher un fichier (Ctrl+P)'), 'util')
+    expect(screen.queryByRole('button', { name: 'Chercher dans le texte des fichiers' })).toBeNull()
   })
 })
