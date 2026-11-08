@@ -1,3 +1,4 @@
+import { dateLocale } from '../i18n/lang'
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
@@ -136,7 +137,7 @@ export function Community() {
                   <li key={m.id} style={{ padding: '8px 0', borderTop: '1px solid var(--line)' }}>
                     <div className="tiny muted">
                       <Link to={`/profil/${m.author_username}`}>{m.author_name || m.author_username}</Link>
-                      {' · '}{new Date(m.created_at).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' })}
+                      {' · '}{new Date(m.created_at).toLocaleString(dateLocale(), { dateStyle: 'short', timeStyle: 'short' })}
                     </div>
                     {m.deleted_at ? <em className="muted">{fr.community.deleted}</em> : <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{m.body}</p>}
                     {!m.deleted_at && m.author_id !== me && <ReportButton type="message" id={m.id} />}

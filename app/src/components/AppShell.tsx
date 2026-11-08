@@ -2,11 +2,19 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { Logo } from './Logo'
+import { Icon } from './Icon'
+import { LanguageSwitch } from './LanguageSwitch'
 import { fr } from '../i18n/fr'
 import { getMyStaffAccess } from '../lib/api'
 import { unreadNotificationCount } from '../lib/api'
 
-const SOON: string[] = []
+const rail = (): { to: string; icon: string; label: string }[] => [
+  { to: '/blog', icon: 'blog', label: fr.nav.blog },
+  { to: '/messages', icon: 'messages', label: fr.nav.messages },
+  { to: '/communautes', icon: 'communities', label: fr.nav.communities },
+  { to: '/arene', icon: 'arena', label: fr.nav.arena },
+  { to: '/jobs', icon: 'jobs', label: fr.nav.jobs },
+]
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { member, signOut } = useAuth()
@@ -26,37 +34,51 @@ export function AppShell({ children }: { children: ReactNode }) {
     return () => { alive = false }
   }, [])
   const initial = (member?.profile.display_name ?? '?').slice(0, 1).toUpperCase()
+  const username = member?.profile.username
   return (
     <div className="shell">
       <header className="topbar">
         <NavLink to="/cite" aria-label={fr.appName}><Logo size={20} /></NavLink>
-        <nav aria-label="Navigation principale" className="topnav">
+        <nav aria-label={fr.nav.main} className="topnav">
           <NavLink to="/cite" end>{fr.nav.city}</NavLink>
-          <NavLink to="/quetes">{fr.nav.quests}</NavLink>
-          <NavLink to="/arene">{fr.nav.arena}</NavLink>
           <NavLink to="/projets">{fr.nav.projects}</NavLink>
+          <NavLink to="/quetes">{fr.nav.quests}</NavLink>
           <NavLink to="/souk">{fr.nav.souk}</NavLink>
-          <NavLink to="/recherche">{fr.nav.search}</NavLink>
-          <NavLink to="/blog">{fr.nav.blog}</NavLink>
-          <NavLink to="/messages">{fr.nav.messages}</NavLink>
-          <NavLink to="/communautes">{fr.nav.communities}</NavLink>
-          <NavLink to="/jobs">{fr.nav.jobs}</NavLink>
-          {isStaff && <NavLink to="/equipe">{fr.staff.navLink}</NavLink>}
-          <NavLink to="/notifications" aria-label={unread > 0 ? `${fr.nav.notifications} (${unread})` : fr.nav.notifications}>
-            {fr.nav.notifications}{unread > 0 && <span className="kopeks-pill" style={{ marginLeft: 6 }}>{unread}</span>}
-          </NavLink>
-          {SOON.map((label) => (
-            <span key={label} className="topnav-soon" aria-disabled="true" title={fr.nav.soon}>{label}</span>
-          ))}
         </nav>
+        <NavLink to="/recherche" className="topsearch" aria-label={fr.nav.search}>
+          <Icon name="search" size={16} />
+          <span>{fr.nav.searchHint}</span>
+        </NavLink>
         <div className="topbar-right">
+          <NavLink to="/notifications" className="bell" aria-label={unread > 0 ? `${fr.nav.notifications} (${unread})` : fr.nav.notifications}>
+            <Icon name="bell" />
+            {unread > 0 && <span className="bell-count">{unread}</span>}
+          </NavLink>
           <span className="kopeks-pill" aria-label={fr.nav.kopeks}>{member?.kopeks ?? 0} {fr.nav.kopeks}</span>
-          <NavLink to="/guide" className="topnav-link">{fr.nav.guide}</NavLink>
-          <NavLink to="/parametres" className="topnav-link">{fr.nav.settings}</NavLink>
-          <button type="button" className="avatar-btn" onClick={() => void signOut()} title={fr.home.signOut} aria-label={fr.home.signOut}>{initial}</button>
+          <details className="account-menu">
+            <summary className="avatar-btn" aria-label={fr.nav.account}>{initial}</summary>
+            <div className="account-pop">
+              {username && <NavLink to={`/profil/${username}`}>{fr.nav.profile}</NavLink>}
+              <NavLink to="/parametres">{fr.nav.settings}</NavLink>
+              <NavLink to="/guide">{fr.nav.guide}</NavLink>
+              {isStaff && <NavLink to="/equipe">{fr.staff.navLink}</NavLink>}
+              <LanguageSwitch className="lang-in-menu" />
+              <button type="button" onClick={() => void signOut()}>{fr.home.signOut}</button>
+            </div>
+          </details>
         </div>
       </header>
-      <div className="shell-body">{children}</div>
+      <div className="shell-frame">
+        <nav aria-label={fr.nav.railLabel} className="rail">
+          {rail().map((r) => (
+            <NavLink key={r.to} to={r.to} className="rail-link" title={r.label}>
+              <Icon name={r.icon} />
+              <span>{r.label}</span>
+            </NavLink>
+          ))}
+        </nav>
+        <div className="shell-body">{children}</div>
+      </div>
     </div>
   )
 }

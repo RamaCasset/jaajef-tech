@@ -257,7 +257,7 @@ export function Editor() {
                   </ul>
                 </nav>
 
-                <section aria-label="Éditeur">
+                <section aria-label={t.editorLabel}>
                   <div role="tablist" aria-label={t.openTabs} style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                     {tabs.map((p) => (
                       <span key={p} className="tag">

@@ -1,3 +1,4 @@
+import { CornerArt } from '../components/CornerArt'
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
@@ -31,11 +32,13 @@ export function ResetPassword() {
     }
   }
 
-  if (loading) return <main className="center-page"><p className="muted">{fr.common.loading}</p></main>
+  if (loading) return <main className="center-page">
+      <CornerArt /><p className="muted">{fr.common.loading}</p></main>
 
   if (!session) {
     return (
       <main className="center-page">
+      <CornerArt />
         <div className="panel auth-card">
           <Logo />
           <h1 style={{ marginTop: 28 }}>{fr.resetPassword.expiredTitle}</h1>
@@ -48,6 +51,7 @@ export function ResetPassword() {
 
   return (
     <main className="center-page">
+      <CornerArt />
       <form className="panel auth-card" onSubmit={onSubmit} noValidate>
         <Logo />
         <p className="eyebrow" style={{ marginTop: 28 }}>{fr.resetPassword.eyebrow}</p>

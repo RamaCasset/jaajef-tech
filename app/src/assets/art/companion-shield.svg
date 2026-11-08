@@ -1,0 +1,24 @@
+<svg width="69" height="66" viewBox="0 0 69 66" fill="none" xmlns="http://www.w3.org/2000/svg">
+<circle cx="33" cy="33" r="33" fill="#15342F"/>
+<rect x="32" y="8" width="2" height="9" fill="#7ADDC1"/>
+<circle cx="33" cy="9" r="4" fill="#7ADDC1"/>
+<rect x="6" y="29" width="7" height="15" rx="3.5" fill="#7ADDC1"/>
+<rect x="53" y="29" width="7" height="15" rx="3.5" fill="#7ADDC1"/>
+<rect x="12" y="19" width="42" height="33" rx="12" fill="#7ADDC1"/>
+<rect x="17" y="25" width="32" height="20" rx="8" fill="#0B111E"/>
+<ellipse cx="26" cy="32.5" rx="2" ry="2.5" fill="#7ADDC1"/>
+<ellipse cx="40" cy="32.5" rx="2" ry="2.5" fill="#7ADDC1"/>
+<ellipse opacity="0.8" cx="23" cy="37.5" rx="3" ry="1.5" fill="#F4A9B8"/>
+<ellipse opacity="0.8" cx="43" cy="37.5" rx="3" ry="1.5" fill="#F4A9B8"/>
+<path d="M30 36C32 41.3333 34 41.3333 36 36" stroke-width="1.2" stroke-linecap="round" stroke="#7ADDC1"/>
+<rect x="45.5" y="46.5" width="23" height="23" rx="7.5" fill="#15342F"/>
+<rect x="45.5" y="46.5" width="23" height="23" rx="7.5" stroke="#293B55"/>
+<g clip-path="url(#clip0_21_1585)">
+<path d="M55.3751 57.9998L56.4583 59.0832L58.6247 56.9165M61.3328 58.5418C61.3328 61.2502 59.4371 62.6044 57.184 63.3899C57.0661 63.4298 56.9379 63.4279 56.8212 63.3844C54.5626 62.6044 52.667 61.2502 52.667 58.5418V54.75C52.667 54.6063 52.7241 54.4685 52.8256 54.367C52.9272 54.2654 53.065 54.2083 53.2086 54.2083C54.2918 54.2083 55.6459 53.5583 56.5883 52.7349C56.703 52.6369 56.849 52.583 56.9999 52.583C57.1508 52.583 57.2968 52.6369 57.4115 52.7349C58.3593 53.5637 59.708 54.2083 60.7912 54.2083C60.9348 54.2083 61.0726 54.2654 61.1742 54.367C61.2757 54.4685 61.3328 54.6063 61.3328 54.75V58.5418Z" stroke-width="1.6" stroke-linecap="round" stroke="#7ADDC1"/>
+</g>
+<defs>
+<clipPath id="clip0_21_1585">
+<rect width="13" height="13" fill="white" transform="translate(50.5 51.5)"/>
+</clipPath>
+</defs>
+</svg>

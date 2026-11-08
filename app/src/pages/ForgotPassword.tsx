@@ -1,3 +1,4 @@
+import { CornerArt } from '../components/CornerArt'
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
@@ -29,6 +30,7 @@ export function ForgotPassword() {
 
   return (
     <main className="center-page">
+      <CornerArt />
       <form className="panel auth-card" onSubmit={onSubmit} noValidate>
         <Logo />
         <p className="eyebrow" style={{ marginTop: 28 }}>{fr.forgotPassword.eyebrow}</p>

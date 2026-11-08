@@ -1,3 +1,4 @@
+import { dateLocale } from '../i18n/lang'
 import { useCallback, useEffect, useState } from 'react'
 import { AppShell } from '../components/AppShell'
 import { fr } from '../i18n/fr'
@@ -11,7 +12,7 @@ import {
 const WAIT_DAYS = 14
 
 function longDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+  return new Date(iso).toLocaleDateString(dateLocale(), { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
 export function Settings() {

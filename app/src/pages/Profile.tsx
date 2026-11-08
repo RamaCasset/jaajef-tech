@@ -1,3 +1,4 @@
+import { dateLocale } from '../i18n/lang'
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
@@ -58,7 +59,7 @@ function ProfileView({ data, viewerId }: { data: ProfileData; viewerId: string }
   const { profile: p, xpPerLevel, badges, projects, questsSolved } = data
   const level = 1 + Math.floor(p.xp / xpPerLevel)
   const inLevel = p.xp % xpPerLevel
-  const since = new Date(p.created_at).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
+  const since = new Date(p.created_at).toLocaleDateString(dateLocale(), { month: 'long', year: 'numeric' })
   return (
     <>
       <section className="panel profile-card">
