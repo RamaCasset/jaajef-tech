@@ -113,7 +113,7 @@ begin
     from pg_attribute a
    where a.attrelid = 'public.profiles'::regclass and a.attnum > 0 and not a.attisdropped
      and has_column_privilege('authenticated', 'public.profiles', a.attname, 'UPDATE')
-     and a.attname not in ('display_name', 'username', 'avatar_url', 'banner_url', 'bio', 'location', 'available_to_collab', 'headline');
+     and a.attname not in ('display_name', 'username', 'avatar_url', 'banner_url', 'bio', 'location', 'available_to_collab', 'headline', 'region');
   if bad is not null then
     raise exception 'FAIL: members can edit these profile columns: %. Points, streaks, character and verification must stay server-only.', bad;
   end if;
@@ -166,7 +166,7 @@ do $$
 declare
   by_design text[] := array[
     'activity_calendar', 'blog_post_is_listed', 'community_member_count', 'featured_item', 'job_offer_is_listed',
-    'list_good_first_issues', 'popular_project_tags', 'project_good_first_issues', 'project_is_listed', 'project_languages', 'quest_leaderboard', 'received_appreciation', 'search_everything',
+    'list_good_first_issues', 'popular_project_tags', 'project_contributors', 'project_good_first_issues', 'project_is_listed', 'project_languages', 'quest_leaderboard', 'received_appreciation', 'search_everything',
     'search_job_offers', 'search_projects',
     'season_leaderboard', 'top_streaks', 'trending_creators'
   ];

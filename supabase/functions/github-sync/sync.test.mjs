@@ -68,7 +68,9 @@ const server = http.createServer((req, res) => {
           select public.record_github_extras(
             p_project := (j ->> 'p_project')::uuid,
             p_build_status := j ->> 'p_build_status',
-            p_issues := j -> 'p_issues')
+            p_issues := j -> 'p_issues',
+            p_forks := (j ->> 'p_forks')::int,
+            p_pushed_at := (j ->> 'p_pushed_at')::timestamptz)
           from (select :'payload'::jsonb as j) x;`
       } else {
         return answer(404, { message: 'unknown function' })
@@ -257,8 +259,8 @@ try {
   const issue = (n, extra = {}) => ({ number: n, title: `Issue ${n}`, comments: 1, html_url: `https://github.com/sync-ama/found-repo/issues/${n}`, created_at: '2026-01-01T00:00:00Z', ...extra })
   const runs = (status, conclusion) => ({ status: 200, body: { workflow_runs: status === null ? [] : [{ status, conclusion }] } })
 
-  githubScript['sync-ama/found-repo'] = found('sync-ama', { default_branch: 'main' })
-  githubScript['sync-ama/weird.name_v2'] = found('sync-ama', { default_branch: 'trunk' })
+  githubScript['sync-ama/found-repo'] = found('sync-ama', { default_branch: 'main', forks_count: 18, pushed_at: '2026-11-02T08:30:00Z' })
+  githubScript['sync-ama/weird.name_v2'] = found('sync-ama', { default_branch: 'trunk', forks_count: -3, pushed_at: 'not a date' })
   extrasScript = {
     'sync-ama/found-repo': {
       issues: { status: 200, body: [issue(5), issue(6, { pull_request: {} }), issue(7)] },
@@ -275,6 +277,8 @@ try {
   assert.equal(build('weird.name_v2'), 'none', 'a project with no runs is "none"')
   assert.equal(issueNumbers('found-repo'), '5,7', 'pull requests are not issues')
   assert.equal(issueNumbers('weird.name_v2'), '')
+  assert.equal(psql(`select github_forks || '|' || to_char(github_pushed_at at time zone 'utc', 'YYYY-MM-DD HH24:MI') from public.projects where github_repo = 'found-repo';`), '18|2026-11-02 08:30', 'forks and last push are saved')
+  assert.equal(psql(`select github_forks || '|' || coalesce(github_pushed_at::text, 'none') from public.projects where github_repo = 'weird.name_v2';`), '0|none', 'nonsense values are ignored')
   assert.ok(githubCalls.some((c) => c.url.includes('/actions/runs?branch=main&per_page=1&exclude_pull_requests=true')), 'the main branch is asked about')
   assert.ok(githubCalls.some((c) => c.url.includes('/actions/runs?branch=trunk')), 'each project uses its own main branch')
   assert.ok(githubCalls.some((c) => c.url.includes('labels=good%20first%20issue') && c.url.includes('state=open')), 'only open issues with the standard label')

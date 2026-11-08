@@ -10,6 +10,7 @@ const refreshMember = vi.fn()
 const uploadProfileImage = vi.fn()
 const removeProfileImage = vi.fn()
 vi.mock('../lib/api', () => ({
+  REGION_KEYS: ['dakar', 'thies', 'diaspora'],
   uploadProfileImage: (...a: unknown[]) => uploadProfileImage(...a),
   removeProfileImage: (...a: unknown[]) => removeProfileImage(...a),
   loadMyProfileFields: (...a: unknown[]) => loadMyProfileFields(...a),
@@ -28,7 +29,7 @@ import { Profile } from '../pages/Profile'
 
 beforeEach(() => {
   for (const f of [loadMyProfileFields, updateMyProfile, loadProfile, refreshMember, uploadProfileImage, removeProfileImage]) f.mockReset()
-  loadMyProfileFields.mockResolvedValue({ display_name: 'Moussa Diop', headline: 'Dev web', bio: 'Dev', location: 'Dakar', available_to_collab: false, avatar_url: null, banner_url: null })
+  loadMyProfileFields.mockResolvedValue({ display_name: 'Moussa Diop', headline: 'Dev web', bio: 'Dev', location: 'Dakar', region: 'thies', available_to_collab: false, avatar_url: null, banner_url: null })
   updateMyProfile.mockResolvedValue(undefined)
   refreshMember.mockResolvedValue(undefined)
 })
@@ -42,6 +43,7 @@ describe('Edit profile', () => {
     expect(screen.getByLabelText('Titre')).toHaveValue('Dev web')
     expect(screen.getByLabelText('Présentation')).toHaveValue('Dev')
     expect(screen.getByLabelText('Lieu')).toHaveValue('Dakar')
+    expect(screen.getByLabelText('Région')).toHaveValue('thies')
     expect(screen.getByLabelText('Je suis disponible pour collaborer')).not.toBeChecked()
   })
 
@@ -53,7 +55,7 @@ describe('Edit profile', () => {
     await userEvent.click(screen.getByLabelText('Je suis disponible pour collaborer'))
     await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
     expect(await screen.findByRole('status')).toHaveTextContent('Profil enregistré')
-    expect(updateMyProfile).toHaveBeenCalledWith('me', { display_name: 'Moussa D.', headline: 'Dev web', bio: 'Dev', location: 'Dakar', available_to_collab: true })
+    expect(updateMyProfile).toHaveBeenCalledWith('me', { display_name: 'Moussa D.', headline: 'Dev web', bio: 'Dev', location: 'Dakar', region: 'thies', available_to_collab: true })
     expect(refreshMember).toHaveBeenCalledTimes(1)
     expect(screen.getByRole('link', { name: 'Voir mon profil' })).toHaveAttribute('href', '/profil/moussa')
   })

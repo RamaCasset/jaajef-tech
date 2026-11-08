@@ -3,6 +3,8 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
 import { ProjectFiles } from '../components/ProjectFiles'
+import { ProjectShowcase } from '../components/ProjectShowcase'
+import { Icon } from '../components/Icon'
 import { ReportButton } from '../components/ReportButton'
 import { useAuth } from '../auth/AuthContext'
 import { fr } from '../i18n/fr'
@@ -93,6 +95,7 @@ export function ProjectPage() {
               </p>
               <div className="project-actions">
                 <a className="chip-link" href={`https://github.com/${project.github_owner}/${project.github_repo}`} target="_blank" rel="noreferrer">{fr.projectPage.github}</a>
+                {project.demo_url && <a className="btn btn-demo" href={project.demo_url} target="_blank" rel="noreferrer noopener"><Icon name="play" size={16} /> {fr.projects.demo}</a>}
               </div>
               {project.summary && <p>{project.summary}</p>}
               <div className="project-tags">
@@ -114,6 +117,8 @@ export function ProjectPage() {
             {notice && <div className="notice" role="status">{notice}</div>}
 
             <div className="stack-gap"><ProjectFiles project={project} dir="" canEdit={isOwner} /></div>
+
+            {isOwner && <ProjectShowcase projectId={project.id} userId={me} demoUrl={project.demo_url} coverPath={project.cover_path} onSaved={load} />}
 
             <section className="panel panel-pad stack-gap">
               <h2>{fr.projectPage.collabTitle}</h2>

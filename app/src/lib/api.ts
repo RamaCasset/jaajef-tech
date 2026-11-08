@@ -66,9 +66,20 @@ export type ProjectRow = {
   owner_display_name: string
   owner_avatar_url: string | null
   owner_clan: ClanKey | null
+  demo_url: string | null
+  cover_path: string | null
+  github_forks: number
+  github_pushed_at: string | null
+  owner_region: string | null
 }
 
-export type SearchFilters = { query: string; language: string; clan: ClanKey | ''; sort: SortKey }
+export const REGION_KEYS = [
+  'dakar', 'thies', 'diourbel', 'fatick', 'kaolack', 'kaffrine', 'kedougou', 'kolda', 'louga', 'matam', 'saint_louis', 'sedhiou',
+  'tambacounda', 'ziguinchor', 'afrique_ouest', 'afrique_autre', 'diaspora',
+] as const
+export type RegionKey = (typeof REGION_KEYS)[number]
+
+export type SearchFilters = { query: string; language: string; clan: ClanKey | ''; sort: SortKey; region: RegionKey | '' }
 
 export const searchProjects = (f: SearchFilters, opts: { featuredOnly?: boolean; limit?: number; offset?: number } = {}) =>
   rpc<ProjectRow[]>('search_projects', {
@@ -80,7 +91,13 @@ export const searchProjects = (f: SearchFilters, opts: { featuredOnly?: boolean;
     p_featured_only: opts.featuredOnly ?? false,
     p_limit: opts.limit ?? 20,
     p_offset: opts.offset ?? 0,
+    p_region: f.region || null,
   })
+
+export type ProjectContributor = { project_id: string; user_id: string; username: string; display_name: string; avatar_url: string | null }
+export const projectContributors = (ids: string[]) => (ids.length === 0 ? Promise.resolve([] as ProjectContributor[]) : rpc<ProjectContributor[]>('project_contributors', { p_projects: ids }))
+
+export const projectCoverUrl = (path: string | null): string | null => (path ? supabase.storage.from('project-covers').getPublicUrl(path).data.publicUrl : null)
 
 export type TrendingCreator = {
   user_id: string
@@ -938,7 +955,7 @@ export type SearchKind = 'project' | 'member' | 'community' | 'quest'
 export type SearchHit = { kind: SearchKind; pos: number; id: string; slug: string; title: string; subtitle: string | null; image_url: string | null }
 export const searchEverything = (query: string) => rpc<SearchHit[]>('search_everything', { p_query: query.trim(), p_limit_each: 8 })
 // ---- Edit my profile ---------------------------------------------------------------------------------
-export type ProfileEdit = { display_name: string; headline: string; bio: string; location: string; available_to_collab: boolean }
+export type ProfileEdit = { display_name: string; headline: string; bio: string; location: string; region: RegionKey | ''; available_to_collab: boolean }
 export type MyProfileFields = ProfileEdit & { avatar_url: string | null; banner_url: string | null }
 export async function updateMyProfile(userId: string, e: ProfileEdit): Promise<void> {
   const { error } = await supabase
@@ -948,15 +965,16 @@ export async function updateMyProfile(userId: string, e: ProfileEdit): Promise<v
       headline: e.headline.trim() || null,
       bio: e.bio.trim() || null,
       location: e.location.trim() || null,
+      region: e.region || null,
       available_to_collab: e.available_to_collab,
     })
     .eq('id', userId)
   if (error) throw new Error(error.message)
 }
 export async function loadMyProfileFields(userId: string): Promise<MyProfileFields> {
-  const { data, error } = await supabase.from('profiles').select('display_name, headline, bio, location, available_to_collab, avatar_url, banner_url').eq('id', userId).single()
+  const { data, error } = await supabase.from('profiles').select('display_name, headline, bio, location, region, available_to_collab, avatar_url, banner_url').eq('id', userId).single()
   if (error) throw new Error(error.message)
-  return { display_name: data.display_name, headline: data.headline ?? '', bio: data.bio ?? '', location: data.location ?? '', available_to_collab: data.available_to_collab, avatar_url: data.avatar_url, banner_url: data.banner_url }
+  return { display_name: data.display_name, headline: data.headline ?? '', bio: data.bio ?? '', location: data.location ?? '', region: (data.region ?? '') as RegionKey | '', available_to_collab: data.available_to_collab, avatar_url: data.avatar_url, banner_url: data.banner_url }
 }
 
 // ---- Profile pictures ------------------------------------------------------------------------------------
@@ -997,6 +1015,32 @@ export async function removeProfileImage(userId: string, kind: ProfileImageKind,
   const old = profileImagePath(oldUrl)
   if (old) await supabase.storage.from(PROFILE_BUCKET).remove([old])
 }
+// ---- Project demo link and cover ---------------------------------------------------------------------------
+const COVER_TYPES: Record<string, string> = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp' }
+
+/** Saves the demo link and the cover of a project. Pass the current cover path to keep it, null to remove it. */
+export async function saveProjectShowcase(projectId: string, demoUrl: string, coverPath: string | null): Promise<void> {
+  const old = await rpc<string | null>('set_project_showcase', { p_project: projectId, p_demo_url: demoUrl.trim() || null, p_cover_path: coverPath })
+  if (old) await supabase.storage.from('project-covers').remove([old])
+}
+
+/** Uploads a new cover, then makes it the project's cover (the previous file is deleted). Returns the new path. */
+export async function uploadProjectCover(userId: string, projectId: string, file: File, demoUrl: string): Promise<string> {
+  const ext = COVER_TYPES[file.type]
+  if (!ext) throw new Error('image-type')
+  if (file.size > PROFILE_IMAGE_MAX_BYTES) throw new Error('image-size')
+  const path = `${userId}/${crypto.randomUUID()}.${ext}`
+  const up = await supabase.storage.from('project-covers').upload(path, file, { contentType: file.type, upsert: false })
+  if (up.error) throw new Error(up.error.message)
+  try {
+    await saveProjectShowcase(projectId, demoUrl, path)
+  } catch (err) {
+    await supabase.storage.from('project-covers').remove([path])
+    throw err
+  }
+  return path
+}
+
 // ---- Selling in the Souk -----------------------------------------------------------------------------
 export type SoukSubmission = {
   id: string
@@ -1037,11 +1081,13 @@ export type ProjectFull = {
   owner_display_name: string
   star_count: number
   starred_by_me: boolean
+  demo_url: string | null
+  cover_path: string | null
 }
 export async function getProjectFull(id: string): Promise<ProjectFull | null> {
   const { data, error } = await supabase
     .from('projects')
-    .select('id, title, summary, github_owner, github_repo, language, tags, github_stars, owner_id, profiles:owner_id(username, display_name)')
+    .select('id, title, summary, github_owner, github_repo, language, tags, github_stars, demo_url, cover_path, owner_id, profiles:owner_id(username, display_name)')
     .eq('id', id)
     .maybeSingle()
   if (error) throw new Error(error.message)

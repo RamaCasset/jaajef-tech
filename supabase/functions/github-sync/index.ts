@@ -279,8 +279,12 @@ export async function runExtras(env: Env, fetchFn: typeof fetch = fetch, now: ()
     let buildStatus: string | null = null
     let issues: unknown[] | null = null
     let failed = false
+    let forks: number | null = null
+    let pushedAt: string | null = null
 
     if (repo.kind === 'ok' && repo.data?.private !== true) {
+      if (Number.isInteger(repo.data?.forks_count) && repo.data.forks_count >= 0) forks = repo.data.forks_count
+      if (typeof repo.data?.pushed_at === 'string' && !Number.isNaN(Date.parse(repo.data.pushed_at))) pushedAt = repo.data.pushed_at
       const branch = typeof repo.data?.default_branch === 'string' ? repo.data.default_branch : ''
 
       const found = await githubGet(env, fetchFn, `${base}/issues?labels=${encodeURIComponent('good first issue')}&state=open&per_page=30`)
@@ -311,6 +315,8 @@ export async function runExtras(env: Env, fetchFn: typeof fetch = fetch, now: ()
       p_project: project.project_id,
       p_build_status: buildStatus,
       p_issues: issues,
+      p_forks: forks,
+      p_pushed_at: pushedAt,
     })
     summary.checked++
 

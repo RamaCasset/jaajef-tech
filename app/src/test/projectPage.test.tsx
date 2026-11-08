@@ -8,6 +8,7 @@ const api = vi.hoisted(() => ({
   deleteProjectComment: vi.fn(), listCollaborators: vi.fn(), listCollabRequests: vi.fn(), requestCollaboration: vi.fn(),
   withdrawCollabRequest: vi.fn(), decideCollabRequest: vi.fn(), removeCollaborator: vi.fn(), getRepoTree: vi.fn(), getLastCommits: vi.fn(),
   GithubError: class GithubError extends Error { code = 'failed' },
+  projectCoverUrl: vi.fn(), saveProjectShowcase: vi.fn(), uploadProjectCover: vi.fn(),
 }))
 vi.mock('../lib/api', () => api)
 vi.mock('../auth/AuthContext', () => ({
@@ -18,7 +19,7 @@ import { ProjectPage } from '../pages/ProjectPage'
 
 const project = (extra = {}) => ({
   id: 'p1', title: 'Teranga', summary: 'Une appli', github_owner: 'awa', github_repo: 'teranga', language: 'Python', tags: ['web'],
-  github_stars: 10, owner_id: 'u2', owner_username: 'awa', owner_display_name: 'Awa Diallo', star_count: 4, starred_by_me: false, ...extra,
+  github_stars: 10, owner_id: 'u2', owner_username: 'awa', owner_display_name: 'Awa Diallo', star_count: 4, starred_by_me: false, demo_url: null, cover_path: null, ...extra,
 })
 const mount = () => render(
   <MemoryRouter initialEntries={['/projets/p1']}>
