@@ -5,8 +5,10 @@ import { dateLocale } from '../i18n/lang'
 import { fr } from '../i18n/fr'
 import { EditorError, getLastCommits, GithubError, loadRepoTree, type LastCommit, type ProjectFull, type RepoEntry, type RepoTree } from '../lib/api'
 
-export const dirUrl = (id: string, dir: string) => (dir ? `/projets/${id}/code?dossier=${encodeURIComponent(dir)}` : `/projets/${id}`)
-export const fileUrl = (id: string, path: string) => `/projets/${id}/code?fichier=${encodeURIComponent(path)}`
+const branchPart = (branch?: string | null) => (branch ? `&branche=${encodeURIComponent(branch)}` : '')
+export const dirUrl = (id: string, dir: string, branch?: string | null) =>
+  (dir || branch ? `/projets/${id}/code?dossier=${encodeURIComponent(dir)}${branchPart(branch)}` : `/projets/${id}`)
+export const fileUrl = (id: string, path: string, branch?: string | null) => `/projets/${id}/code?fichier=${encodeURIComponent(path)}${branchPart(branch)}`
 export const parentOf = (path: string) => path.split('/').slice(0, -1).join('/')
 export const validName = (p: string) => p.length > 0 && p.length <= 200 && !p.startsWith('/') && !p.endsWith('/') && !p.includes('\\')
   && p.split('/').every((x) => x !== '' && x !== '.' && x !== '..' && x.toLowerCase() !== '.git')
@@ -19,10 +21,11 @@ export function childrenOf(entries: RepoEntry[], dir: string): RepoEntry[] {
     .sort((a, b) => (a.type === b.type ? a.path.localeCompare(b.path) : a.type === 'tree' ? -1 : 1))
 }
 
-type Props = { project: ProjectFull; dir: string; canEdit: boolean; tree?: RepoTree | null; onTree?: (t: RepoTree) => void }
+/** `branch` is only given when it is not the main one: it is carried in every link and the commit columns are skipped. */
+type Props = { project: ProjectFull; dir: string; canEdit: boolean; tree?: RepoTree | null; onTree?: (t: RepoTree) => void; branch?: string | null }
 
 /** The list of files of a repository, like GitHub's: name, last commit message, last change. */
-export function ProjectFiles({ project, dir, canEdit, tree: given, onTree }: Props) {
+export function ProjectFiles({ project, dir, canEdit, tree: given, onTree, branch = null }: Props) {
   const t = fr.repoBrowser
   const navigate = useNavigate()
   const [own, setOwn] = useState<RepoTree | null>(null)
@@ -48,19 +51,19 @@ export function ProjectFiles({ project, dir, canEdit, tree: given, onTree }: Pro
   const wanted = rows.slice(0, 40).map((r) => r.path).join('\n')
   useEffect(() => {
     // The last-commit columns are read from GitHub's public side only.
-    if (!wanted || project.repo_private) return
+    if (!wanted || project.repo_private || branch) return
     let alive = true
     // The last message and date are a convenience: when they cannot be loaded, the columns stay empty.
     getLastCommits(project.id, wanted.split('\n')).then((c) => { if (alive) setCommits(c) }).catch(() => undefined)
     return () => { alive = false }
-  }, [project.id, project.repo_private, wanted])
+  }, [project.id, project.repo_private, wanted, branch])
 
   function onCreate(e: FormEvent) {
     e.preventDefault()
     const path = `${dir ? `${dir}/` : ''}${name.trim()}`
     if (!validName(name.trim())) { setNameError(fr.editor.badName); return }
     if ((tree?.entries ?? []).some((x) => x.path === path)) { setNameError(fr.editor.exists); return }
-    navigate(`/projets/${project.id}/code?fichier=${encodeURIComponent(path)}&nouveau=1`)
+    navigate(`${fileUrl(project.id, path, branch)}&nouveau=1`)
   }
 
   return (
@@ -89,7 +92,7 @@ export function ProjectFiles({ project, dir, canEdit, tree: given, onTree }: Pro
           <tbody>
             {dir !== '' && (
               <tr>
-                <td colSpan={3}><Link className="files-name" to={dirUrl(project.id, parentOf(dir))} aria-label={t.parentDir}><Icon name="folder" size={18} /> ..</Link></td>
+                <td colSpan={3}><Link className="files-name" to={dirUrl(project.id, parentOf(dir), branch)} aria-label={t.parentDir}><Icon name="folder" size={18} /> ..</Link></td>
               </tr>
             )}
             {rows.map((r) => {
@@ -97,7 +100,7 @@ export function ProjectFiles({ project, dir, canEdit, tree: given, onTree }: Pro
               const c = commits[r.path]
               return (
                 <tr key={r.path}>
-                  <td><Link className="files-name" to={r.type === 'tree' ? dirUrl(project.id, r.path) : fileUrl(project.id, r.path)}><Icon name={r.type === 'tree' ? 'folder' : 'file'} size={18} /> {label}</Link></td>
+                  <td><Link className="files-name" to={r.type === 'tree' ? dirUrl(project.id, r.path, branch) : fileUrl(project.id, r.path, branch)}><Icon name={r.type === 'tree' ? 'folder' : 'file'} size={18} /> {label}</Link></td>
                   <td className="files-msg muted">{c?.message ?? ''}</td>
                   <td className="files-date muted">{c ? new Date(c.date).toLocaleDateString(dateLocale()) : ''}</td>
                 </tr>

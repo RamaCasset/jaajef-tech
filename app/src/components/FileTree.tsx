@@ -26,7 +26,7 @@ function build(paths: string[]): Node {
 const ancestors = (path: string) => path.split('/').slice(0, -1).map((_, i, a) => a.slice(0, i + 1).join('/'))
 
 /** Folder tree of the repository: folders open and close, the open file is highlighted. */
-export function FileTree({ projectId, paths, current, onNavigate }: { projectId: string; paths: string[]; current: string; onNavigate?: (ev: MouseEvent) => void }) {
+export function FileTree({ projectId, paths, current, branch = null, onNavigate }: { projectId: string; paths: string[]; current: string; branch?: string | null; onNavigate?: (ev: MouseEvent) => void }) {
   const root = useMemo(() => build(paths), [paths])
   const [open, setOpen] = useState<Set<string>>(() => new Set(ancestors(current)))
   useEffect(() => { setOpen((o) => new Set([...o, ...ancestors(current)])) }, [current])
@@ -45,7 +45,7 @@ export function FileTree({ projectId, paths, current, onNavigate }: { projectId:
       ))}
       {n.files.map((f) => (
         <li key={f.path}>
-          <Link className={`file-row ${f.path === current ? 'file-row-on' : ''}`} style={{ paddingLeft: 10 + depth * 14 + 20 }} to={fileUrl(projectId, f.path)} onClick={onNavigate} aria-current={f.path === current ? 'page' : undefined} title={f.path}>{f.name}</Link>
+          <Link className={`file-row ${f.path === current ? 'file-row-on' : ''}`} style={{ paddingLeft: 10 + depth * 14 + 20 }} to={fileUrl(projectId, f.path, branch)} onClick={onNavigate} aria-current={f.path === current ? 'page' : undefined} title={f.path}>{f.name}</Link>
         </li>
       ))}
     </ul>

@@ -445,7 +445,13 @@ select { appearance: none; -webkit-appearance: none; background-color: var(--pan
 .crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; margin-bottom: 16px; font: 15px var(--font-mono); }
 .crumbs a { color: var(--accent); text-decoration: none; }
 .crumbs a:hover { text-decoration: underline; }
-.crumbs-github { margin-left: auto; font: 13px var(--font-body); }
+.crumbs-link { font: 13px var(--font-body); margin-left: 14px; }
+.branch-select { margin-left: auto; background: #060b17; color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; font: 13px var(--font-mono); max-width: 240px; }
+.commit-target { border: 0; margin: 0; padding: 0; display: grid; gap: 8px; }
+.commit-target label { display: flex; align-items: center; gap: 8px; }
+.branch-name { display: flex; align-items: center; gap: 4px; }
+.branch-name input { flex: 1; min-width: 0; }
+.branch-prefix { font: 14px var(--font-mono); color: var(--fg-muted); }
 .workspace { border: 1px solid var(--line); border-radius: 16px; background: #0b1120; overflow: hidden; }
 .workspace-top { display: flex; align-items: center; gap: 14px; padding: 10px 16px; border-bottom: 1px solid var(--line); background: #0e1526; }
 .workspace-top .crumbs { margin: 0; flex: 1; min-width: 0; }
