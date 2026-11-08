@@ -1632,7 +1632,48 @@ export const editorAdopt = (repo: string, title: string, summary: string | null)
 /** Asks GitHub which private repositories the app can still see, and flags the ones that are gone. */
 export const editorPresence = () => callEditor<{ checked: boolean }>({ action: 'presence' })
 export const editorTree = (repo: string) => callEditor<EditorTree>({ action: 'tree', repo })
+/** Reading the code of a project through the GitHub app: allowed for the owner and the collaborators. */
+export const editorTreeOf = (projectId: string) => callEditor<EditorTree>({ action: 'tree', project: projectId })
+export const editorFileOf = (projectId: string, path: string, ref: string) =>
+  callEditor<{ path: string; content: string }>({ action: 'file', project: projectId, path, ref })
 export const editorFile = (repo: string, path: string, ref: string) =>
   callEditor<{ path: string; content: string }>({ action: 'file', repo, path, ref })
 export const editorCommit = (repo: string, branch: string, baseSha: string, message: string, files: FileChange[]) =>
   callEditor<{ commit_sha: string; html_url: string }>({ action: 'commit', repo, branch, base_sha: baseSha, message, files })
+
+
+// ---- Reading a project's code and history (public repositories directly, private ones through the GitHub app) -----
+type RepoRef = { id: string; github_owner: string; github_repo: string; repo_private: boolean }
+
+export async function loadRepoTree(project: RepoRef): Promise<RepoTree> {
+  if (!project.repo_private) return getRepoTree(project.github_owner, project.github_repo)
+  const t = await editorTreeOf(project.id)
+  return { branch: t.branch, entries: t.entries, truncated: t.truncated }
+}
+
+export async function loadRepoFile(project: RepoRef, branch: string, path: string): Promise<string> {
+  if (!project.repo_private) return getRepoFile(project.github_owner, project.github_repo, branch, path)
+  return (await editorFileOf(project.id, path, branch)).content
+}
+
+export type CommitRow = { sha: string; message: string; author: string; date: string; html_url: string }
+export type History = { commits: CommitRow[]; more: boolean }
+
+/** The latest commits of the project (30 per page), or only those that changed one file. */
+export async function loadHistory(project: RepoRef, opts: { path?: string; page?: number } = {}, fetchFn: typeof fetch = fetch): Promise<History> {
+  const page = opts.page ?? 1
+  if (project.repo_private) {
+    const h = await callEditor<History>({ action: 'history', project: project.id, ...(opts.path ? { path: opts.path } : {}), page })
+    return h
+  }
+  if (!NAME.test(project.github_owner) || !NAME.test(project.github_repo)) throw new GithubError('not_found')
+  const query = new URLSearchParams({ per_page: '30', page: String(page) })
+  if (opts.path) query.set('path', opts.path)
+  type Raw = { sha: string; html_url: string; commit: { message: string; author: { name: string; date: string } | null }; author: { login: string } | null }[]
+  const raw = await githubJson<Raw>(`https://api.github.com/repos/${project.github_owner}/${project.github_repo}/commits?${query.toString()}`, fetchFn)
+  const commits = raw.map((c) => ({
+    sha: c.sha, message: c.commit.message.split('\n')[0].slice(0, 300), author: c.commit.author?.name ?? c.author?.login ?? '',
+    date: c.commit.author?.date ?? '', html_url: c.html_url,
+  }))
+  return { commits, more: commits.length === 30 }
+}

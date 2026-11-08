@@ -6,13 +6,13 @@ import { Icon } from '../components/Icon'
 import { ProjectFiles, dirUrl, fileUrl, parentOf } from '../components/ProjectFiles'
 import { useAuth } from '../auth/AuthContext'
 import {
-  EditorError, editorCommit, editorStatus, editorTree, getProjectFull, getRepoFile, getRepoTree, GithubError, isViewable,
+  EditorError, editorCommit, editorStatus, editorTree, getProjectFull, GithubError, isViewable, loadRepoFile, loadRepoTree,
   type EditorStatus, type ProjectFull, type RepoTree,
 } from '../lib/api'
 import { fr } from '../i18n/fr'
 
 const errorText = (e: unknown) => fr.editor.errors[e instanceof EditorError ? e.code : 'unknown'] ?? fr.editor.errors.unknown
-const viewError = (e: unknown) => (e instanceof GithubError ? fr.repoViewer.errors[e.code] : fr.repoViewer.errors.failed)
+const viewError = (e: unknown) => (e instanceof GithubError ? fr.repoViewer.errors[e.code] : e instanceof EditorError ? errorText(e) : fr.repoViewer.errors.failed)
 
 type Draft = { text: string; head: string; branch: string; isNew: boolean }
 type Box = 'save' | 'delete' | null
@@ -53,7 +53,7 @@ export function RepoBrowser() {
     getProjectFull(id)
       .then(async (p) => {
         if (!p) throw new GithubError('not_found')
-        const tr = await getRepoTree(p.github_owner, p.github_repo)
+        const tr = await loadRepoTree(p)
         if (alive) { setProject(p); setTree(tr) }
       })
       .catch((e) => { if (alive) setError(viewError(e)) })
@@ -79,7 +79,7 @@ export function RepoBrowser() {
     if (!entry) { setFileError(fr.repoViewer.errors.not_found); return }
     if (!isViewable(entry)) { setFileError(fr.repoViewer.notViewable); return }
     let alive = true
-    getRepoFile(project.github_owner, project.github_repo, tree.branch, path)
+    loadRepoFile(project, tree.branch, path)
       .then((c) => { if (alive) setContent(c) })
       .catch((e) => { if (alive) setFileError(viewError(e)) })
     return () => { alive = false }
@@ -221,6 +221,7 @@ export function RepoBrowser() {
                 <section className="editor-card" aria-label={path}>
                   <div className="file-bar">
                     <span className="file-path">{path}</span>
+                    <Link className="muted tiny" to={`/projets/${project.id}/historique?fichier=${encodeURIComponent(path)}`} onClick={guard}>{t.fileHistory}</Link>
                     {content !== null && <span className="muted tiny">{fr.repoViewer.lines(lineCount)}</span>}
                     <div className="file-actions">
                       {isOwner && !wantsNew && (

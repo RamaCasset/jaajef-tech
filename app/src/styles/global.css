@@ -623,3 +623,11 @@ select { appearance: none; -webkit-appearance: none; background-color: var(--pan
 .invite-line { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 /* The community / personal switch sits in the same place on both pages, so switching feels seamless. */
 .space-bar { display: flex; justify-content: flex-end; grid-column: 1 / -1; }
+.history-page { max-width: 900px; }
+.history-page h1, .history-page p { margin: 0; }
+.history-list { list-style: none; margin: 0; padding: 0; }
+.history-list li { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 14px 20px; border-top: 1px solid var(--line); }
+.history-list li:first-child { border-top: 0; }
+.history-main { display: grid; gap: 4px; min-width: 0; }
+.history-main strong { overflow-wrap: anywhere; }
+.history-side { display: flex; align-items: center; gap: 12px; flex: none; }

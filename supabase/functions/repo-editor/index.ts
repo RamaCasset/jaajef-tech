@@ -7,6 +7,9 @@
 //   file     -> the text of one file
 //   commit   -> save changes to files as ONE commit on a branch
 //   presence -> flag the member's private projects whose repository the app can no longer see
+//   history  -> the commits of a repository (optionally of one file)
+//   tree / file / history also accept { project }: the owner AND the collaborators of that project
+//             can read its code through the owner's installation (read-only)
 //   adopt    -> list one PRIVATE repository of the member on the platform (stays private)
 //
 // Safety rules, all enforced here (never in the browser):
@@ -25,6 +28,8 @@ type Env = { supabaseUrl: string; serviceKey: string; appId: string; appSlug: st
 type Fail = { error: string; status: number }
 
 const NAME = /^[A-Za-z0-9._-]{1,100}$/
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+const REF = /^[A-Za-z0-9._\/-]{1,100}$/
 const MAX_FILES = 20
 const MAX_FILE_CHARS = 1_000_000
 const MAX_TOTAL_CHARS = 3_000_000
@@ -221,6 +226,43 @@ async function doRepos(owner: string, ctx: Ctx): Promise<unknown | Fail> {
   return { repos }
 }
 
+/** Who the project belongs to and which repository it is, but only if the caller is the owner or a collaborator. */
+async function memberProject(userId: string, projectId: string, ctx: Ctx): Promise<{ owner: string; repo: string } | null> {
+  const response = await ctx.fetchFn(`${ctx.env.supabaseUrl}/rest/v1/rpc/project_for_member`, {
+    method: 'POST',
+    headers: { ...dbHeaders(ctx.env), 'content-type': 'application/json' },
+    body: JSON.stringify({ p_user: userId, p_project: projectId }),
+  })
+  if (!response.ok) return null
+  const rows = await response.json()
+  const row = Array.isArray(rows) ? rows[0] : null
+  if (!row || !NAME.test(String(row.github_owner)) || !NAME.test(String(row.github_repo))) return null
+  return { owner: String(row.github_owner), repo: String(row.github_repo) }
+}
+
+/** The latest commits of a branch, or only the ones that changed one file. */
+async function doHistory(owner: string, repo: string, ref: string | null, path: string | null, page: number, ctx: Ctx): Promise<unknown | Fail> {
+  const installation = await findInstallation(owner, ctx)
+  if (isFail(installation)) return installation
+  if (installation === null) return fail('not_installed', 409)
+  const token = await repoToken(installation, repo, false, ctx)
+  if (isFail(token)) return token
+  const query = new URLSearchParams({ per_page: '30', page: String(page) })
+  if (ref) query.set('sha', ref)
+  if (path) query.set('path', path)
+  const r = await gh(ctx, 'GET', `/repos/${owner}/${repo}/commits?${query.toString()}`, token)
+  if (r.status === 404 || r.status === 409) return { commits: [], more: false }
+  if (!r.ok || !Array.isArray(r.body)) return fail('github_failed', 502)
+  const commits = r.body.map((c: any) => ({
+    sha: String(c?.sha ?? ''),
+    message: String(c?.commit?.message ?? '').split('\n')[0].slice(0, 300),
+    author: String(c?.commit?.author?.name ?? c?.author?.login ?? ''),
+    date: String(c?.commit?.author?.date ?? ''),
+    html_url: String(c?.html_url ?? ''),
+  }))
+  return { commits, more: commits.length === 30 }
+}
+
 /** Flags the member's private projects whose repository the app can no longer see (deleted, or no longer allowed). */
 async function doPresence(userId: string, owner: string, ctx: Ctx): Promise<unknown | Fail> {
   const installation = await findInstallation(owner, ctx)
@@ -383,10 +425,22 @@ export async function handler(request: Request, getEnv: (name: string) => string
   try { body = await request.json() } catch { return jsonResponse({ error: 'bad_request' }, 400) }
   if (typeof body !== 'object' || body === null) return jsonResponse({ error: 'bad_request' }, 400)
 
-  const owner = await githubNameOf(userId, ctx)
-  if (!owner) return jsonResponse({ error: 'github_not_linked' }, 409)
+  // Reading the code of a project: the owner and the collaborators, through the owner's installation.
+  // The caller's own GitHub account is not needed (a collaborator may have none).
+  let owner: string | null
+  let projectRepo: string | null = null
+  if (typeof body.project === 'string' && ['tree', 'file', 'history'].includes(body.action)) {
+    if (!UUID.test(body.project)) return jsonResponse({ error: 'bad_request' }, 400)
+    const access = await memberProject(userId, body.project, ctx)
+    if (!access) return jsonResponse({ error: 'repo_not_allowed' }, 403)
+    owner = access.owner
+    projectRepo = access.repo
+  } else {
+    owner = await githubNameOf(userId, ctx)
+    if (!owner) return jsonResponse({ error: 'github_not_linked' }, 409)
+  }
 
-  const needRepo = (): string | null => (typeof body.repo === 'string' && NAME.test(body.repo) ? body.repo : null)
+  const needRepo = (): string | null => projectRepo ?? (typeof body.repo === 'string' && NAME.test(body.repo) ? body.repo : null)
   let result: unknown | Fail
   try {
     switch (body.action) {
@@ -402,6 +456,15 @@ export async function handler(request: Request, getEnv: (name: string) => string
         const path = cleanPath(body.path)
         const ref = typeof body.ref === 'string' && body.ref.length > 0 && body.ref.length <= 200 ? body.ref : null
         result = repo && path && ref ? await doFile(owner, repo, path, ref, ctx) : fail('bad_request', 400)
+        break
+      }
+      case 'history': {
+        const repo = needRepo()
+        const ref = typeof body.ref === 'string' && body.ref.length > 0 ? (REF.test(body.ref) ? body.ref : 'bad') : null
+        const path = body.path === undefined || body.path === null ? null : cleanPath(body.path)
+        const page = Number.isInteger(body.page) && body.page >= 1 && body.page <= 50 ? body.page : 1
+        result = repo && ref !== 'bad' && !(body.path !== undefined && body.path !== null && path === null)
+          ? await doHistory(owner, repo, ref, path, page, ctx) : fail('bad_request', 400)
         break
       }
       case 'presence': result = await doPresence(userId, owner, ctx); break

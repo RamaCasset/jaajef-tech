@@ -11,6 +11,10 @@ import { appJwt, cleanPath, handler, pkcs1ToPkcs8 } from './index.ts'
 
 const SERVICE_KEY = 'test-service-key-0123456789'
 const U = { awa: 'e1000000-0000-0000-0000-000000000001', cara: 'e1000000-0000-0000-0000-000000000002', nolink: 'e1000000-0000-0000-0000-000000000003' }
+const P_AWA = 'e2000000-0000-0000-0000-000000000001'
+const P_BOB = 'e2000000-0000-0000-0000-000000000002'
+// awa owns the project 'appli'; the member 'nolink' (no GitHub account) collaborates on it
+const PROJECTS = { [P_AWA]: { owner: 'awa', repo: 'appli', members: [U.awa, U.nolink] }, [P_BOB]: { owner: 'bob', repo: 'secret', members: [] } }
 const TOKENS = { 't-awa': U.awa, 't-cara': U.cara, 't-nolink': U.nolink }
 const GITHUB_NAMES = { [U.awa]: 'awa', [U.cara]: 'cara', [U.nolink]: null }
 
@@ -108,6 +112,17 @@ async function pretendGithub(url, init) {
   const writing = method !== 'GET'
   if (writing && grant.permissions?.contents !== 'write') return jsonRes(403, { message: 'Resource not accessible by integration' })
 
+  if (rest === '/commits' && method === 'GET') {
+    gh.historyQuery = new URL(`http://x${path}`).searchParams
+    const list = []
+    let cursor = repo.head
+    while (cursor && list.length < 30) {
+      const c = repo.commits.get(cursor)
+      list.push({ sha: cursor, commit: { message: `${c.message}\n\nlong body`, author: { name: 'Awa', date: '2026-11-08T10:00:00Z' } }, html_url: `https://github.com/${owner}/${name}/commit/${cursor}` })
+      cursor = c.parents[0] ?? null
+    }
+    return jsonRes(200, list)
+  }
   if (rest === '' && method === 'GET') return jsonRes(200, { name, default_branch: repo.default_branch, private: repo.private, description: repo.description ?? null, language: repo.language ?? null, owner: { login: owner } })
   let r = rest.match(/^\/git\/ref\/heads\/(.+)$/)
   if (r && method === 'GET') {
@@ -178,6 +193,13 @@ async function pretendFetch(input, init = {}) {
     if (url.pathname === '/auth/v1/user') {
       const id = TOKENS[(init.headers?.authorization ?? '').replace('Bearer ', '')]
       return id ? jsonRes(200, { id }) : jsonRes(401, { message: 'bad token' })
+    }
+    if (url.pathname === '/rest/v1/rpc/project_for_member') {
+      if (init.headers?.apikey !== SERVICE_KEY) return jsonRes(401, {})
+      const args = JSON.parse(init.body)
+      const project = PROJECTS[args.p_project]
+      const ok = project && project.members.includes(args.p_user)
+      return jsonRes(200, ok ? [{ github_owner: project.owner, github_repo: project.repo, is_owner: args.p_user === U.awa }] : [])
     }
     if (url.pathname === '/rest/v1/rpc/sync_private_presence') {
       if (init.headers?.apikey !== SERVICE_KEY) return jsonRes(401, {})
@@ -437,6 +459,62 @@ await test('presence: an uninstalled app or a full page of repositories flags no
   gh.installations[0].repos = Array.from({ length: 100 }, (_, i) => `r${i}`)
   assert.deepEqual((await call('t-awa', { action: 'presence' })).json, { checked: false })
   assert.equal(presence.length, 0)
+})
+
+await test('a collaborator with no GitHub account reads the code of a private project through the owner\'s installation', async () => {
+  const tree = await call('t-nolink', { action: 'tree', project: P_AWA })
+  assert.equal(tree.status, 200)
+  assert.deepEqual(tree.json.entries.filter((e) => e.type === 'blob').map((e) => e.path).sort(), ['main.py', 'old.txt', 'src/util.py'])
+  const file = await call('t-nolink', { action: 'file', project: P_AWA, path: 'main.py', ref: 'main' })
+  assert.deepEqual(file.json, { path: 'main.py', content: 'print("héllo")\n' })
+  // tokens are read-only and limited to that one repository, and made with the OWNER's installation
+  const minted = [...gh.tokens.values()]
+  assert.ok(minted.every((t) => t.permissions.contents === 'read' && t.installation.account.login === 'awa' && t.repositories.length === 1 && t.repositories[0] === 'appli'))
+  // the owner too, with the same call
+  assert.equal((await call('t-awa', { action: 'tree', project: P_AWA })).status, 200)
+})
+
+await test('reading by project is refused for everybody else, and writing is never opened to it', async () => {
+  // not a member of that project
+  assert.deepEqual([(await call('t-cara', { action: 'tree', project: P_AWA })).status, (await call('t-cara', { action: 'tree', project: P_AWA })).json.error], [403, 'repo_not_allowed'])
+  // a project that does not exist
+  assert.equal((await call('t-awa', { action: 'tree', project: 'e2000000-0000-0000-0000-0000000000ff' })).status, 403)
+  // someone else's project, even for a member of another one
+  assert.equal((await call('t-awa', { action: 'file', project: P_BOB, path: 'plan.txt', ref: 'main' })).status, 403)
+  // a bad project id
+  assert.equal((await call('t-awa', { action: 'tree', project: 'not-a-uuid' })).status, 400)
+  assert.equal(githubCallsMade(), 0)
+  // commit and the others ignore the project: they still need the caller's own GitHub account
+  const base = headOfAwa()
+  const c = await call('t-nolink', { action: 'commit', project: P_AWA, repo: 'appli', branch: 'main', base_sha: base, message: 'm', files: [{ path: 'a.txt', content: 'x' }] })
+  assert.deepEqual([c.status, c.json.error], [409, 'github_not_linked'])
+  assert.equal(headOfAwa(), base)
+  const a = await call('t-nolink', { action: 'adopt', project: P_AWA, repo: 'appli' })
+  assert.equal(a.status, 409)
+  assert.equal(adopted.length, 0)
+})
+
+await test('history: the latest commits, first line only, for the owner and a collaborator; bad input is refused', async () => {
+  const r = await call('t-nolink', { action: 'history', project: P_AWA })
+  assert.equal(r.status, 200)
+  assert.deepEqual(r.json.commits.map((c) => [c.message, c.author]), [['first', 'Awa']])
+  assert.equal(r.json.commits[0].html_url.startsWith('https://github.com/awa/appli/commit/'), true)
+  assert.equal(r.json.more, false)
+  const withPath = await call('t-awa', { action: 'history', project: P_AWA, path: 'src/util.py', ref: 'main', page: 2 })
+  assert.equal(withPath.status, 200)
+  assert.equal(gh.historyQuery.get('path'), 'src/util.py')
+  assert.equal(gh.historyQuery.get('sha'), 'main')
+  assert.equal(gh.historyQuery.get('page'), '2')
+  // refused before GitHub is called
+  const before = githubCallsMade()
+  for (const bad of [{ path: '../x' }, { ref: 'a b; rm' }, { path: '.git/config' }]) {
+    assert.equal((await call('t-awa', { action: 'history', project: P_AWA, ...bad })).status, 400, JSON.stringify(bad))
+  }
+  assert.equal(githubCallsMade(), before)
+  assert.equal((await call('t-cara', { action: 'history', project: P_AWA })).status, 403)
+  // without a project it works for the caller's own repositories
+  assert.equal((await call('t-awa', { action: 'history', repo: 'appli' })).status, 200)
+  assert.equal((await call('t-nolink', { action: 'history', repo: 'appli' })).status, 409)
 })
 
 await test('when GitHub is down the member gets a clear error, not a crash', async () => {
