@@ -589,3 +589,14 @@ select { appearance: none; -webkit-appearance: none; background-color: var(--pan
   .pinned-grid { grid-template-columns: 1fr; }
   .repo-row { flex-direction: column; align-items: flex-start; }
 }
+.import-page { display: grid; gap: 14px; align-content: start; }
+.import-page h2 { margin: 0; }
+.import-page .import-section { margin-top: 18px; }
+.import-page p { margin: 0; }
+.import-page .repo-list { margin: 0; }
+.import-create { display: grid; gap: 14px; padding: 24px; max-width: 640px; }
+.import-create fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 8px; }
+.import-create legend { padding: 0; margin-bottom: 6px; font-weight: 600; }
+.import-create fieldset label { display: flex; align-items: center; gap: 8px; }
+.import-connect, .import-page section.panel { padding: 20px 24px; }
+.import-page .alert, .import-page .notice { padding: 12px 16px; }

@@ -184,7 +184,7 @@ describe('Import a project', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Ajouter : secret-app' }))
     await waitFor(() => expect(editorAdopt).toHaveBeenCalledWith('secret-app', 'secret-app', null))
     expect(publishProject).not.toHaveBeenCalled()
-    expect(await screen.findByText(/Ce projet est privé/)).toBeInTheDocument()
+    expect(await screen.findByText(/Ce dépôt est privé/)).toBeInTheDocument()
     expect(await screen.findByText('Déjà ajouté')).toBeInTheDocument()
   })
 
@@ -215,7 +215,7 @@ describe('Import a project', () => {
   it('creates a project: the name is checked, the GitHub page opens prefilled, then the member comes back to import', async () => {
     mount()
     await screen.findByText('mon-depot')
-    await userEvent.click(screen.getByRole('tab', { name: 'Créer un nouveau projet' }))
+    await userEvent.click(screen.getByRole('tab', { name: 'Créer un nouveau dépôt' }))
     expect(screen.getByRole('button', { name: 'Créer sur GitHub' })).toBeDisabled()
     await userEvent.type(screen.getByLabelText('Nom du dépôt'), 'mon nom')
     expect(screen.getByText(/Lettres, chiffres, tirets/)).toBeInTheDocument()

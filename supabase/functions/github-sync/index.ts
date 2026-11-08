@@ -5,6 +5,9 @@
 //   2. Asks GitHub about each repository.
 //   3. Sends the answer back to the database (record_github_sync). The database
 //      decides what to do: make the project public, hide it, pay the reward.
+//   0. Before all that, each PRIVATE project is looked at once a day: if GitHub now shows the
+//      repository to everyone, the project joins the community list (and the usual check below
+//      confirms it and pays the one-time reward).
 //   4. Then, for listed projects, a second pass reads the build status (GitHub Actions
 //      on the main branch) and the open issues labelled "good first issue", and sends
 //      them to the database (record_github_extras). If GitHub cannot be reached for a
@@ -197,6 +200,38 @@ export async function runSync(env: Env, fetchFn: typeof fetch = fetch, now: () =
 }
 
 // ---------------------------------------------------------------------
+// Private projects that became public on GitHub
+// ---------------------------------------------------------------------
+
+type PrivateSummary = { checked: number; now_public: number; stopped: string | null }
+
+export async function runPrivateCheck(env: Env, fetchFn: typeof fetch = fetch, now: () => number = Date.now): Promise<PrivateSummary> {
+  const summary: PrivateSummary = { checked: 0, now_public: 0, stopped: null }
+  const started = now()
+  const projects: Project[] = await callDatabase(env, fetchFn, 'private_projects_to_check', { p_limit: BATCH_SIZE })
+  let consecutiveErrors = 0
+  for (const project of projects) {
+    if (now() - started > TIME_BUDGET_MS / 2) { summary.stopped = 'time_budget'; break }
+    // "found" means GitHub shows it to everyone; "missing" means it is still private (or gone): nothing changes.
+    const answer = await askGithub(env, fetchFn, project)
+    if (answer.kind === 'rate_limited') { summary.stopped = 'github_rate_limit'; break }
+    if (answer.kind === 'error') {
+      consecutiveErrors++
+      if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) { summary.stopped = 'github_errors'; break }
+      continue
+    }
+    consecutiveErrors = 0
+    const args = answer.kind === 'found'
+      ? { p_project: project.project_id, p_now_public: true, p_owner_login: answer.owner }
+      : { p_project: project.project_id, p_now_public: false }
+    const turned = await callDatabase(env, fetchFn, 'record_private_check', args)
+    summary.checked++
+    if (turned === true) summary.now_public++
+  }
+  return summary
+}
+
+// ---------------------------------------------------------------------
 // Second pass: build status and "good first issue" issues
 // ---------------------------------------------------------------------
 
@@ -357,6 +392,14 @@ export async function handler(request: Request, getEnv: (name: string) => string
 
   try {
     const env = { supabaseUrl, serviceKey, cronSecret, githubToken: getEnv('GITHUB_TOKEN') || undefined }
+    // First: private projects that became public (they are then confirmed by the check just below).
+    let privateCheck: PrivateSummary | { error: string }
+    try {
+      privateCheck = await runPrivateCheck(env, fetchFn)
+    } catch (error) {
+      console.error('github-sync private check failed', error instanceof Error ? error.message : error)
+      privateCheck = { error: 'the private check failed, see the function logs' }
+    }
     const summary = await runSync(env, fetchFn)
     // The second pass never makes the run fail: the main check has already been done.
     let extras: ExtrasSummary | { error: string }
@@ -370,7 +413,7 @@ export async function handler(request: Request, getEnv: (name: string) => string
         extras = { error: 'the second pass failed, see the function logs' }
       }
     }
-    return jsonResponse({ ...summary, extras })
+    return jsonResponse({ ...summary, private_check: privateCheck, extras })
   } catch (error) {
     // Details stay in the logs, not in the answer.
     console.error('github-sync failed', error instanceof Error ? error.message : error)
