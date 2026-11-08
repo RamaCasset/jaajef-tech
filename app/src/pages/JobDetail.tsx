@@ -1,3 +1,4 @@
+import { dateLocale } from '../i18n/lang'
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
@@ -64,7 +65,7 @@ export function JobDetail() {
               <p className="mono tiny">
                 {(offer.pay_min_fcfa !== null || offer.pay_max_fcfa !== null) ? fr.jobs.payRange(offer.pay_min_fcfa, offer.pay_max_fcfa, offer.pay_unit) : ''}
                 {offer.pay_negotiable ? ` ${fr.jobs.negotiable}` : ''}
-                {offer.closes_on ? ` · ${fr.jobs.closes(new Date(offer.closes_on).toLocaleDateString('fr-FR'))}` : ''}
+                {offer.closes_on ? ` · ${fr.jobs.closes(new Date(offer.closes_on).toLocaleDateString(dateLocale()))}` : ''}
               </p>
             </header>
 

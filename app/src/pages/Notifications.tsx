@@ -1,3 +1,4 @@
+import { dateLocale } from '../i18n/lang'
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
@@ -87,7 +88,7 @@ export function Notifications() {
                       <span>{sentence(n)}</span>
                     </button>
                     {who && <div className="tiny"><Link to={`/profil/${who}`}>@{who}</Link></div>}
-                    <div className="muted tiny">{new Date(n.created_at).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' })}</div>
+                    <div className="muted tiny">{new Date(n.created_at).toLocaleString(dateLocale(), { dateStyle: 'medium', timeStyle: 'short' })}</div>
                   </li>
                 )
               })}

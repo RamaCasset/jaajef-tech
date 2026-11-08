@@ -1,3 +1,4 @@
+import { dateLocale } from '../i18n/lang'
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
@@ -160,7 +161,7 @@ export function ProjectPage() {
               <ul style={{ listStyle: 'none', padding: 0 }}>
                 {comments.map((c) => (
                   <li key={c.id} style={{ padding: '8px 0', borderTop: '1px solid var(--line)' }}>
-                    <div className="tiny muted"><Link to={`/profil/${c.author_username}`}>@{c.author_username}</Link> · {new Date(c.created_at).toLocaleDateString('fr-FR')}</div>
+                    <div className="tiny muted"><Link to={`/profil/${c.author_username}`}>@{c.author_username}</Link> · {new Date(c.created_at).toLocaleDateString(dateLocale())}</div>
                     <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{c.body}</p>
                     {(c.author_id === me || isOwner) && (
                       <button type="button" className="btn" disabled={busy} onClick={() => void run(() => deleteProjectComment(c.id), loadSide)}>{fr.projectPage.commentDelete}</button>

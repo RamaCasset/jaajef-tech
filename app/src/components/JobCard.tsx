@@ -1,3 +1,4 @@
+import { dateLocale } from '../i18n/lang'
 import { Link } from 'react-router-dom'
 import type { JobOffer } from '../lib/api'
 import { fr } from '../i18n/fr'
@@ -21,7 +22,7 @@ export function JobCard({ job, saved, busy, onToggleSave }: Props) {
         <p className="mono tiny">
           {hasPay ? fr.jobs.payRange(job.pay_min_fcfa, job.pay_max_fcfa, job.pay_unit) : job.pay_negotiable ? fr.jobs.negotiable : ''}
           {hasPay && job.pay_negotiable ? ` · ${fr.jobs.negotiable}` : ''}
-          {job.closes_on ? `${hasPay || job.pay_negotiable ? ' · ' : ''}${fr.jobs.closes(new Date(job.closes_on).toLocaleDateString('fr-FR'))}` : ''}
+          {job.closes_on ? `${hasPay || job.pay_negotiable ? ' · ' : ''}${fr.jobs.closes(new Date(job.closes_on).toLocaleDateString(dateLocale()))}` : ''}
         </p>
       </div>
       <button type="button" className="btn" disabled={busy} aria-pressed={saved} onClick={onToggleSave}

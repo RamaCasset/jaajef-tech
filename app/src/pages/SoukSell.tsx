@@ -1,3 +1,4 @@
+import { dateLocale } from '../i18n/lang'
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
@@ -141,7 +142,7 @@ export function SoukSell() {
           {sales && sales.length === 0 && <p className="muted">{fr.soukSell.salesEmpty}</p>}
           {(sales ?? []).map((s) => (
             <p key={s.id} style={{ margin: '4px 0' }}>
-              {s.item_name} · {fr.souk.price(s.price)} → {fr.souk.price(s.amount)} · {new Date(s.sold_at).toLocaleDateString('fr-FR')}
+              {s.item_name} · {fr.souk.price(s.price)} → {fr.souk.price(s.amount)} · {new Date(s.sold_at).toLocaleDateString(dateLocale())}
             </p>
           ))}
         </section>

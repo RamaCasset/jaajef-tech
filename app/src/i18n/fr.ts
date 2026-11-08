@@ -1,5 +1,7 @@
 // All visible text lives here, so wording can be reviewed in one place.
-export const fr = {
+import { en } from './en'
+import { getLang } from './lang'
+export const frMessages = {
   appName: 'jaajef.tech',
   common: {
     back: 'Retour',
@@ -226,6 +228,8 @@ export const fr = {
     account: 'Menu du compte',
     profile: 'Mon profil',
     railLabel: 'Espaces',
+    main: 'Navigation principale',
+    progress: 'Progression',
   },
   souk: {
     eyebrow: 'Créé par la Cité. Pour la Cité.',
@@ -695,6 +699,7 @@ export const fr = {
     added: 'nouveau',
     removed: 'supprimé',
     openTabs: 'Fichiers ouverts',
+    editorLabel: 'Éditeur',
     closeTab: (p: string) => `Fermer ${p}`,
     noFile: 'Choisissez un fichier dans la liste, ou créez-en un.',
     cannotShow: "Ce fichier ne peut pas être modifié ici (image, fichier binaire ou trop gros).",
@@ -1223,5 +1228,24 @@ export const fr = {
   },
 } as const
 
-export type ClanKey = keyof typeof fr.clans
-export type MasteryKey = keyof typeof fr.masteries
+export type ClanKey = keyof typeof frMessages.clans
+export type MasteryKey = keyof typeof frMessages.masteries
+
+type Widen<T> = T extends string
+  ? string
+  : T extends (...args: infer A) => infer R
+    ? (...args: A) => R
+    : T extends readonly (infer U)[]
+      ? Widen<U>[]
+      : { -readonly [K in keyof T]: Widen<T[K]> }
+
+// English must have exactly the same shape as French: the compiler checks every key.
+export type Messages = Widen<typeof frMessages>
+
+// Every screen reads `fr.something`; the proxy hands back the French or English text for the chosen language.
+export const fr: typeof frMessages = new Proxy(frMessages, {
+  get(_target, key) {
+    const source = (getLang() === 'en' ? en : frMessages) as unknown as Record<string | symbol, unknown>
+    return source[key]
+  },
+})
