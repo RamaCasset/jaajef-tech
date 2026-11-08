@@ -232,10 +232,11 @@ describe('Removing a repository and private repositories that are gone', () => {
   })
 
   it('shows the invitations to collaborate, and answers them', async () => {
-    api.listMyInvites.mockResolvedValueOnce([{ invite_id: 'i1', project_title: 'Carnet secret', owner_username: 'awa', created_at: '2026-11-08' }]).mockResolvedValue([])
+    api.listMyInvites.mockResolvedValueOnce([{ invite_id: 'i1', project_title: 'Carnet secret', owner_username: 'awa', created_at: '2026-11-08', expires_at: '2026-11-15T10:00:00Z' }]).mockResolvedValue([])
     mount()
     const box = (await screen.findByRole('heading', { name: /Invitations à collaborer/ })).closest('section')!
-    expect(within(box).getByText('@awa vous invite à collaborer sur « Carnet secret ».')).toBeInTheDocument()
+    expect(within(box).getByText(/@awa vous invite à collaborer sur « Carnet secret »\./)).toBeInTheDocument()
+    expect(within(box).getByText('Expire le 15 novembre.')).toBeInTheDocument()
     await userEvent.click(within(box).getByRole('button', { name: 'Accepter' }))
     await waitFor(() => expect(api.answerCollabInvite).toHaveBeenCalledWith('i1', true))
     await waitFor(() => expect(screen.queryByRole('heading', { name: /Invitations à collaborer/ })).toBeNull())
@@ -243,7 +244,7 @@ describe('Removing a repository and private repositories that are gone', () => {
   })
 
   it('declines an invitation', async () => {
-    api.listMyInvites.mockResolvedValueOnce([{ invite_id: 'i2', project_title: 'Autre', owner_username: 'bass', created_at: '2026-11-08' }]).mockResolvedValue([])
+    api.listMyInvites.mockResolvedValueOnce([{ invite_id: 'i2', project_title: 'Autre', owner_username: 'bass', created_at: '2026-11-08', expires_at: '2026-11-15T10:00:00Z' }]).mockResolvedValue([])
     mount()
     await userEvent.click(await screen.findByRole('button', { name: 'Refuser' }))
     await waitFor(() => expect(api.answerCollabInvite).toHaveBeenCalledWith('i2', false))

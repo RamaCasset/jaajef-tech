@@ -1255,21 +1255,14 @@ export const inviteCollaborator = (projectId: string, username: string) => rpc<s
 export const cancelCollabInvite = (inviteId: string) => rpc<void>('cancel_collab_invite', { p_invite: inviteId })
 export const answerCollabInvite = (inviteId: string, accept: boolean) => rpc<void>('answer_collab_invite', { p_invite: inviteId, p_accept: accept })
 
-export type ProjectInvite = { id: string; invitee_username: string }
-/** The invitations still waiting on a project (the owner sees them). */
+export type ProjectInvite = { id: string; invitee_username: string; expires_at: string }
+/** The invitations still waiting on a project (the owner sees them; expired ones are not listed). */
 export async function listProjectInvites(projectId: string): Promise<ProjectInvite[]> {
-  const { data, error } = await supabase
-    .from('collab_invites')
-    .select('id, profiles:invitee_id(username)')
-    .eq('project_id', projectId)
-    .eq('status', 'pending')
-    .order('created_at')
-  if (error) throw new Error(error.message)
-  type Row = { id: string; profiles: { username: string } | { username: string }[] | null }
-  return ((data ?? []) as unknown as Row[]).map((r) => ({ id: r.id, invitee_username: (Array.isArray(r.profiles) ? r.profiles[0]?.username : r.profiles?.username) ?? '' }))
+  const rows = await rpc<{ invite_id: string; invitee_username: string; expires_at: string }[]>('project_invites', { p_project: projectId })
+  return (rows ?? []).map((r) => ({ id: r.invite_id, invitee_username: r.invitee_username, expires_at: r.expires_at }))
 }
 
-export type MyInvite = { invite_id: string; project_title: string; owner_username: string; created_at: string }
+export type MyInvite = { invite_id: string; project_title: string; owner_username: string; created_at: string; expires_at: string }
 /** The invitations to collaborate that wait for the member's answer. */
 export const listMyInvites = () => rpc<MyInvite[]>('my_collab_invites')
 export const removeCollaborator = (projectId: string, userId: string) => rpc<void>('remove_collaborator', { p_project: projectId, p_user: userId })

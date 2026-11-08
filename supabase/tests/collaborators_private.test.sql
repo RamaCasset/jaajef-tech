@@ -155,6 +155,38 @@ begin
   if n <> 0 then raise exception 'FAIL: someone who left still sees the private project'; end if;
   reset role;
   raise notice 'OK 4: invitations can be declined or cancelled, requests count as a yes, and leaving removes access';
+
+  -- 5. An invitation expires after 7 days: it disappears, cannot be answered, and the person can be invited again
+  perform cpk.as_user(1);
+  inv := public.invite_collaborator(p, 'jaly_cp');
+  select count(*) into n from public.project_invites(p);
+  if n <> 1 then raise exception 'FAIL: the owner does not see the waiting invitation'; end if;
+  reset role;
+  perform cpk.as_user(3);
+  select count(*) into n from public.project_invites(p);
+  if n <> 0 then raise exception 'FAIL: someone else sees the invitations of the project'; end if;
+  select count(*) into n from public.my_collab_invites();
+  if n <> 1 then raise exception 'FAIL: the invited member does not see the invitation'; end if;
+  reset role;
+  update public.collab_invites set created_at = now() - interval '8 days' where id = inv;
+  perform cpk.as_user(3);
+  select count(*) into n from public.my_collab_invites();
+  if n <> 0 then raise exception 'FAIL: an expired invitation is still shown to the invited member'; end if;
+  perform cpk.must_fail('answering an expired invitation', format('select public.answer_collab_invite(%L, true)', inv), 'expired');
+  select count(*) into n from public.projects where id = p;
+  if n <> 0 then raise exception 'FAIL: an expired invitation gave access'; end if;
+  reset role;
+  perform cpk.as_user(1);
+  select count(*) into n from public.project_invites(p);
+  if n <> 0 then raise exception 'FAIL: an expired invitation is still listed for the owner'; end if;
+  inv := public.invite_collaborator(p, 'jaly_cp');
+  select count(*) into n from public.project_invites(p);
+  if n <> 1 then raise exception 'FAIL: the person could not be invited again after the expiry'; end if;
+  reset role;
+  set local role anon;
+  perform cpk.must_fail('a visitor lists invitations', format('select * from public.project_invites(%L)', p), 'permission denied');
+  reset role;
+  raise notice 'OK 5: invitations expire after 7 days and can be sent again';
 end $$;
 
 delete from public.projects where github_owner = 'haby-cp';

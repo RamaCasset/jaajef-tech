@@ -168,6 +168,7 @@ export function ProjectPage() {
                   {invites.map((i) => (
                     <div key={i.id} className="invite-line">
                       <Link to={`/profil/${i.invitee_username}`}>@{i.invitee_username}</Link>
+                      <span className="muted tiny">{fr.projectPage.inviteExpires(new Date(i.expires_at).toLocaleDateString(dateLocale(), { day: 'numeric', month: 'long' }))}</span>
                       <button type="button" className="btn" disabled={busy} aria-label={`${fr.projectPage.inviteCancel} : ${i.invitee_username}`} onClick={() => void run(() => cancelCollabInvite(i.id), loadSide)}>{fr.projectPage.inviteCancel}</button>
                     </div>
                   ))}
