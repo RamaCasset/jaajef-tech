@@ -40,8 +40,8 @@ button, input { font: inherit; }
 .alert { background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger); border-radius: 10px; padding: 10px 12px; margin-bottom: 16px; font-size: 14px; }
 .notice { background: var(--accent-soft); border: 1px solid var(--line-strong); border-radius: 10px; padding: 10px 12px; margin-bottom: 16px; font-size: 14px; }
 
-.center-page { min-height: 100%; display: grid; place-items: center; padding: 32px 16px; }
-.auth-card { width: min(100%, 400px); padding: 32px; }
+.center-page { min-height: 100vh; display: grid; place-items: center; padding: 32px 16px; }
+.auth-card { width: min(100%, 480px); padding: 32px; }
 .auth-card h1 { font-size: 28px; margin: 8px 0 4px; }
 
 .stepper { list-style: none; display: flex; justify-content: space-between; gap: 12px; padding: 0; margin: 0 auto 28px; max-width: 900px; }
@@ -255,3 +255,14 @@ select { background: var(--panel); color: var(--fg); border: 1px solid var(--lin
 .lang-switch button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .lang-floating { position: fixed; top: 16px; right: 16px; z-index: 10; background: rgba(8, 14, 28, 0.85); }
 .lang-in-menu { margin: 6px 12px; justify-self: start; }
+
+/* Decorative drawings */
+.center-page { position: relative; }
+.corner-art { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+.corner-art img { position: absolute; width: 96px; height: auto; }
+.art-tl { left: 12%; top: 24%; }
+.art-tr { right: 12%; top: 22%; }
+.art-bl { left: 20%; bottom: 28%; width: 80px; }
+.art-br { right: 20%; bottom: 26%; width: 90px; }
+.center-page > :not(.corner-art) { position: relative; z-index: 1; }
+@media (max-width: 1100px) { .corner-art { display: none; } }

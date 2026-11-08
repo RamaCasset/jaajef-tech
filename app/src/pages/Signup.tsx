@@ -1,3 +1,4 @@
+import { CornerArt } from '../components/CornerArt'
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
@@ -33,6 +34,7 @@ export function Signup() {
 
   return (
     <main className="center-page" style={{ alignContent: 'start' }}>
+      <CornerArt />
       <header style={{ width: 'min(100%, 900px)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
         <Logo />
         <span className="muted">{fr.signup.haveAccount} <Link to="/connexion">{fr.signup.signIn}</Link></span>
