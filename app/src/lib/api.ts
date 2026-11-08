@@ -1547,7 +1547,7 @@ export const listPastDailyQuests = (days = 30) => rpc<PastDailyQuest[]>('list_pa
 
 // ---- Read-only code viewer (public GitHub repositories) --------------------------------------------------
 export type RepoEntry = { path: string; type: 'blob' | 'tree'; size: number }
-export type RepoTree = { branch: string; entries: RepoEntry[]; truncated: boolean }
+export type RepoTree = { branch: string; default_branch?: string; entries: RepoEntry[]; truncated: boolean }
 const NAME = /^[A-Za-z0-9._-]{1,100}$/
 async function githubJson<T>(url: string, fetchFn: typeof fetch): Promise<T> {
   let response: Response
@@ -1562,16 +1562,16 @@ async function githubJson<T>(url: string, fetchFn: typeof fetch): Promise<T> {
   return (await response.json()) as T
 }
 /** The files of a public repository, from its default branch (two GitHub calls). */
-export async function getRepoTree(owner: string, repo: string, fetchFn: typeof fetch = fetch): Promise<RepoTree> {
+export async function getRepoTree(owner: string, repo: string, wanted?: string | null, fetchFn: typeof fetch = fetch): Promise<RepoTree> {
   if (!NAME.test(owner) || !NAME.test(repo)) throw new GithubError('not_found')
   const info = await githubJson<{ default_branch: string }>(`https://api.github.com/repos/${owner}/${repo}`, fetchFn)
-  const branch = info.default_branch
+  const branch = wanted || info.default_branch
   const tree = await githubJson<{ tree: { path: string; type: string; size?: number }[]; truncated: boolean }>(
     `https://api.github.com/repos/${owner}/${repo}/git/trees/${encodeURIComponent(branch)}?recursive=1`, fetchFn)
   const entries = tree.tree
     .filter((e) => e.type === 'blob' || e.type === 'tree')
     .map((e) => ({ path: e.path, type: e.type as 'blob' | 'tree', size: e.size ?? 0 }))
-  return { branch, entries, truncated: tree.truncated }
+  return { branch, default_branch: info.default_branch, entries, truncated: tree.truncated }
 }
 export const MAX_VIEW_BYTES = 200 * 1024
 /** One file's text. Throws GithubError; the caller checks the size and the kind of file first. */
@@ -1621,7 +1621,7 @@ async function callEditor<T>(body: Record<string, unknown>): Promise<T> {
   return data as T
 }
 export type EditorStatus = { installed: boolean; install_url: string; github_name: string }
-export type EditorTree = { branch: string; head: string | null; entries: RepoEntry[]; truncated: boolean }
+export type EditorTree = { branch: string; default_branch?: string; head: string | null; entries: RepoEntry[]; truncated: boolean }
 export type FileChange = { path: string; content?: string; delete?: boolean }
 export const editorStatus = () => callEditor<EditorStatus>({ action: 'status' })
 export type EditorRepo = { name: string; private: boolean; default_branch: string }
@@ -1633,7 +1633,15 @@ export const editorAdopt = (repo: string, title: string, summary: string | null)
 export const editorPresence = () => callEditor<{ checked: boolean }>({ action: 'presence' })
 export const editorTree = (repo: string) => callEditor<EditorTree>({ action: 'tree', repo })
 /** Reading the code of a project through the GitHub app: allowed for the owner and the collaborators. */
-export const editorTreeOf = (projectId: string) => callEditor<EditorTree>({ action: 'tree', project: projectId })
+export const editorTreeOf = (projectId: string, branch?: string | null) =>
+  callEditor<EditorTree>({ action: 'tree', project: projectId, ...(branch ? { branch } : {}) })
+export type BranchList = { default_branch: string; branches: string[] }
+export const editorBranches = (projectId: string) => callEditor<BranchList>({ action: 'branches', project: projectId })
+/** Saves changes as one commit. The owner may pick any branch; a collaborator only a branch named after them (the server checks). */
+export const editorCommitTo = (projectId: string, o: { branch: string; createFrom?: string; baseSha: string; message: string; files: FileChange[] }) =>
+  callEditor<{ commit_sha: string; html_url: string }>({
+    action: 'commit', project: projectId, branch: o.branch, base_sha: o.baseSha, message: o.message, files: o.files, ...(o.createFrom ? { create_from: o.createFrom } : {}),
+  })
 export const editorFileOf = (projectId: string, path: string, ref: string) =>
   callEditor<{ path: string; content: string }>({ action: 'file', project: projectId, path, ref })
 export const editorFile = (repo: string, path: string, ref: string) =>
@@ -1645,11 +1653,25 @@ export const editorCommit = (repo: string, branch: string, baseSha: string, mess
 // ---- Reading a project's code and history (public repositories directly, private ones through the GitHub app) -----
 type RepoRef = { id: string; github_owner: string; github_repo: string; repo_private: boolean }
 
-export async function loadRepoTree(project: RepoRef): Promise<RepoTree> {
-  if (!project.repo_private) return getRepoTree(project.github_owner, project.github_repo)
-  const t = await editorTreeOf(project.id)
-  return { branch: t.branch, entries: t.entries, truncated: t.truncated }
+export async function loadRepoTree(project: RepoRef, branch?: string | null): Promise<RepoTree> {
+  if (!project.repo_private) return getRepoTree(project.github_owner, project.github_repo, branch)
+  const t = await editorTreeOf(project.id, branch)
+  return { branch: t.branch, default_branch: t.default_branch, entries: t.entries, truncated: t.truncated }
 }
+
+/** The branches of the project's repository, the main one first. */
+export async function loadBranches(project: RepoRef, fetchFn: typeof fetch = fetch): Promise<BranchList> {
+  if (project.repo_private) return editorBranches(project.id)
+  if (!NAME.test(project.github_owner) || !NAME.test(project.github_repo)) throw new GithubError('not_found')
+  const base = `https://api.github.com/repos/${project.github_owner}/${project.github_repo}`
+  const info = await githubJson<{ default_branch: string }>(base, fetchFn)
+  const list = await githubJson<{ name: string }[]>(`${base}/branches?per_page=100`, fetchFn)
+  return { default_branch: info.default_branch, branches: list.map((b) => b.name) }
+}
+
+/** Where GitHub's "open a pull request" page for a branch is (the owner or a collaborator finishes the merge there). */
+export const pullRequestUrl = (owner: string, repo: string, base: string, branch: string) =>
+  `https://github.com/${owner}/${repo}/compare/${base.split('/').map(encodeURIComponent).join('/')}...${branch.split('/').map(encodeURIComponent).join('/')}?expand=1`
 
 export async function loadRepoFile(project: RepoRef, branch: string, path: string): Promise<string> {
   if (!project.repo_private) return getRepoFile(project.github_owner, project.github_repo, branch, path)

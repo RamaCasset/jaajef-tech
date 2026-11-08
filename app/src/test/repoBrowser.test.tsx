@@ -5,15 +5,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const api = vi.hoisted(() => ({
   getProjectFull: vi.fn(), loadRepoTree: vi.fn(), loadRepoFile: vi.fn(), getLastCommits: vi.fn(),
-  editorStatus: vi.fn(), editorTree: vi.fn(), editorCommit: vi.fn(),
+  editorStatus: vi.fn(), editorTreeOf: vi.fn(), editorCommitTo: vi.fn(), listCollaborators: vi.fn(), loadBranches: vi.fn(),
 }))
 vi.mock('../lib/api', async () => {
   const real = await vi.importActual<typeof import('../lib/api')>('../lib/api')
   return { ...real, ...api }
 })
-const auth = vi.hoisted(() => ({ id: 'me' }))
+const auth = vi.hoisted(() => ({ id: 'me', username: 'moussa_dev' }))
 vi.mock('../auth/AuthContext', () => ({
-  useAuth: () => ({ member: { kopeks: 1, profile: { id: auth.id, display_name: 'Moussa' } }, signOut: vi.fn() }),
+  useAuth: () => ({ member: { kopeks: 1, profile: { id: auth.id, username: auth.username, display_name: 'Moussa' } }, signOut: vi.fn() }),
 }))
 // Monaco needs a real browser, so a plain text box stands in for it.
 vi.mock('@monaco-editor/react', () => ({
@@ -22,7 +22,7 @@ vi.mock('@monaco-editor/react', () => ({
   ),
 }))
 
-import { RepoBrowser } from '../pages/RepoBrowser'
+import { RepoBrowser, slugBranch } from '../pages/RepoBrowser'
 const { EditorError } = await vi.importActual<typeof import('../lib/api')>('../lib/api')
 
 const HEAD = 'a'.repeat(40)
@@ -51,13 +51,16 @@ const mount = (url: string) => render(
 beforeEach(() => {
   vi.resetAllMocks()
   auth.id = 'me'
+  auth.username = 'moussa_dev'
   api.getProjectFull.mockResolvedValue(project)
   api.loadRepoTree.mockResolvedValue(publicTree)
   api.loadRepoFile.mockImplementation(async (_p: unknown, _b: string, path: string) => `contenu de ${path}`)
   api.getLastCommits.mockResolvedValue({})
   api.editorStatus.mockResolvedValue({ installed: true, install_url: 'https://github.com/apps/x/installations/new', github_name: 'awa' })
-  api.editorTree.mockResolvedValue({ branch: 'main', head: HEAD, truncated: false, entries: [] })
-  api.editorCommit.mockResolvedValue({ commit_sha: NEW_HEAD, html_url: 'https://github.com/awa/appli/commit/' + NEW_HEAD })
+  api.listCollaborators.mockResolvedValue([])
+  api.loadBranches.mockResolvedValue({ default_branch: 'main', branches: ['main'] })
+  api.editorTreeOf.mockResolvedValue({ branch: 'main', default_branch: 'main', head: HEAD, truncated: false, entries: [] })
+  api.editorCommitTo.mockResolvedValue({ commit_sha: NEW_HEAD, html_url: 'https://github.com/awa/appli/commit/' + NEW_HEAD })
 })
 
 describe('Repository: the list of files', () => {
@@ -92,7 +95,7 @@ describe('Repository: the list of files', () => {
     expect(screen.queryByRole('alert')).toBeNull()
   })
 
-  it('only the owner can start a new file', async () => {
+  it('only the owner or a collaborator can start a new file', async () => {
     auth.id = 'someone-else'
     mount('/projets/p1/code?dossier=')
     await screen.findByRole('table')
@@ -176,15 +179,15 @@ describe('Repository: editing, saving and deleting', () => {
     expect(send).toBeDisabled()
     await userEvent.type(screen.getByLabelText('Décrivez votre modification'), 'Ajoute un point')
     await userEvent.click(send)
-    await waitFor(() => expect(api.editorCommit).toHaveBeenCalledTimes(1))
-    expect(api.editorCommit).toHaveBeenCalledWith('appli', 'main', HEAD, 'Ajoute un point', [{ path: 'main.py', content: 'contenu de main.py !' }])
+    await waitFor(() => expect(api.editorCommitTo).toHaveBeenCalledTimes(1))
+    expect(api.editorCommitTo).toHaveBeenCalledWith('p1', { branch: 'main', createFrom: undefined, baseSha: HEAD, message: 'Ajoute un point', files: [{ path: 'main.py', content: 'contenu de main.py !' }] })
     expect(await screen.findByRole('status')).toHaveTextContent('enregistrées sur GitHub')
     expect(screen.getByRole('link', { name: 'Voir sur GitHub' })).toHaveAttribute('href', expect.stringContaining(NEW_HEAD))
     expect(screen.getByLabelText('code main.py')).toHaveAttribute('readonly')
   })
 
   it('shows a clear message when the branch moved, and keeps the text', async () => {
-    api.editorCommit.mockRejectedValue(new EditorError('branch_moved'))
+    api.editorCommitTo.mockRejectedValue(new EditorError('branch_moved'))
     mount('/projets/p1/code?fichier=main.py')
     await userEvent.click(await screen.findByRole('button', { name: 'Modifier ce fichier' }))
     const code = await screen.findByLabelText('code main.py')
@@ -203,7 +206,7 @@ describe('Repository: editing, saving and deleting', () => {
     expect(screen.getByText(/src\/util\.py sera supprimé/)).toBeInTheDocument()
     await userEvent.type(screen.getByLabelText('Décrivez votre modification'), 'Retire util')
     await userEvent.click(screen.getByRole('button', { name: 'Supprimer' }))
-    await waitFor(() => expect(api.editorCommit).toHaveBeenCalledWith('appli', 'main', HEAD, 'Retire util', [{ path: 'src/util.py', delete: true }]))
+    await waitFor(() => expect(api.editorCommitTo).toHaveBeenCalledWith('p1', { branch: 'main', createFrom: undefined, baseSha: HEAD, message: 'Retire util', files: [{ path: 'src/util.py', delete: true }] }))
     expect(await screen.findByRole('table')).toBeInTheDocument()
     expect(screen.getByTestId('where')).toHaveTextContent('dossier=src')
   })
@@ -216,7 +219,7 @@ describe('Repository: editing, saving and deleting', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
     await userEvent.type(screen.getByLabelText('Décrivez votre modification'), 'Nouveau fichier')
     await userEvent.click(screen.getAllByRole('button', { name: 'Enregistrer' }).find((b) => (b as HTMLButtonElement).type === 'submit') as HTMLElement)
-    await waitFor(() => expect(api.editorCommit).toHaveBeenCalledWith('appli', 'main', HEAD, 'Nouveau fichier', [{ path: 'src/new.py', content: 'print(1)' }]))
+    await waitFor(() => expect(api.editorCommitTo).toHaveBeenCalledWith('p1', { branch: 'main', createFrom: undefined, baseSha: HEAD, message: 'Nouveau fichier', files: [{ path: 'src/new.py', content: 'print(1)' }] }))
   })
 
   it('asks the owner to install the GitHub app when it is not installed', async () => {
@@ -228,7 +231,7 @@ describe('Repository: editing, saving and deleting', () => {
   })
 
   it('tells the owner when the app has no access to this repository', async () => {
-    api.editorTree.mockRejectedValue(new EditorError('repo_not_allowed'))
+    api.editorTreeOf.mockRejectedValue(new EditorError('repo_not_allowed'))
     mount('/projets/p1/code?fichier=main.py')
     await userEvent.click(await screen.findByRole('button', { name: 'Modifier ce fichier' }))
     expect(await screen.findByText("Ce dépôt n'est pas autorisé")).toBeInTheDocument()
@@ -241,7 +244,7 @@ describe('Repository: private code for members', () => {
     api.getProjectFull.mockResolvedValue({ ...project, owner_id: 'owner', repo_private: true })
     mount('/projets/p1/code?fichier=main.py')
     expect(await screen.findByLabelText('code main.py')).toHaveValue('contenu de main.py')
-    expect(api.loadRepoTree).toHaveBeenCalledWith(expect.objectContaining({ id: 'p1', repo_private: true }))
+    expect(api.loadRepoTree).toHaveBeenCalledWith(expect.objectContaining({ id: 'p1', repo_private: true }), null)
     expect(api.loadRepoFile).toHaveBeenCalledWith(expect.objectContaining({ repo_private: true }), 'main', 'main.py')
     expect(screen.getByLabelText('code main.py')).toHaveAttribute('readonly')
     expect(screen.queryByRole('button', { name: /Modifier|Enregistrer|Supprimer/ })).toBeNull()
@@ -260,5 +263,135 @@ describe('Repository: private code for members', () => {
     api.loadRepoTree.mockRejectedValue(new EditorError('not_installed'))
     mount('/projets/p1/code?dossier=')
     expect(await screen.findByRole('alert')).toHaveTextContent("L'application GitHub n'est pas encore installée.")
+  })
+})
+
+const sideTree = { ...publicTree, branch: 'ndeye_k/fix', default_branch: 'main' }
+const asCollaborator = () => {
+  auth.id = 'collab'
+  auth.username = 'ndeye_k'
+  api.getProjectFull.mockResolvedValue({ ...project, owner_id: 'owner' })
+  api.listCollaborators.mockResolvedValue([{ user_id: 'collab' }])
+}
+async function typeAndSave(message: string, edit = 'x') {
+  await userEvent.click(await screen.findByRole('button', { name: 'Modifier ce fichier' }))
+  await userEvent.type(await screen.findByLabelText('code main.py'), edit)
+  await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+  await userEvent.type(screen.getByLabelText('Décrivez votre modification'), message)
+}
+const submit = () => screen.getAllByRole('button', { name: 'Enregistrer' }).find((b) => (b as HTMLButtonElement).type === 'submit') as HTMLElement
+
+describe('Repository: branches', () => {
+  it('turns a sentence into a safe branch name', () => {
+    expect(slugBranch('Corrige le titre du README !')).toBe('corrige-le-titre-du-readme')
+    expect(slugBranch('Été à Dakar')).toBe('ete-a-dakar')
+    expect(slugBranch('  --..  ')).toBe('')
+  })
+
+  it('lists the branches with the main one first, and opens the one chosen', async () => {
+    api.loadBranches.mockResolvedValue({ default_branch: 'main', branches: ['zeta', 'main', 'ndeye_k/fix'] })
+    mount('/projets/p1/code?fichier=main.py')
+    const picker = await screen.findByRole('combobox', { name: 'Branche' })
+    await waitFor(() => expect(within(picker).getAllByRole('option')).toHaveLength(3))
+    expect(within(picker).getAllByRole('option').map((o) => o.textContent)).toEqual(['main (principale)', 'ndeye_k/fix', 'zeta'])
+    api.loadRepoTree.mockResolvedValue({ ...sideTree, branch: 'ndeye_k/fix' })
+    await userEvent.selectOptions(picker, 'ndeye_k/fix')
+    expect(screen.getByTestId('where')).toHaveTextContent('/projets/p1/code?fichier=main.py&branche=ndeye_k%2Ffix')
+    await waitFor(() => expect(api.loadRepoTree).toHaveBeenLastCalledWith(expect.anything(), 'ndeye_k/fix'))
+  })
+
+  it('offers the pull request link only away from the main branch, and keeps the branch in the file links', async () => {
+    mount('/projets/p1/code?fichier=main.py')
+    await screen.findByRole('combobox', { name: 'Branche' })
+    expect(screen.queryByRole('link', { name: 'Ouvrir une pull request sur GitHub' })).toBeNull()
+    document.body.innerHTML = ''
+    api.loadRepoTree.mockResolvedValue(sideTree)
+    mount('/projets/p1/code?fichier=main.py&branche=ndeye_k%2Ffix')
+    expect(await screen.findByRole('link', { name: 'Ouvrir une pull request sur GitHub' })).toHaveAttribute('href', 'https://github.com/awa/appli/compare/main...ndeye_k/fix?expand=1')
+    const panel = screen.getByRole('complementary', { name: 'Tous les fichiers' })
+    expect(within(panel).getByRole('link', { name: 'README.md' })).toHaveAttribute('href', '/projets/p1/code?fichier=README.md&branche=ndeye_k%2Ffix')
+  })
+
+  it('a visitor who is not a collaborator cannot edit', async () => {
+    auth.id = 'stranger'
+    mount('/projets/p1/code?fichier=main.py')
+    await screen.findByLabelText('code main.py')
+    expect(screen.queryByRole('button', { name: 'Modifier ce fichier' })).toBeNull()
+  })
+
+  it('a collaborator saves on a new branch of their own, never on main, and gets the pull request link', async () => {
+    asCollaborator()
+    mount('/projets/p1/code?fichier=main.py')
+    await typeAndSave('Corrige le titre')
+    expect(screen.queryByRole('radio', { name: /Sur la branche/ })).toBeNull()
+    expect(screen.getByRole('radio', { name: 'Dans une nouvelle branche' })).toBeChecked()
+    expect(screen.getByText('ndeye_k/')).toBeInTheDocument()
+    expect(screen.getByLabelText('Nom de la nouvelle branche')).toHaveValue('corrige-le-titre')
+    expect(screen.getByText(/Le code principal n'est pas touché/)).toBeInTheDocument()
+    api.loadRepoTree.mockResolvedValue(sideTree)
+    await userEvent.click(submit())
+    await waitFor(() => expect(api.editorCommitTo).toHaveBeenCalledWith('p1', {
+      branch: 'ndeye_k/corrige-le-titre', createFrom: 'main', baseSha: HEAD, message: 'Corrige le titre', files: [{ path: 'main.py', content: 'contenu de main.pyx' }],
+    }))
+    expect(api.editorStatus).not.toHaveBeenCalled()
+    expect(await screen.findByTestId('where')).toHaveTextContent('branche=ndeye_k%2Fcorrige-le-titre')
+    // one in the saved notice and one in the bar above the code
+    expect(await screen.findAllByRole('link', { name: 'Ouvrir une pull request sur GitHub' })).toHaveLength(2)
+  })
+
+  it('a collaborator on their own branch saves there; on someone else\'s branch they must make a new one', async () => {
+    asCollaborator()
+    api.loadRepoTree.mockResolvedValue(sideTree)
+    api.editorTreeOf.mockResolvedValue({ branch: 'ndeye_k/fix', default_branch: 'main', head: NEW_HEAD, truncated: false, entries: [] })
+    mount('/projets/p1/code?fichier=main.py&branche=ndeye_k%2Ffix')
+    await typeAndSave('Encore')
+    expect(screen.getByRole('radio', { name: 'Sur la branche ndeye_k/fix' })).toBeChecked()
+    await userEvent.click(submit())
+    await waitFor(() => expect(api.editorCommitTo).toHaveBeenCalledWith('p1', expect.objectContaining({ branch: 'ndeye_k/fix', createFrom: undefined, baseSha: NEW_HEAD })))
+    expect(api.editorTreeOf).toHaveBeenCalledWith('p1', 'ndeye_k/fix')
+
+    document.body.innerHTML = ''
+    vi.clearAllMocks()
+    asCollaborator()
+    api.loadRepoTree.mockResolvedValue({ ...sideTree, branch: 'awa/other' })
+    api.loadRepoFile.mockResolvedValue('x')
+    api.editorTreeOf.mockResolvedValue({ branch: 'awa/other', default_branch: 'main', head: NEW_HEAD, truncated: false, entries: [] })
+    api.loadBranches.mockResolvedValue({ default_branch: 'main', branches: ['main', 'awa/other'] })
+    mount('/projets/p1/code?fichier=main.py&branche=awa%2Fother')
+    await typeAndSave('Autre')
+    expect(screen.queryByRole('radio', { name: /Sur la branche/ })).toBeNull()
+    expect(screen.getByLabelText('Nom de la nouvelle branche')).toHaveValue('autre')
+  })
+
+  it('the owner may save on the branch they look at, or in a new branch named freely', async () => {
+    mount('/projets/p1/code?fichier=main.py')
+    await typeAndSave('Idée')
+    expect(screen.getByRole('radio', { name: 'Sur la branche main' })).toBeChecked()
+    await userEvent.click(screen.getByRole('radio', { name: 'Dans une nouvelle branche' }))
+    const name = screen.getByLabelText('Nom de la nouvelle branche')
+    await userEvent.clear(name)
+    await userEvent.type(name, 'Essai Rapide')
+    expect(name).toHaveValue('essai-rapide')
+    expect(screen.queryByText('moussa_dev/')).toBeNull()
+    api.loadRepoTree.mockResolvedValue({ ...sideTree, branch: 'essai-rapide' })
+    await userEvent.click(submit())
+    await waitFor(() => expect(api.editorCommitTo).toHaveBeenCalledWith('p1', expect.objectContaining({ branch: 'essai-rapide', createFrom: 'main' })))
+    expect(api.editorStatus).toHaveBeenCalled()
+  })
+
+  it('says why a collaborator cannot save when the owner has not installed the app, and when the name is taken', async () => {
+    asCollaborator()
+    api.editorTreeOf.mockRejectedValueOnce(new EditorError('not_installed'))
+    mount('/projets/p1/code?fichier=main.py')
+    await userEvent.click(await screen.findByRole('button', { name: 'Modifier ce fichier' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent("Le propriétaire doit d'abord installer l'application GitHub")
+
+    api.editorCommitTo.mockRejectedValueOnce(new EditorError('branch_exists'))
+    await userEvent.click(screen.getByRole('button', { name: 'Modifier ce fichier' }))
+    await userEvent.type(await screen.findByLabelText('code main.py'), 'x')
+    await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+    await userEvent.type(screen.getByLabelText('Décrivez votre modification'), 'Pareil')
+    await userEvent.click(submit())
+    expect(await screen.findByText('Une branche porte déjà ce nom. Choisissez un autre nom.')).toBeInTheDocument()
   })
 })

@@ -11,6 +11,11 @@
 //   tree / file / history also accept { project }: the owner AND the collaborators of that project
 //             can read its code through the owner's installation (read-only)
 //   adopt    -> list one PRIVATE repository of the member on the platform (stays private)
+//   branches -> the branches of a project's repository (owner and collaborators)
+//   tree also accepts { branch } to read another branch than the default one
+//   commit also accepts { project }: the owner may save to any branch; a collaborator only to a branch
+//             that starts with their own username and a slash (never the main code). { create_from }
+//             makes the branch first, from that branch, in the same call.
 //
 // Safety rules, all enforced here (never in the browser):
 //   * Who the member is comes from their sign-in token. Their GitHub name comes from the database
@@ -227,7 +232,7 @@ async function doRepos(owner: string, ctx: Ctx): Promise<unknown | Fail> {
 }
 
 /** Who the project belongs to and which repository it is, but only if the caller is the owner or a collaborator. */
-async function memberProject(userId: string, projectId: string, ctx: Ctx): Promise<{ owner: string; repo: string } | null> {
+async function memberProject(userId: string, projectId: string, ctx: Ctx): Promise<{ owner: string; repo: string; isOwner: boolean } | null> {
   const response = await ctx.fetchFn(`${ctx.env.supabaseUrl}/rest/v1/rpc/project_for_member`, {
     method: 'POST',
     headers: { ...dbHeaders(ctx.env), 'content-type': 'application/json' },
@@ -237,7 +242,17 @@ async function memberProject(userId: string, projectId: string, ctx: Ctx): Promi
   const rows = await response.json()
   const row = Array.isArray(rows) ? rows[0] : null
   if (!row || !NAME.test(String(row.github_owner)) || !NAME.test(String(row.github_repo))) return null
-  return { owner: String(row.github_owner), repo: String(row.github_repo) }
+  return { owner: String(row.github_owner), repo: String(row.github_repo), isOwner: row.is_owner === true }
+}
+
+/** The platform username of a member (letters, digits and underscores only, so it is safe inside a branch name). */
+async function usernameOf(userId: string, ctx: Ctx): Promise<string | null> {
+  const response = await ctx.fetchFn(
+    `${ctx.env.supabaseUrl}/rest/v1/profiles?id=eq.${encodeURIComponent(userId)}&select=username`, { headers: dbHeaders(ctx.env) })
+  if (!response.ok) return null
+  const rows = await response.json()
+  const name = Array.isArray(rows) ? rows[0]?.username : null
+  return typeof name === 'string' && /^[a-z0-9_]{3,30}$/.test(name) ? name : null
 }
 
 /** The latest commits of a branch, or only the ones that changed one file. */
@@ -324,7 +339,7 @@ async function doAdopt(userId: string, owner: string, repo: string, title: strin
   return { project_id: await response.json() }
 }
 
-async function doTree(owner: string, repo: string, ctx: Ctx): Promise<unknown | Fail> {
+async function doBranches(owner: string, repo: string, ctx: Ctx): Promise<unknown | Fail> {
   const installation = await findInstallation(owner, ctx)
   if (isFail(installation)) return installation
   if (installation === null) return fail('not_installed', 409)
@@ -333,9 +348,25 @@ async function doTree(owner: string, repo: string, ctx: Ctx): Promise<unknown | 
   const info = await gh(ctx, 'GET', `/repos/${owner}/${repo}`, token)
   if (info.status === 404) return fail('repo_not_found', 404)
   if (!info.ok) return fail('github_failed', 502)
-  const branch = String(info.body?.default_branch ?? 'main')
-  const ref = await gh(ctx, 'GET', `/repos/${owner}/${repo}/git/ref/heads/${encodeURIComponent(branch)}`, token)
-  if (ref.status === 404 || ref.status === 409) return { branch, head: null, entries: [], truncated: false }
+  const list = await gh(ctx, 'GET', `/repos/${owner}/${repo}/branches?per_page=100`, token)
+  if (!list.ok || !Array.isArray(list.body)) return fail('github_failed', 502)
+  return { default_branch: String(info.body?.default_branch ?? 'main'), branches: list.body.map((b: any) => String(b?.name ?? '')).filter((n: string) => n.length > 0) }
+}
+
+async function doTree(owner: string, repo: string, wanted: string | null, ctx: Ctx): Promise<unknown | Fail> {
+  const installation = await findInstallation(owner, ctx)
+  if (isFail(installation)) return installation
+  if (installation === null) return fail('not_installed', 409)
+  const token = await repoToken(installation, repo, false, ctx)
+  if (isFail(token)) return token
+  const info = await gh(ctx, 'GET', `/repos/${owner}/${repo}`, token)
+  if (info.status === 404) return fail('repo_not_found', 404)
+  if (!info.ok) return fail('github_failed', 502)
+  const defaultBranch = String(info.body?.default_branch ?? 'main')
+  const branch = wanted ?? defaultBranch
+  const ref = await gh(ctx, 'GET', `/repos/${owner}/${repo}/git/ref/heads/${branch.split('/').map(encodeURIComponent).join('/')}`, token)
+  if (ref.status === 404 && wanted) return fail('branch_not_found', 404)
+  if (ref.status === 404 || ref.status === 409) return { branch, default_branch: defaultBranch, head: null, entries: [], truncated: false }
   if (!ref.ok) return fail('github_failed', 502)
   const head = String(ref.body?.object?.sha ?? '')
   const tree = await gh(ctx, 'GET', `/repos/${owner}/${repo}/git/trees/${head}?recursive=1`, token)
@@ -343,7 +374,7 @@ async function doTree(owner: string, repo: string, ctx: Ctx): Promise<unknown | 
   const entries = (Array.isArray(tree.body?.tree) ? tree.body.tree : [])
     .filter((e: any) => e.type === 'blob' || e.type === 'tree')
     .map((e: any) => ({ path: String(e.path), type: e.type, size: Number(e.size ?? 0) }))
-  return { branch, head, entries, truncated: Boolean(tree.body?.truncated) }
+  return { branch, default_branch: defaultBranch, head, entries, truncated: Boolean(tree.body?.truncated) }
 }
 
 async function doFile(owner: string, repo: string, path: string, ref: string, ctx: Ctx): Promise<unknown | Fail> {
@@ -364,6 +395,7 @@ async function doFile(owner: string, repo: string, path: string, ref: string, ct
 
 async function doCommit(
   owner: string, repo: string, branch: string, baseSha: string, message: string, changes: FileChange[], ctx: Ctx,
+  by: string = `@${owner}`, createFrom: string | null = null,
 ): Promise<unknown | Fail> {
   const installation = await findInstallation(owner, ctx)
   if (isFail(installation)) return installation
@@ -372,7 +404,18 @@ async function doCommit(
   if (isFail(token)) return token
   const base = `/repos/${owner}/${repo}`
 
-  const ref = await gh(ctx, 'GET', `${base}/git/ref/heads/${encodeURIComponent(branch)}`, token)
+  const path = (name: string) => name.split('/').map(encodeURIComponent).join('/')
+  if (createFrom) {
+    // Make the new branch first, from the branch the editor was looking at (refused if that branch moved meanwhile).
+    const from = await gh(ctx, 'GET', `${base}/git/ref/heads/${path(createFrom)}`, token)
+    if (from.status === 404) return fail('branch_not_found', 404)
+    if (!from.ok) return fail('github_failed', 502)
+    if (String(from.body?.object?.sha ?? '') !== baseSha) return fail('branch_moved', 409)
+    const made = await gh(ctx, 'POST', `${base}/git/refs`, token, { ref: `refs/heads/${branch}`, sha: baseSha })
+    if (made.status === 422) return fail('branch_exists', 409)
+    if (!made.ok) return fail('github_failed', 502)
+  }
+  const ref = await gh(ctx, 'GET', `${base}/git/ref/heads/${path(branch)}`, token)
   if (ref.status === 404) return fail('branch_not_found', 404)
   if (!ref.ok) return fail('github_failed', 502)
   const head = String(ref.body?.object?.sha ?? '')
@@ -391,10 +434,10 @@ async function doCommit(
   const newTree = await gh(ctx, 'POST', `${base}/git/trees`, token, { base_tree: commit.body?.tree?.sha, tree })
   if (!newTree.ok) return fail('github_failed', 502)
   const created = await gh(ctx, 'POST', `${base}/git/commits`, token, {
-    message: `${message}\n\nSaved from jaajef.tech by @${owner}`, tree: newTree.body.sha, parents: [head],
+    message: `${message}\n\nSaved from jaajef.tech by ${by}`, tree: newTree.body.sha, parents: [head],
   })
   if (!created.ok) return fail('github_failed', 502)
-  const moved = await gh(ctx, 'PATCH', `${base}/git/refs/heads/${encodeURIComponent(branch)}`, token, { sha: created.body.sha, force: false })
+  const moved = await gh(ctx, 'PATCH', `${base}/git/refs/heads/${path(branch)}`, token, { sha: created.body.sha, force: false })
   if (moved.status === 422 || moved.status === 409) return fail('branch_moved', 409)
   if (!moved.ok) return fail('github_failed', 502)
   return { commit_sha: String(created.body.sha), html_url: `https://github.com/${owner}/${repo}/commit/${created.body.sha}` }
@@ -429,12 +472,14 @@ export async function handler(request: Request, getEnv: (name: string) => string
   // The caller's own GitHub account is not needed (a collaborator may have none).
   let owner: string | null
   let projectRepo: string | null = null
-  if (typeof body.project === 'string' && ['tree', 'file', 'history'].includes(body.action)) {
+  let isProjectOwner = false
+  if (typeof body.project === 'string' && ['tree', 'file', 'history', 'branches', 'commit'].includes(body.action)) {
     if (!UUID.test(body.project)) return jsonResponse({ error: 'bad_request' }, 400)
     const access = await memberProject(userId, body.project, ctx)
     if (!access) return jsonResponse({ error: 'repo_not_allowed' }, 403)
     owner = access.owner
     projectRepo = access.repo
+    isProjectOwner = access.isOwner
   } else {
     owner = await githubNameOf(userId, ctx)
     if (!owner) return jsonResponse({ error: 'github_not_linked' }, 409)
@@ -448,7 +493,13 @@ export async function handler(request: Request, getEnv: (name: string) => string
       case 'repos': result = await doRepos(owner, ctx); break
       case 'tree': {
         const repo = needRepo()
-        result = repo ? await doTree(owner, repo, ctx) : fail('bad_request', 400)
+        const wanted = body.branch === undefined || body.branch === null ? null : (typeof body.branch === 'string' && REF.test(body.branch) ? body.branch : 'bad')
+        result = repo && wanted !== 'bad' ? await doTree(owner, repo, wanted, ctx) : fail('bad_request', 400)
+        break
+      }
+      case 'branches': {
+        const repo = needRepo()
+        result = repo ? await doBranches(owner, repo, ctx) : fail('bad_request', 400)
         break
       }
       case 'file': {
@@ -481,9 +532,19 @@ export async function handler(request: Request, getEnv: (name: string) => string
         const message = typeof body.message === 'string' ? body.message.trim() : ''
         const branch = typeof body.branch === 'string' && /^[A-Za-z0-9._\/-]{1,100}$/.test(body.branch) ? body.branch : null
         const baseSha = typeof body.base_sha === 'string' && /^[0-9a-f]{40}$/.test(body.base_sha) ? body.base_sha : null
-        result = repo && changes && branch && baseSha && message.length > 0 && message.length <= 500
-          ? await doCommit(owner, repo, branch, baseSha, message, changes, ctx)
-          : fail('bad_request', 400)
+        const createFrom = body.create_from === undefined || body.create_from === null ? null : (typeof body.create_from === 'string' && REF.test(body.create_from) ? body.create_from : 'bad')
+        if (!(repo && changes && branch && baseSha && message.length > 0 && message.length <= 500) || createFrom === 'bad') { result = fail('bad_request', 400); break }
+        let by = `@${owner}`
+        if (projectRepo !== null && !isProjectOwner) {
+          // A collaborator never writes to the main code: only to a branch named after them.
+          const username = await usernameOf(userId, ctx)
+          if (!username || !branch.startsWith(`${username}/`) || branch.length === username.length + 1 || branch.endsWith('/') || branch.includes('..') || branch.includes('//')) {
+            result = fail('branch_not_yours', 403)
+            break
+          }
+          by = username
+        }
+        result = await doCommit(owner, repo, branch, baseSha, message, changes, ctx, by, createFrom)
         break
       }
       default: result = fail('bad_request', 400)

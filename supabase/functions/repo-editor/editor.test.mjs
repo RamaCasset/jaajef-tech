@@ -16,6 +16,7 @@ const P_BOB = 'e2000000-0000-0000-0000-000000000002'
 // awa owns the project 'appli'; the member 'nolink' (no GitHub account) collaborates on it
 const PROJECTS = { [P_AWA]: { owner: 'awa', repo: 'appli', members: [U.awa, U.nolink] }, [P_BOB]: { owner: 'bob', repo: 'secret', members: [] } }
 const TOKENS = { 't-awa': U.awa, 't-cara': U.cara, 't-nolink': U.nolink }
+const USERNAMES = { [U.awa]: 'awa_dev', [U.cara]: 'cara', [U.nolink]: 'ndeye_k' }
 const GITHUB_NAMES = { [U.awa]: 'awa', [U.cara]: 'cara', [U.nolink]: null }
 
 const pkcs1 = generateKeyPairSync('rsa', { modulusLength: 2048, privateKeyEncoding: { type: 'pkcs1', format: 'pem' }, publicKeyEncoding: { type: 'spki', format: 'pem' } })
@@ -40,9 +41,9 @@ function resetGithub(publicKey) {
     ],
     tokens: new Map(),
     repos: {
-      'awa/appli': { default_branch: 'main', private: true, head: null, commits: new Map(), trees: new Map(), blobs: new Map(), files: {} },
-      'awa/vide': { default_branch: 'main', private: false, head: null, commits: new Map(), trees: new Map(), blobs: new Map(), files: {} },
-      'bob/secret': { default_branch: 'main', private: true, head: null, commits: new Map(), trees: new Map(), blobs: new Map(), files: {} },
+      'awa/appli': { default_branch: 'main', private: true, head: null, commits: new Map(), trees: new Map(), blobs: new Map(), files: {}, branches: {} },
+      'awa/vide': { default_branch: 'main', private: false, head: null, commits: new Map(), trees: new Map(), blobs: new Map(), files: {}, branches: {} },
+      'bob/secret': { default_branch: 'main', private: true, head: null, commits: new Map(), trees: new Map(), blobs: new Map(), files: {}, branches: {} },
     },
     moveBeforeRefUpdate: false,
   }
@@ -60,6 +61,15 @@ function commitFiles(repo, files, parent, message) {
   repo.commits.set(commitSha, { tree: treeSha, parents: parent ? [parent] : [], message })
   repo.head = commitSha
   repo.files = { ...files }
+  return commitSha
+}
+
+/** A commit that is not on the default branch (used to set up a side branch). */
+function commitSide(repo, files, parent, message) {
+  const treeSha = sha(JSON.stringify(files) + message)
+  repo.trees.set(treeSha, { ...files })
+  const commitSha = sha(`${treeSha}${parent}${message}`)
+  repo.commits.set(commitSha, { tree: treeSha, parents: [parent], message })
   return commitSha
 }
 
@@ -124,9 +134,20 @@ async function pretendGithub(url, init) {
     return jsonRes(200, list)
   }
   if (rest === '' && method === 'GET') return jsonRes(200, { name, default_branch: repo.default_branch, private: repo.private, description: repo.description ?? null, language: repo.language ?? null, owner: { login: owner } })
+  if (rest === '/branches' && method === 'GET') {
+    return jsonRes(200, [{ name: repo.default_branch }, ...Object.keys(repo.branches).map((name) => ({ name }))])
+  }
+  if (rest === '/git/refs' && method === 'POST') {
+    const name = body.ref.replace('refs/heads/', '')
+    if (name === repo.default_branch || repo.branches[name]) return jsonRes(422, { message: 'Reference already exists' })
+    repo.branches[name] = body.sha
+    return jsonRes(201, { ref: body.ref, object: { sha: body.sha } })
+  }
   let r = rest.match(/^\/git\/ref\/heads\/(.+)$/)
   if (r && method === 'GET') {
-    if (!repo.head || decodeURIComponent(r[1]) !== repo.default_branch) return jsonRes(repo.head ? 404 : 409, { message: 'Git Repository is empty.' })
+    const name = decodeURIComponent(r[1])
+    if (repo.branches[name]) return jsonRes(200, { object: { sha: repo.branches[name] } })
+    if (!repo.head || name !== repo.default_branch) return jsonRes(repo.head ? 404 : 409, { message: 'Git Repository is empty.' })
     return jsonRes(200, { object: { sha: repo.head } })
   }
   r = rest.match(/^\/git\/trees\/([0-9a-f]+)$/)
@@ -156,7 +177,7 @@ async function pretendGithub(url, init) {
     return jsonRes(201, { sha: id })
   }
   if (rest === '/git/trees' && method === 'POST') {
-    const base = repo.trees.get(repo.commits.get(repo.head).tree)
+    const base = repo.trees.get(body.base_tree)
     const files = { ...base }
     for (const e of body.tree) {
       if (e.sha === null) delete files[e.path]
@@ -172,6 +193,13 @@ async function pretendGithub(url, init) {
     return jsonRes(201, { sha: id })
   }
   r = rest.match(/^\/git\/refs\/heads\/(.+)$/)
+  if (r && method === 'PATCH' && repo.branches[decodeURIComponent(r[1])]) {
+    const name = decodeURIComponent(r[1])
+    const commit = repo.commits.get(body.sha)
+    if (!commit || commit.parents[0] !== repo.branches[name]) return jsonRes(422, { message: 'Update is not a fast forward' })
+    repo.branches[name] = body.sha
+    return jsonRes(200, { object: { sha: body.sha } })
+  }
   if (r && method === 'PATCH') {
     if (gh.moveBeforeRefUpdate) {
       commitFiles(repo, { ...repo.files, 'someone-else.txt': 'x' }, repo.head, 'pushed by someone else')
@@ -216,6 +244,7 @@ async function pretendFetch(input, init = {}) {
     if (url.pathname === '/rest/v1/profiles') {
       if (init.headers?.apikey !== SERVICE_KEY) return jsonRes(401, {})
       const id = url.searchParams.get('id').replace('eq.', '')
+      if (url.searchParams.get('select') === 'username') return jsonRes(200, id in USERNAMES ? [{ username: USERNAMES[id] }] : [])
       return jsonRes(200, id in GITHUB_NAMES ? [{ github_username: GITHUB_NAMES[id] }] : [])
     }
   }
@@ -474,7 +503,7 @@ await test('a collaborator with no GitHub account reads the code of a private pr
   assert.equal((await call('t-awa', { action: 'tree', project: P_AWA })).status, 200)
 })
 
-await test('reading by project is refused for everybody else, and writing is never opened to it', async () => {
+await test('reading by project is refused for everybody else', async () => {
   // not a member of that project
   assert.deepEqual([(await call('t-cara', { action: 'tree', project: P_AWA })).status, (await call('t-cara', { action: 'tree', project: P_AWA })).json.error], [403, 'repo_not_allowed'])
   // a project that does not exist
@@ -484,10 +513,10 @@ await test('reading by project is refused for everybody else, and writing is nev
   // a bad project id
   assert.equal((await call('t-awa', { action: 'tree', project: 'not-a-uuid' })).status, 400)
   assert.equal(githubCallsMade(), 0)
-  // commit and the others ignore the project: they still need the caller's own GitHub account
+  // a collaborator can never write to the main code
   const base = headOfAwa()
   const c = await call('t-nolink', { action: 'commit', project: P_AWA, repo: 'appli', branch: 'main', base_sha: base, message: 'm', files: [{ path: 'a.txt', content: 'x' }] })
-  assert.deepEqual([c.status, c.json.error], [409, 'github_not_linked'])
+  assert.deepEqual([c.status, c.json.error], [403, 'branch_not_yours'])
   assert.equal(headOfAwa(), base)
   const a = await call('t-nolink', { action: 'adopt', project: P_AWA, repo: 'appli' })
   assert.equal(a.status, 409)
@@ -522,6 +551,80 @@ await test('when GitHub is down the member gets a clear error, not a crash', asy
   const r = await call('t-awa', { action: 'tree', repo: 'appli' })
   assert.ok([500, 502].includes(r.status))
   assert.ok(r.json.error)
+})
+
+await test('branches: the owner and a collaborator list them, a stranger cannot, and the default one is named', async () => {
+  gh.repos['awa/appli'].branches['ndeye_k/fix'] = headOfAwa()
+  for (const who of ['t-awa', 't-nolink']) {
+    const r = await call(who, { action: 'branches', project: P_AWA })
+    assert.deepEqual([r.status, r.json.default_branch, r.json.branches], [200, 'main', ['main', 'ndeye_k/fix']])
+  }
+  assert.equal((await call('t-cara', { action: 'branches', project: P_AWA })).status, 403)
+  assert.equal((await call('t-awa', { action: 'branches' })).status, 400)
+  assert.equal((await call('t-awa', { action: 'branches', repo: 'appli' })).status, 200)
+})
+
+await test('tree of another branch, and the default branch is always reported', async () => {
+  const repo = gh.repos['awa/appli']
+  const side = commitSide(repo, { 'main.py': 'side\n' }, repo.head, 'side work')
+  repo.branches['ndeye_k/fix'] = side
+  const r = await call('t-nolink', { action: 'tree', project: P_AWA, branch: 'ndeye_k/fix' })
+  assert.deepEqual([r.status, r.json.branch, r.json.default_branch, r.json.head], [200, 'ndeye_k/fix', 'main', side])
+  const main = await call('t-nolink', { action: 'tree', project: P_AWA })
+  assert.deepEqual([main.json.branch, main.json.default_branch, main.json.head], ['main', 'main', repo.head])
+  assert.equal((await call('t-awa', { action: 'tree', project: P_AWA, branch: 'nope' })).json.error, 'branch_not_found')
+  assert.equal((await call('t-awa', { action: 'tree', project: P_AWA, branch: 'a b;x' })).status, 400)
+})
+
+await test('a collaborator saves to a new branch of their own: the branch is made and main does not move', async () => {
+  const base = headOfAwa()
+  const r = await call('t-nolink', { action: 'commit', project: P_AWA, branch: 'ndeye_k/fix-readme', create_from: 'main', base_sha: base, message: 'Fix', files: [{ path: 'main.py', content: 'fixed\n' }] })
+  assert.equal(r.status, 200)
+  const repo = gh.repos['awa/appli']
+  assert.equal(repo.head, base)
+  assert.equal(repo.branches['ndeye_k/fix-readme'], r.json.commit_sha)
+  assert.equal(repo.commits.get(r.json.commit_sha).message.endsWith('Saved from jaajef.tech by ndeye_k'), true)
+  // saving again on their own branch needs the branch's own latest commit
+  const again = await call('t-nolink', { action: 'commit', project: P_AWA, branch: 'ndeye_k/fix-readme', base_sha: r.json.commit_sha, message: 'More', files: [{ path: 'a.txt', content: 'x' }] })
+  assert.equal(again.status, 200)
+  assert.equal(repo.head, base)
+})
+
+await test('a collaborator is refused outside their own branches, before GitHub writes anything', async () => {
+  const base = headOfAwa()
+  const before = githubCallsMade()
+  for (const branch of ['main', 'awa_dev/work', 'ndeye_k', 'ndeye_k/', 'ndeye_kx/work', 'ndeye_k/../main', 'ndeye_k//x']) {
+    const r = await call('t-nolink', { action: 'commit', project: P_AWA, branch, create_from: 'main', base_sha: base, message: 'x', files: [{ path: 'a.txt', content: 'x' }] })
+    assert.deepEqual([r.status, r.json.error], [403, 'branch_not_yours'], branch)
+  }
+  assert.equal(Object.keys(gh.repos['awa/appli'].branches).length, 0)
+  assert.equal(githubCallsMade() - before, 0)
+  // a stranger is refused too
+  assert.equal((await call('t-cara', { action: 'commit', project: P_AWA, branch: 'cara/x', create_from: 'main', base_sha: base, message: 'x', files: [{ path: 'a.txt', content: 'x' }] })).status, 403)
+})
+
+await test('the owner saves to any branch, including main and a new branch', async () => {
+  const base = headOfAwa()
+  const side = await call('t-awa', { action: 'commit', project: P_AWA, branch: 'idea', create_from: 'main', base_sha: base, message: 'Try', files: [{ path: 'x.txt', content: '1' }] })
+  assert.equal(side.status, 200)
+  assert.equal(headOfAwa(), base)
+  assert.equal(gh.repos['awa/appli'].commits.get(side.json.commit_sha).message.endsWith('by @awa'), true)
+  const main = await call('t-awa', { action: 'commit', project: P_AWA, branch: 'main', base_sha: base, message: 'Direct', files: [{ path: 'y.txt', content: '2' }] })
+  assert.equal(main.status, 200)
+  assert.equal(headOfAwa(), main.json.commit_sha)
+})
+
+await test('making a branch is refused if it already exists or if the start branch moved', async () => {
+  const base = headOfAwa()
+  gh.repos['awa/appli'].branches['ndeye_k/taken'] = base
+  const taken = await call('t-nolink', { action: 'commit', project: P_AWA, branch: 'ndeye_k/taken', create_from: 'main', base_sha: base, message: 'x', files: [{ path: 'a.txt', content: 'x' }] })
+  assert.deepEqual([taken.status, taken.json.error], [409, 'branch_exists'])
+  const stale = await call('t-nolink', { action: 'commit', project: P_AWA, branch: 'ndeye_k/new', create_from: 'main', base_sha: 'a'.repeat(40), message: 'x', files: [{ path: 'a.txt', content: 'x' }] })
+  assert.deepEqual([stale.status, stale.json.error], [409, 'branch_moved'])
+  assert.equal(gh.repos['awa/appli'].branches['ndeye_k/new'], undefined)
+  const missing = await call('t-awa', { action: 'commit', project: P_AWA, branch: 'zzz', create_from: 'ghost', base_sha: base, message: 'x', files: [{ path: 'a.txt', content: 'x' }] })
+  assert.equal(missing.json.error, 'branch_not_found')
+  assert.equal((await call('t-awa', { action: 'commit', project: P_AWA, branch: 'zzz', create_from: 'a b', base_sha: base, message: 'x', files: [{ path: 'a.txt', content: 'x' }] })).status, 400)
 })
 
 console.log(`ALL ${n} REPO EDITOR TESTS PASSED`)
