@@ -247,3 +247,11 @@ select { background: var(--panel); color: var(--fg); border: 1px solid var(--lin
 .repo-main { flex: 1; min-width: 0; display: grid; gap: 6px; }
 .repo-main h3, .repo-main p { margin: 0; }
 .repo-row > .btn, .repo-row > .tag { flex: none; }
+
+/* Language switch */
+.lang-switch { display: inline-flex; border: 1px solid var(--line-strong); border-radius: var(--radius-pill); overflow: hidden; }
+.lang-switch button { background: none; border: 0; color: var(--fg-muted); padding: 4px 12px; font: 600 12px var(--font-mono); cursor: pointer; }
+.lang-switch button.lang-on { background: var(--accent-soft); color: var(--accent); }
+.lang-switch button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.lang-floating { position: fixed; top: 16px; right: 16px; z-index: 10; background: rgba(8, 14, 28, 0.85); }
+.lang-in-menu { margin: 6px 12px; justify-self: start; }

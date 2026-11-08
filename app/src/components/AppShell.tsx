@@ -3,11 +3,12 @@ import { NavLink } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { Logo } from './Logo'
 import { Icon } from './Icon'
+import { LanguageSwitch } from './LanguageSwitch'
 import { fr } from '../i18n/fr'
 import { getMyStaffAccess } from '../lib/api'
 import { unreadNotificationCount } from '../lib/api'
 
-const RAIL: { to: string; icon: string; label: string }[] = [
+const rail = (): { to: string; icon: string; label: string }[] => [
   { to: '/blog', icon: 'blog', label: fr.nav.blog },
   { to: '/messages', icon: 'messages', label: fr.nav.messages },
   { to: '/communautes', icon: 'communities', label: fr.nav.communities },
@@ -38,7 +39,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="shell">
       <header className="topbar">
         <NavLink to="/cite" aria-label={fr.appName}><Logo size={20} /></NavLink>
-        <nav aria-label="Navigation principale" className="topnav">
+        <nav aria-label={fr.nav.main} className="topnav">
           <NavLink to="/cite" end>{fr.nav.city}</NavLink>
           <NavLink to="/projets">{fr.nav.projects}</NavLink>
           <NavLink to="/quetes">{fr.nav.quests}</NavLink>
@@ -61,6 +62,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <NavLink to="/parametres">{fr.nav.settings}</NavLink>
               <NavLink to="/guide">{fr.nav.guide}</NavLink>
               {isStaff && <NavLink to="/equipe">{fr.staff.navLink}</NavLink>}
+              <LanguageSwitch className="lang-in-menu" />
               <button type="button" onClick={() => void signOut()}>{fr.home.signOut}</button>
             </div>
           </details>
@@ -68,7 +70,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </header>
       <div className="shell-frame">
         <nav aria-label={fr.nav.railLabel} className="rail">
-          {RAIL.map((r) => (
+          {rail().map((r) => (
             <NavLink key={r.to} to={r.to} className="rail-link" title={r.label}>
               <Icon name={r.icon} />
               <span>{r.label}</span>

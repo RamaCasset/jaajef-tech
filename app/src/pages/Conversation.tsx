@@ -1,3 +1,4 @@
+import { dateLocale } from '../i18n/lang'
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
@@ -98,7 +99,7 @@ export function Conversation() {
                 return (
                   <li key={m.id} data-mine={mine ? 'true' : 'false'} style={{ padding: '8px 0', borderTop: '1px solid var(--line)' }}>
                     <div className="tiny muted">
-                      {mine ? fr.messages.youLabel : name} · {new Date(m.created_at).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' })}
+                      {mine ? fr.messages.youLabel : name} · {new Date(m.created_at).toLocaleString(dateLocale(), { dateStyle: 'short', timeStyle: 'short' })}
                     </div>
                     {m.deleted_at ? <em className="muted">{fr.messages.deleted}</em> : (
                       <>

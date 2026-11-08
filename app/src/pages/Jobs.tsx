@@ -1,3 +1,4 @@
+import { dateLocale } from '../i18n/lang'
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
@@ -181,7 +182,7 @@ export function Jobs() {
                 <article key={a.id} className="panel job-card">
                   <div className="job-main">
                     <h3><Link to={`/jobs/${a.offer_id}`}>{a.offer_title}</Link></h3>
-                    <p className="muted">{a.employer_name} · {fr.jobs.appliedOn(new Date(a.applied_at).toLocaleDateString('fr-FR'))}</p>
+                    <p className="muted">{a.employer_name} · {fr.jobs.appliedOn(new Date(a.applied_at).toLocaleDateString(dateLocale()))}</p>
                   </div>
                   <span className="tag">{fr.jobs.statuses[a.status]}</span>
                   {a.status !== 'withdrawn' && a.status !== 'declined' ? (

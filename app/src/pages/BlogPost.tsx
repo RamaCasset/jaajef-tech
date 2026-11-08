@@ -1,3 +1,4 @@
+import { dateLocale } from '../i18n/lang'
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
@@ -74,7 +75,7 @@ export function BlogPost() {
               <h1 className="page-title">{post.title}</h1>
               <p className="muted tiny">
                 <Link to={`/profil/${post.author_username}`}>{fr.blog.by(post.author_name || post.author_username)}</Link>
-                {post.published_at ? ` · ${new Date(post.published_at).toLocaleDateString('fr-FR')}` : ''}
+                {post.published_at ? ` · ${new Date(post.published_at).toLocaleDateString(dateLocale())}` : ''}
               </p>
               <div className="project-tags">{post.tags.map((t) => <span key={t} className="tag">{t}</span>)}</div>
               {post.author_id === me && <p><Link className="btn" to={`/blog/modifier/${post.id}`}>{fr.blog.edit}</Link></p>}
@@ -99,7 +100,7 @@ export function BlogPost() {
                 <ul style={{ listStyle: 'none', padding: 0 }}>
                   {comments.map((c) => (
                     <li key={c.id} style={{ padding: '8px 0', borderTop: '1px solid var(--line)' }}>
-                      <div className="tiny muted"><Link to={`/profil/${c.author_username}`}>@{c.author_username}</Link> · {new Date(c.created_at).toLocaleDateString('fr-FR')}</div>
+                      <div className="tiny muted"><Link to={`/profil/${c.author_username}`}>@{c.author_username}</Link> · {new Date(c.created_at).toLocaleDateString(dateLocale())}</div>
                       <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{c.body}</p>
                       {(c.author_id === me || post.author_id === me) && (
                         <button type="button" className="btn" disabled={busy} onClick={() => void run(() => deleteBlogComment(c.id), reloadComments)}>{fr.blog.commentDelete}</button>

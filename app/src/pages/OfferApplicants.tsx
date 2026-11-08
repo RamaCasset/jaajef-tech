@@ -1,3 +1,4 @@
+import { dateLocale } from '../i18n/lang'
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
@@ -88,7 +89,7 @@ export function OfferApplicants() {
               <div className="job-main">
                 <h3>{a.display_name} <span className="tag">{t.statuses[a.status]}</span></h3>
                 {a.headline && <p>{a.headline}</p>}
-                <p className="muted">{t.appliedOn(new Date(a.applied_at).toLocaleDateString('fr-FR'))}</p>
+                <p className="muted">{t.appliedOn(new Date(a.applied_at).toLocaleDateString(dateLocale()))}</p>
                 {a.skills.length > 0 && <p>{a.skills.slice(0, 6).map((k) => <span key={k} className="tag">{k}</span>)}</p>}
                 <p>
                   {a.status === 'submitted' && <><button type="button" className="btn" disabled={busy} aria-label={`${t.seen} : ${a.display_name}`} onClick={() => void setStatus(a, 'seen')}>{t.seen}</button>{' '}</>}

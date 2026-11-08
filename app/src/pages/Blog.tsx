@@ -1,3 +1,4 @@
+import { dateLocale } from '../i18n/lang'
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
@@ -60,7 +61,7 @@ export function Blog() {
           <article key={p.id} className="panel" style={{ marginBottom: 16 }}>
             <h2 style={{ marginTop: 0 }}><Link to={`/blog/${p.slug}`}>{p.title}</Link></h2>
             <p className="muted tiny">
-              {fr.blog.by(p.author_username)} · {new Date(p.published_at).toLocaleDateString('fr-FR')}
+              {fr.blog.by(p.author_username)} · {new Date(p.published_at).toLocaleDateString(dateLocale())}
             </p>
             {p.summary && <p>{p.summary}</p>}
             <div className="project-tags">{p.tags.map((t) => <span key={t} className="tag">{t}</span>)}</div>

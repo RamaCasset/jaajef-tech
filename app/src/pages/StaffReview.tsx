@@ -1,3 +1,4 @@
+import { dateLocale } from '../i18n/lang'
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
@@ -30,7 +31,7 @@ function ReviewCard({ item, onDone }: { item: ReviewItem; onDone: () => void }) 
     <article className="panel" style={{ marginBottom: 16 }}>
       <h3 style={{ marginTop: 0 }}><span className="tag">{t.kinds[item.kind]}</span> {item.title}</h3>
       <p className="tiny muted">
-        <Link to={`/profil/${item.owner_username}`}>{t.by(item.owner_username)}</Link> · {new Date(item.created_at).toLocaleDateString('fr-FR')}
+        <Link to={`/profil/${item.owner_username}`}>{t.by(item.owner_username)}</Link> · {new Date(item.created_at).toLocaleDateString(dateLocale())}
       </p>
       {item.kind === 'offer' && <p className="tiny muted">{t.approveOfferHint}</p>}
       {error && <div className="alert" role="alert">{error}</div>}
