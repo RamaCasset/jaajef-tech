@@ -17,6 +17,11 @@ const PATHS: Record<string, string> = {
   terminal: 'M4 5h16v14H4V5Zm4 4 3 3-3 3m5 0h4',
   back: 'M19 12H5m6-6-6 6 6 6',
   forward: 'M5 12h14m-6-6 6 6-6 6',
+  save: 'M5 4h11l3 3v13H5V4Zm3 0v5h7V4M8 20v-6h8v6',
+  trash: 'M5 7h14M10 11v6m4-6v6M9 7l1-3h4l1 3M7 7l1 13h8l1-13',
+  panel: 'M4 6h16M4 12h16M4 18h16',
+  folder: 'M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6Z',
+  file: 'M7 3h7l5 5v13H7V3Zm7 0v5h5',
   search: 'M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14Zm5-2 4 4',
 }
 

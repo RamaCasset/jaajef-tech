@@ -2,6 +2,7 @@ import { dateLocale } from '../i18n/lang'
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
+import { ProjectFiles } from '../components/ProjectFiles'
 import { ReportButton } from '../components/ReportButton'
 import { useAuth } from '../auth/AuthContext'
 import { fr } from '../i18n/fr'
@@ -92,8 +93,6 @@ export function ProjectPage() {
               </p>
               <div className="project-actions">
                 <a className="chip-link" href={`https://github.com/${project.github_owner}/${project.github_repo}`} target="_blank" rel="noreferrer">{fr.projectPage.github}</a>
-                <Link className="chip-link" to={`/projets/${project.id}/code`}>{fr.repoViewer.link}</Link>
-                {isOwner && <Link className="chip-link chip-link-main" to={`/projets/${project.id}/modifier`}>{fr.editor.link}</Link>}
               </div>
               {project.summary && <p>{project.summary}</p>}
               <div className="project-tags">
@@ -113,6 +112,8 @@ export function ProjectPage() {
             </header>
             {error && <div className="alert" role="alert">{error}</div>}
             {notice && <div className="notice" role="status">{notice}</div>}
+
+            <div className="stack-gap"><ProjectFiles project={project} dir="" canEdit={isOwner} /></div>
 
             <section className="panel panel-pad stack-gap">
               <h2>{fr.projectPage.collabTitle}</h2>

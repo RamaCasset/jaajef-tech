@@ -411,3 +411,50 @@ select { background: var(--panel); color: var(--fg); border: 1px solid var(--lin
 @media (max-width: 860px) { .editor-layout { grid-template-columns: 1fr; } }
 .panel textarea { width: 100%; box-sizing: border-box; background: #060b17; border: 1px solid var(--line); border-radius: 12px; color: var(--fg); padding: 12px 14px; font: inherit; }
 .panel textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Repository: file table, file view, side panel */
+.files-panel { overflow: hidden; }
+.files-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.files-head h2 { margin: 0; font-size: 16px; }
+.files-new { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.files-new input { background: #060b17; border: 1px solid var(--line); border-radius: 10px; color: var(--fg); padding: 8px 12px; font: inherit; min-width: 260px; }
+.files-pad { padding: 14px 20px; margin: 0; }
+.files-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.files-table th { text-align: left; font: 500 12px var(--font-body); color: var(--fg-muted); padding: 10px 20px; border-bottom: 1px solid var(--line); background: #0b1120; }
+.files-table td { padding: 12px 20px; border-bottom: 1px solid var(--line); }
+.files-table tr:last-child td { border-bottom: 0; }
+.files-table tbody tr:hover { background: rgba(255, 255, 255, 0.03); }
+.files-name { display: inline-flex; align-items: center; gap: 10px; color: var(--fg); text-decoration: none; }
+.files-name:hover { color: var(--accent); }
+.files-name svg { color: var(--fg-muted); }
+.files-msg { width: 45%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 0; }
+.files-date { text-align: right; white-space: nowrap; width: 1%; }
+.files-table th.files-date { text-align: right; }
+.crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; margin-bottom: 16px; font: 15px var(--font-mono); }
+.crumbs a { color: var(--accent); text-decoration: none; }
+.crumbs a:hover { text-decoration: underline; }
+.crumbs-github { margin-left: auto; font: 13px var(--font-body); }
+.repo-view { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; align-items: start; }
+.repo-view-panel { grid-template-columns: minmax(0, 1fr) 280px; }
+.file-bar { display: flex; align-items: center; gap: 14px; padding: 10px 16px; border-bottom: 1px solid var(--line); background: #0e1526; }
+.file-path { font: 13px var(--font-mono); color: var(--fg); overflow-wrap: anywhere; }
+.file-actions { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+.file-sep { width: 1px; height: 20px; background: var(--line); margin: 0 4px; }
+.icon-btn { width: 34px; height: 34px; display: inline-grid; place-items: center; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--fg); cursor: pointer; }
+.icon-btn:hover:not(:disabled) { border-color: var(--line-strong); }
+.icon-btn:disabled { opacity: 0.4; cursor: default; }
+.icon-btn-on { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.icon-btn-danger:hover:not(:disabled) { border-color: var(--danger); color: var(--danger); }
+.icon-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.commit-box { display: grid; gap: 10px; padding: 16px 20px; border-bottom: 1px solid var(--line); background: #0b1324; }
+.commit-box h3 { margin: 0; font-size: 15px; }
+.commit-box p { margin: 0; }
+.commit-box input { background: #060b17; border: 1px solid var(--line); border-radius: 10px; color: var(--fg); padding: 10px 14px; font: inherit; }
+.commit-actions { display: flex; gap: 10px; justify-content: flex-end; }
+.btn-danger { background: var(--danger); border-color: var(--danger); color: #fff; }
+.repo-panel { padding: 16px 12px; }
+.repo-panel h2 { font-size: 14px; margin: 0 8px 8px; }
+.repo-panel .file-tree { max-height: 560px; }
+.repo-panel .file-row { display: block; text-decoration: none; }
+@media (max-width: 960px) { .repo-view-panel { grid-template-columns: minmax(0, 1fr); } }
+.crumbs [aria-hidden='true'] { margin: 0 8px; color: var(--fg-muted); white-space: pre; }
