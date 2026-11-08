@@ -658,3 +658,15 @@ select { appearance: none; -webkit-appearance: none; background-color: var(--pan
 .proposal-list .history-main { display: grid; gap: 6px; }
 .proposal-list .history-side { align-items: center; flex-wrap: wrap; justify-content: flex-end; }
 .proposal-confirm { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 4px; }
+
+/* Several open files: a row of tabs above the code, with a dot on files that have unsaved changes. */
+.editor-tabs-bar { display: flex; gap: 2px; overflow-x: auto; padding: 0 12px; border-bottom: 1px solid var(--line); }
+.editor-tabs-bar .editor-tab { min-height: 40px; padding: 0 4px 0 12px; flex: 0 0 auto; }
+.editor-tabs-bar .editor-tab a { display: inline-flex; align-items: center; gap: 8px; color: inherit; text-decoration: none; padding: 8px 0; }
+.editor-tab-removed { text-decoration: line-through; opacity: 0.7; }
+.file-mark { margin-left: auto; padding-left: 8px; color: #f0a030; font-weight: 700; }
+.file-row-new .file-mark { color: var(--accent); }
+.file-row-deleted .file-mark { color: #e5484d; }
+.change-list { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 6px; }
+.change-list li { overflow-wrap: anywhere; }
+.change-list code { font: 13px var(--font-mono); }

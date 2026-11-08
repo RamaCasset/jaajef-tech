@@ -202,10 +202,11 @@ describe('Repository: editing, saving and deleting', () => {
   it('deletes a file after a description, then returns to its folder', async () => {
     mount('/projets/p1/code?fichier=src%2Futil.py')
     await userEvent.click(await screen.findByRole('button', { name: 'Supprimer ce fichier' }))
-    expect(await screen.findByText('Supprimer ce fichier ?')).toBeInTheDocument()
-    expect(screen.getByText(/src\/util\.py sera supprimé/)).toBeInTheDocument()
+    expect(await screen.findByText(/Ce fichier sera supprimé quand vous enregistrerez/)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+    expect(screen.getByText('src/util.py', { selector: 'code' })).toBeInTheDocument()
     await userEvent.type(screen.getByLabelText('Décrivez votre modification'), 'Retire util')
-    await userEvent.click(screen.getByRole('button', { name: 'Supprimer' }))
+    await userEvent.click(screen.getAllByRole('button', { name: 'Enregistrer' }).find((b) => (b as HTMLButtonElement).type === 'submit') as HTMLElement)
     await waitFor(() => expect(api.editorCommitTo).toHaveBeenCalledWith('p1', { branch: 'main', createFrom: undefined, baseSha: HEAD, message: 'Retire util', files: [{ path: 'src/util.py', delete: true }] }))
     expect(await screen.findByRole('table')).toBeInTheDocument()
     expect(screen.getByTestId('where')).toHaveTextContent('dossier=src')
@@ -430,5 +431,56 @@ describe('Repository: proposing changes from the site', () => {
     await userEvent.type(screen.getByLabelText('Titre de la proposition'), 'T')
     await userEvent.click(screen.getByRole('button', { name: 'Envoyer la proposition' }))
     expect(await screen.findByRole('alert')).toHaveTextContent("Cette branche n'a aucun changement à proposer.")
+  })
+})
+
+describe('Repository: several files in one save', () => {
+  it('keeps edits across tabs, marks unsaved tabs, and saves all files with one description', async () => {
+    mount('/projets/p1/code?fichier=main.py')
+    await userEvent.click(await screen.findByRole('button', { name: 'Modifier ce fichier' }))
+    const code = await screen.findByLabelText('code main.py')
+    await waitFor(() => expect(code).not.toHaveAttribute('readonly'))
+    await userEvent.type(code, 'A')
+    const tabs = screen.getByRole('tablist')
+    expect(within(tabs).getByRole('tab', { name: /main\.py/ })).toBeInTheDocument()
+    expect(within(tabs).getAllByRole('img', { name: 'modifié' })).toHaveLength(1)
+    // go to another file through the file list: the first edit is kept
+    await userEvent.click(within(screen.getByRole('complementary')).getByRole('button', { name: /src/ }))
+    await userEvent.click(within(screen.getByRole('complementary')).getByRole('link', { name: /util\.py/ }))
+    const other = await screen.findByLabelText('code src/util.py')
+    await userEvent.type(other, 'B')
+    expect(within(screen.getByRole('tablist')).getAllByRole('img', { name: 'modifié' })).toHaveLength(2)
+    await userEvent.click(within(screen.getByRole('tablist')).getByRole('tab', { name: /main\.py/ }))
+    expect(await screen.findByLabelText('code main.py')).toHaveValue('contenu de main.pyA')
+    await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+    await userEvent.type(screen.getByLabelText('Décrivez votre modification'), 'Deux fichiers')
+    await userEvent.click(screen.getAllByRole('button', { name: 'Enregistrer' }).find((b) => (b as HTMLButtonElement).type === 'submit') as HTMLElement)
+    await waitFor(() => expect(api.editorCommitTo).toHaveBeenCalledTimes(1))
+    expect(api.editorCommitTo.mock.calls[0][1].files).toEqual([
+      { path: 'main.py', content: 'contenu de main.pyA' },
+      { path: 'src/util.py', content: 'contenu de src/util.pyB' },
+    ])
+    expect(api.editorCommitTo.mock.calls[0][1].message).toBe('Deux fichiers')
+    await waitFor(() => expect(within(screen.getByRole('tablist')).queryAllByRole('img', { name: 'modifié' })).toHaveLength(0))
+  })
+
+  it('Ctrl+S opens the save box only when there is something to save', async () => {
+    mount('/projets/p1/code?fichier=main.py')
+    await userEvent.click(await screen.findByRole('button', { name: 'Modifier ce fichier' }))
+    const code = await screen.findByLabelText('code main.py')
+    await waitFor(() => expect(code).not.toHaveAttribute('readonly'))
+    await userEvent.keyboard('{Control>}s{/Control}')
+    expect(screen.queryByLabelText('Décrivez votre modification')).toBeNull()
+    await userEvent.type(code, 'A')
+    await userEvent.keyboard('{Control>}s{/Control}')
+    expect(await screen.findByLabelText('Décrivez votre modification')).toBeInTheDocument()
+  })
+
+  it('deleting a file keeps it listed as deleted and can be undone', async () => {
+    mount('/projets/p1/code?fichier=main.py')
+    await userEvent.click(await screen.findByRole('button', { name: 'Supprimer ce fichier' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Annuler la suppression' }))
+    expect(await screen.findByLabelText('code main.py')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Enregistrer' })).toBeDisabled()
   })
 })
