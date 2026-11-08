@@ -42,3 +42,5 @@ A checklist. Nothing here is done yet unless it says so. No platform can be prom
 - Use a GitHub app where each member picks which repositories to allow, with permission limited to file changes.
 - Keep each member's GitHub access on the server only, never in the browser.
 - Do not store members' code on the platform.
+- The code editor (Monaco) loads its files from a public CDN (jsDelivr) when the editor page opens. Before launch, host these files ourselves, or allow that address in the site's content security rules, so the editor does not depend on a third party.
+- The editor saves commits under the app's name (the member's name appears in the message footer). Decide if that is acceptable, or if commits should carry the member's own name.

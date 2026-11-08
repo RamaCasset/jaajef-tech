@@ -1383,3 +1383,33 @@ export async function getRepoFile(owner: string, repo: string, branch: string, p
 }
 const BINARY = /\.(png|jpe?g|gif|webp|ico|svg|pdf|zip|gz|tar|woff2?|ttf|otf|mp[34]|mov|wasm|exe|bin|so|dll|class|jar|lock)$/i
 export const isViewable = (e: RepoEntry) => e.type === 'blob' && !BINARY.test(e.path) && e.size <= MAX_VIEW_BYTES
+
+// ---- Code editor (saves to GitHub through the repo-editor function) ------------------------------------
+export class EditorError extends Error {
+  code: string
+  constructor(code: string) {
+    super(code)
+    this.code = code
+  }
+}
+async function callEditor<T>(body: Record<string, unknown>): Promise<T> {
+  const { data, error } = await supabase.functions.invoke('repo-editor', { body })
+  if (error) {
+    let reason = 'unknown'
+    const context = (error as { context?: unknown }).context
+    if (context instanceof Response) {
+      try { reason = String((await context.json())?.error ?? 'unknown') } catch { /* keep unknown */ }
+    }
+    throw new EditorError(reason)
+  }
+  return data as T
+}
+export type EditorStatus = { installed: boolean; install_url: string; github_name: string }
+export type EditorTree = { branch: string; head: string | null; entries: RepoEntry[]; truncated: boolean }
+export type FileChange = { path: string; content?: string; delete?: boolean }
+export const editorStatus = () => callEditor<EditorStatus>({ action: 'status' })
+export const editorTree = (repo: string) => callEditor<EditorTree>({ action: 'tree', repo })
+export const editorFile = (repo: string, path: string, ref: string) =>
+  callEditor<{ path: string; content: string }>({ action: 'file', repo, path, ref })
+export const editorCommit = (repo: string, branch: string, baseSha: string, message: string, files: FileChange[]) =>
+  callEditor<{ commit_sha: string; html_url: string }>({ action: 'commit', repo, branch, base_sha: baseSha, message, files })
