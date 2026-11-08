@@ -30,7 +30,7 @@ const DEFAULT_RUNNER_TIMEOUT_MS = 20_000
 
 const CORS_HEADERS = {
   'access-control-allow-origin': '*',
-  'access-control-allow-headers': 'authorization, content-type, apikey',
+  'access-control-allow-headers': 'authorization, content-type, apikey, x-client-info',
   'access-control-allow-methods': 'POST, OPTIONS',
 }
 

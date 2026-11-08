@@ -29,7 +29,7 @@ const MAX_TOTAL_CHARS = 3_000_000
 
 const CORS_HEADERS = {
   'access-control-allow-origin': '*',
-  'access-control-allow-headers': 'authorization, content-type, apikey',
+  'access-control-allow-headers': 'authorization, content-type, apikey, x-client-info',
   'access-control-allow-methods': 'POST, OPTIONS',
 }
 
