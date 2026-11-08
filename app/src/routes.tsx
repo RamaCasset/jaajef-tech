@@ -25,8 +25,7 @@ import { OfferApplicants } from './pages/OfferApplicants'
 import { Talents } from './pages/Talents'
 import { TalentProfile } from './pages/TalentProfile'
 import { CvPortfolio } from './pages/CvPortfolio'
-import { RepoViewer } from './pages/RepoViewer'
-import { Editor } from './pages/Editor'
+import { RepoBrowser } from './pages/RepoBrowser'
 import { Profile } from './pages/Profile'
 import { Souk } from './pages/Souk'
 import { Staff } from './pages/Staff'
@@ -90,8 +89,8 @@ export function AppRoutes() {
       <Route path="/quetes" element={<RequireAuth><RequireCharacter><Quests /></RequireCharacter></RequireAuth>} />
       <Route path="/quetes/:slug" element={<RequireAuth><RequireCharacter><Quest /></RequireCharacter></RequireAuth>} />
       <Route path="/projets/ajouter" element={<RequireAuth><RequireCharacter><ImportProject /></RequireCharacter></RequireAuth>} />
-      <Route path="/projets/:id/modifier" element={<RequireAuth><RequireCharacter><Editor /></RequireCharacter></RequireAuth>} />
-      <Route path="/projets/:id/code" element={<RequireAuth><RequireCharacter><RepoViewer /></RequireCharacter></RequireAuth>} />
+      <Route path="/projets/:id/modifier" element={<RequireAuth><RequireCharacter><RepoBrowser /></RequireCharacter></RequireAuth>} />
+      <Route path="/projets/:id/code" element={<RequireAuth><RequireCharacter><RepoBrowser /></RequireCharacter></RequireAuth>} />
       <Route path="/projets/:id" element={<RequireAuth><RequireCharacter><ProjectPage /></RequireCharacter></RequireAuth>} />
       <Route path="/projets" element={<RequireAuth><RequireCharacter><Projects /></RequireCharacter></RequireAuth>} />
       <Route path="/equipe" element={<RequireAuth><RequireCharacter><Staff /></RequireCharacter></RequireAuth>} />

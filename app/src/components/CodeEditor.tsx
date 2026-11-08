@@ -10,7 +10,7 @@ const LANGUAGES: Record<string, string> = {
 }
 export const languageOf = (path: string) => LANGUAGES[path.split('.').pop()?.toLowerCase() ?? ''] ?? 'plaintext'
 
-export function CodeEditor({ path, value, onChange }: { path: string; value: string; onChange: (value: string) => void }) {
+export function CodeEditor({ path, value, onChange, readOnly = false }: { path: string; value: string; onChange: (value: string) => void; readOnly?: boolean }) {
   return (
     <Suspense fallback={<p className="muted">…</p>}>
       <Monaco
@@ -20,7 +20,7 @@ export function CodeEditor({ path, value, onChange }: { path: string; value: str
         value={value}
         theme="vs-dark"
         onChange={(v) => onChange(v ?? '')}
-        options={{ minimap: { enabled: false }, fontSize: 14, tabSize: 2, scrollBeyondLastLine: false, automaticLayout: true }}
+        options={{ readOnly, minimap: { enabled: false }, fontSize: 14, tabSize: 2, scrollBeyondLastLine: false, automaticLayout: true }}
       />
     </Suspense>
   )
