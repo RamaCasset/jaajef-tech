@@ -649,3 +649,12 @@ select { appearance: none; -webkit-appearance: none; background-color: var(--pan
 .history-main { display: grid; gap: 4px; min-width: 0; }
 .history-main strong { overflow-wrap: anywhere; }
 .history-side { display: flex; align-items: center; gap: 12px; flex: none; }
+
+.crumbs-btn { margin-left: 12px; padding: 6px 12px; }
+.proposal-form { display: grid; gap: 10px; margin-bottom: 16px; }
+.proposal-form h2, .proposal-form p { margin: 0; }
+.proposal-form input, .proposal-form textarea { background: #060b17; border: 1px solid var(--line); border-radius: 10px; color: var(--fg); padding: 10px 14px; font: inherit; }
+.proposal-list li { align-items: flex-start; }
+.proposal-list .history-main { display: grid; gap: 6px; }
+.proposal-list .history-side { align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.proposal-confirm { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 4px; }

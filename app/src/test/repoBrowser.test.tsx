@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const api = vi.hoisted(() => ({
   getProjectFull: vi.fn(), loadRepoTree: vi.fn(), loadRepoFile: vi.fn(), getLastCommits: vi.fn(),
-  editorStatus: vi.fn(), editorTreeOf: vi.fn(), editorCommitTo: vi.fn(), listCollaborators: vi.fn(), loadBranches: vi.fn(),
+  editorStatus: vi.fn(), editorTreeOf: vi.fn(), editorCommitTo: vi.fn(), listCollaborators: vi.fn(), loadBranches: vi.fn(), editorPropose: vi.fn(),
 }))
 vi.mock('../lib/api', async () => {
   const real = await vi.importActual<typeof import('../lib/api')>('../lib/api')
@@ -303,11 +303,13 @@ describe('Repository: branches', () => {
   it('offers the pull request link only away from the main branch, and keeps the branch in the file links', async () => {
     mount('/projets/p1/code?fichier=main.py')
     await screen.findByRole('combobox', { name: 'Branche' })
-    expect(screen.queryByRole('link', { name: 'Ouvrir une pull request sur GitHub' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Proposer mes changements' })).toBeNull()
     document.body.innerHTML = ''
     api.loadRepoTree.mockResolvedValue(sideTree)
     mount('/projets/p1/code?fichier=main.py&branche=ndeye_k%2Ffix')
-    expect(await screen.findByRole('link', { name: 'Ouvrir une pull request sur GitHub' })).toHaveAttribute('href', 'https://github.com/awa/appli/compare/main...ndeye_k/fix?expand=1')
+    // a member proposes from the site; someone who is not a member is sent to GitHub's own page
+    expect(await screen.findByRole('button', { name: 'Proposer mes changements' })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Ouvrir une pull request sur GitHub' })).toBeNull()
     const panel = screen.getByRole('complementary', { name: 'Tous les fichiers' })
     expect(within(panel).getByRole('link', { name: 'README.md' })).toHaveAttribute('href', '/projets/p1/code?fichier=README.md&branche=ndeye_k%2Ffix')
   })
@@ -336,7 +338,7 @@ describe('Repository: branches', () => {
     expect(api.editorStatus).not.toHaveBeenCalled()
     expect(await screen.findByTestId('where')).toHaveTextContent('branche=ndeye_k%2Fcorrige-le-titre')
     // one in the saved notice and one in the bar above the code
-    expect(await screen.findAllByRole('link', { name: 'Ouvrir une pull request sur GitHub' })).toHaveLength(2)
+    expect(await screen.findAllByRole('button', { name: 'Proposer mes changements' })).toHaveLength(2)
   })
 
   it('a collaborator on their own branch saves there; on someone else\'s branch they must make a new one', async () => {
@@ -393,5 +395,40 @@ describe('Repository: branches', () => {
     await userEvent.type(screen.getByLabelText('Décrivez votre modification'), 'Pareil')
     await userEvent.click(submit())
     expect(await screen.findByText('Une branche porte déjà ce nom. Choisissez un autre nom.')).toBeInTheDocument()
+  })
+})
+
+describe('Repository: proposing changes from the site', () => {
+  beforeEach(() => {
+    asCollaborator()
+    api.loadRepoTree.mockResolvedValue(sideTree)
+  })
+
+  it('sends a proposal for the branch being viewed, and links to the proposals', async () => {
+    api.editorPropose.mockResolvedValue({ number: 4, url: 'https://github.com/awa/appli/pull/4', existed: false })
+    mount('/projets/p1/code?fichier=main.py&branche=ndeye_k%2Ffix')
+    await userEvent.click((await screen.findAllByRole('button', { name: 'Proposer mes changements' }))[0])
+    const send = screen.getByRole('button', { name: 'Envoyer la proposition' })
+    expect(send).toBeDisabled()
+    await userEvent.type(screen.getByLabelText('Titre de la proposition'), 'Corrige le titre')
+    await userEvent.type(screen.getByLabelText('Explication (facultatif)'), 'Le titre était faux')
+    await userEvent.click(send)
+    await waitFor(() => expect(api.editorPropose).toHaveBeenCalledWith('p1', { branch: 'ndeye_k/fix', title: 'Corrige le titre', body: 'Le titre était faux' }))
+    expect(await screen.findByText(/Proposition envoyée au propriétaire/)).toBeInTheDocument()
+    expect(screen.getAllByRole('link', { name: /propositions/i }).some((a) => a.getAttribute('href') === '/projets/p1/propositions')).toBe(true)
+  })
+
+  it('says when a proposal already exists, and explains a refusal', async () => {
+    api.editorPropose.mockResolvedValueOnce({ number: 4, url: 'u', existed: true }).mockRejectedValueOnce(new EditorError('nothing_to_propose'))
+    mount('/projets/p1/code?fichier=main.py&branche=ndeye_k%2Ffix')
+    const open = async () => userEvent.click((await screen.findAllByRole('button', { name: 'Proposer mes changements' }))[0])
+    await open()
+    await userEvent.type(screen.getByLabelText('Titre de la proposition'), 'T')
+    await userEvent.click(screen.getByRole('button', { name: 'Envoyer la proposition' }))
+    expect(await screen.findByText(/Une proposition existe déjà/)).toBeInTheDocument()
+    await open()
+    await userEvent.type(screen.getByLabelText('Titre de la proposition'), 'T')
+    await userEvent.click(screen.getByRole('button', { name: 'Envoyer la proposition' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent("Cette branche n'a aucun changement à proposer.")
   })
 })

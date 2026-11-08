@@ -6,7 +6,7 @@ own GitHub repository ("commit"). It needs a "GitHub App" (not an "OAuth App").
 
 How it stays safe:
 - Each member installs the app on GitHub themselves and picks which repositories it may touch.
-- The only permission it asks for is changing the files of those repositories ("Contents").
+- It asks for two permissions: changing the files of those repositories ("Contents") and managing proposals of changes ("Pull requests"), so members can propose and merge changes from the site.
 - The app's private key lives only in Supabase, never in the browser and never in the repository.
 - Every save goes through a small program on the server (`repo-editor`) which checks that the
   repository belongs to the signed-in member.
@@ -27,7 +27,7 @@ email or the GitHub repository.
 4. Callback URL: leave empty. Under "Expire user authorization tokens" and "Request user
    authorization (OAuth) during installation", leave everything off.
 5. Webhook: remove the tick from "Active". We do not use webhooks.
-6. Repository permissions: open the list and set **Contents** to **Read and write**.
+6. Repository permissions: open the list, set **Contents** to **Read and write** and **Pull requests** to **Read and write**.
    Leave every other permission at "No access". (Metadata: Read-only is added by GitHub itself.)
 7. "Where can this GitHub App be installed?": choose **Any account**.
 8. Click "Create GitHub App".
@@ -66,3 +66,12 @@ Supabase dashboard, Edge Functions, Secrets. Add:
 - A member can remove the app at any time on GitHub (Settings, Applications).
 - If the member changed the branch on GitHub meanwhile, the save is refused and they are told
   to reload; nothing is overwritten.
+
+
+## Adding the "Pull requests" permission to an app that already exists
+
+1. GitHub, Settings, Developer settings, GitHub Apps, your app, Permissions & events:
+   set **Pull requests** to **Read and write**, then save.
+2. GitHub then asks the account that installed the app to accept the new permission.
+   Open Settings, Applications, Installed GitHub Apps, the app, and press **Accept new permissions**.
+   Until this is done, the Propositions page says that a permission is missing.

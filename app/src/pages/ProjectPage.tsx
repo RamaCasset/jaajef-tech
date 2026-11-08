@@ -133,7 +133,7 @@ export function ProjectPage() {
             {error && <div className="alert" role="alert">{error}</div>}
             {notice && <div className="notice" role="status">{notice}</div>}
 
-            <div className="stack-gap"><ProjectFiles project={project} dir="" canEdit={isOwner} /></div>
+            <div className="stack-gap"><ProjectFiles project={project} dir="" canEdit={isOwner || iCollaborate} /></div>
 
             {isOwner && <ProjectShowcase projectId={project.id} userId={me} demoUrl={project.demo_url} coverPath={project.cover_path} onSaved={load} />}
 

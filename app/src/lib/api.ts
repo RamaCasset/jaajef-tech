@@ -1649,6 +1649,15 @@ export const editorFile = (repo: string, path: string, ref: string) =>
 export const editorCommit = (repo: string, branch: string, baseSha: string, message: string, files: FileChange[]) =>
   callEditor<{ commit_sha: string; html_url: string }>({ action: 'commit', repo, branch, base_sha: baseSha, message, files })
 
+export type Proposal = { number: number; title: string; branch: string; sha: string; author: string; url: string; created_at: string }
+export const editorProposals = (projectId: string) => callEditor<{ default_branch: string; pulls: Proposal[] }>({ action: 'prs', project: projectId })
+/** Proposes a branch to the main code. `existed` is true when a proposal for that branch was already open. */
+export const editorPropose = (projectId: string, o: { branch: string; title: string; body?: string }) =>
+  callEditor<{ number: number; url: string; existed: boolean }>({ action: 'pr_open', project: projectId, branch: o.branch, title: o.title, ...(o.body ? { body: o.body } : {}) })
+/** Merges exactly the version the owner was shown (`sha`): if the branch got a newer commit, nothing is merged. */
+export const editorMergeProposal = (projectId: string, number: number, sha: string) =>
+  callEditor<{ merged: boolean; url: string }>({ action: 'pr_merge', project: projectId, number, sha })
+export const editorCloseProposal = (projectId: string, number: number) => callEditor<{ closed: boolean }>({ action: 'pr_close', project: projectId, number })
 
 // ---- Reading a project's code and history (public repositories directly, private ones through the GitHub app) -----
 type RepoRef = { id: string; github_owner: string; github_repo: string; repo_private: boolean }
