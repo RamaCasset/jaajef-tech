@@ -607,9 +607,11 @@ export type MyRepo = {
   verified_at: string | null
   build_status: BuildStatus | null
   pinned_at: string | null
+  repo_private: boolean
+  repo_missing_at: string | null
 }
 
-const REPO_COLUMNS = 'id, github_owner, github_repo, title, summary, language, github_stars, github_forks, github_pushed_at, updated_at, is_public, verified_at, build_status, pinned_at'
+const REPO_COLUMNS = 'id, github_owner, github_repo, title, summary, language, github_stars, github_forks, github_pushed_at, updated_at, is_public, verified_at, build_status, pinned_at, repo_private, repo_missing_at'
 
 /** All of the member's own projects, hidden and unconfirmed ones included, with the stars given on the platform. */
 export async function listMyRepos(userId: string): Promise<MyRepo[]> {
@@ -623,10 +625,16 @@ export async function listMyRepos(userId: string): Promise<MyRepo[]> {
   return rows.map((r) => ({ ...r, star_count: counts.get(r.id) ?? 0 }))
 }
 
+/** Removes the project from the platform (never the GitHub repository), then deletes its cover file. */
+export async function removeProject(projectId: string): Promise<void> {
+  const cover = await rpc<string | null>('remove_project', { p_project: projectId })
+  if (cover) await supabase.storage.from('project-covers').remove([cover])
+}
+
 export const setProjectPinned = (projectId: string, pinned: boolean) => rpc<void>('set_project_pinned', { p_project: projectId, p_pinned: pinned })
 export const setProjectVisibility = (projectId: string, isPublic: boolean) => rpc<void>('update_project', { p_project: projectId, p_is_public: isPublic })
 
-export type StarredRepo = Omit<MyRepo, 'pinned_at' | 'updated_at' | 'build_status' | 'star_count'> & { owner_username: string }
+export type StarredRepo = Omit<MyRepo, 'pinned_at' | 'updated_at' | 'build_status' | 'star_count' | 'repo_private' | 'repo_missing_at'> & { owner_username: string }
 
 /** The projects the member starred (only the ones anyone can see). */
 export async function listMyStarred(userId: string): Promise<StarredRepo[]> {
@@ -1594,6 +1602,8 @@ export const editorRepos = () => callEditor<{ repos: EditorRepo[] }>({ action: '
 /** Lists a PRIVATE repository on the platform; it stays private. */
 export const editorAdopt = (repo: string, title: string, summary: string | null) =>
   callEditor<{ project_id: string }>({ action: 'adopt', repo, title, summary })
+/** Asks GitHub which private repositories the app can still see, and flags the ones that are gone. */
+export const editorPresence = () => callEditor<{ checked: boolean }>({ action: 'presence' })
 export const editorTree = (repo: string) => callEditor<EditorTree>({ action: 'tree', repo })
 export const editorFile = (repo: string, path: string, ref: string) =>
   callEditor<{ path: string; content: string }>({ action: 'file', repo, path, ref })

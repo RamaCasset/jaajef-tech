@@ -24,12 +24,14 @@ function Tags({ r }: { r: MyRepo }) {
   return (
     <>
       <span className={`tag ${r.is_public ? '' : 'tag-private'}`}>{r.is_public ? t.public : t.private}</span>
-      {!r.verified_at ? <span className="tag tag-pending">{t.pending}</span> : null}
+      {r.repo_missing_at ? <span className="tag tag-missing">{t.missing}</span> : !r.verified_at ? <span className="tag tag-pending">{t.pending}</span> : null}
     </>
   )
 }
 
-function RowMenu({ repo, onPin, onVisibility }: { repo: MyRepo; onPin: () => void; onVisibility: () => void }) {
+type Actions = { onPin: () => void; onVisibility: () => void; onRemove: () => void }
+
+function RowMenu({ repo, onPin, onVisibility, onRemove }: { repo: MyRepo } & Actions) {
   const t = fr.myRepos
   const [open, setOpen] = useState(false)
   const pick = (fn: () => void) => () => { setOpen(false); fn() }
@@ -39,15 +41,16 @@ function RowMenu({ repo, onPin, onVisibility }: { repo: MyRepo; onPin: () => voi
       {open ? (
         <div className="row-menu-pop" role="menu">
           <button type="button" role="menuitem" onClick={pick(onPin)}>{repo.pinned_at ? t.unpin : t.pin}</button>
-          <button type="button" role="menuitem" onClick={pick(onVisibility)}>{repo.is_public ? t.makePrivate : t.makePublic}</button>
+          {repo.repo_private ? null : <button type="button" role="menuitem" onClick={pick(onVisibility)}>{repo.is_public ? t.makePrivate : t.makePublic}</button>}
           <Link role="menuitem" to={`/projets/${repo.id}`} onClick={() => setOpen(false)}>{t.editShowcase}</Link>
+          <button type="button" role="menuitem" className="menu-danger" onClick={pick(onRemove)}>{t.remove}</button>
         </div>
       ) : null}
     </div>
   )
 }
 
-export function PinnedCard({ repo, onPin, onVisibility }: { repo: MyRepo; onPin: () => void; onVisibility: () => void }) {
+export function PinnedCard({ repo, onPin, onVisibility, onRemove }: { repo: MyRepo } & Actions) {
   return (
     <article className="panel pinned-card">
       <header className="pinned-head">
@@ -63,13 +66,13 @@ export function PinnedCard({ repo, onPin, onVisibility }: { repo: MyRepo; onPin:
       <RepoFacts r={repo} />
       <footer className="pinned-foot">
         <BuildBadge status={repo.build_status} />
-        <RowMenu repo={repo} onPin={onPin} onVisibility={onVisibility} />
+        <RowMenu repo={repo} onPin={onPin} onVisibility={onVisibility} onRemove={onRemove} />
       </footer>
     </article>
   )
 }
 
-export function RepoListRow({ repo, onPin, onVisibility }: { repo: MyRepo; onPin: () => void; onVisibility: () => void }) {
+export function RepoListRow({ repo, onPin, onVisibility, onRemove }: { repo: MyRepo } & Actions) {
   return (
     <li className="repo-row">
       <div className="repo-row-main">
@@ -83,7 +86,7 @@ export function RepoListRow({ repo, onPin, onVisibility }: { repo: MyRepo; onPin
       </div>
       <div className="repo-row-actions">
         <Link className="btn" to={`/projets/${repo.id}`}>{fr.myRepos.open}</Link>
-        <RowMenu repo={repo} onPin={onPin} onVisibility={onVisibility} />
+        <RowMenu repo={repo} onPin={onPin} onVisibility={onVisibility} onRemove={onRemove} />
       </div>
     </li>
   )
