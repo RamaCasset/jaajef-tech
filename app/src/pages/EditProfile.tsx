@@ -4,7 +4,7 @@ import { AppShell } from '../components/AppShell'
 import { useAuth } from '../auth/AuthContext'
 import { fr } from '../i18n/fr'
 import { friendlyError } from '../lib/errors'
-import { loadMyProfileFields, removeProfileImage, updateMyProfile, uploadProfileImage, type ProfileImageKind } from '../lib/api'
+import { loadMyProfileFields, REGION_KEYS, removeProfileImage, updateMyProfile, uploadProfileImage, type ProfileImageKind, type RegionKey } from '../lib/api'
 
 export function EditProfile() {
   const { member, refreshMember } = useAuth()
@@ -20,6 +20,7 @@ export function EditProfile() {
   const [imageMsg, setImageMsg] = useState<{ ok: boolean; text: string } | null>(null)
   const [bio, setBio] = useState('')
   const [location, setLocation] = useState('')
+  const [region, setRegion] = useState<RegionKey | ''>('')
   const [available, setAvailable] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -28,7 +29,7 @@ export function EditProfile() {
   const load = useCallback(() => {
     setFailed(false)
     loadMyProfileFields(me)
-      .then((p) => { setDisplayName(p.display_name); setHeadline(p.headline); setAvatarUrl(p.avatar_url); setCoverUrl(p.banner_url); setBio(p.bio); setLocation(p.location); setAvailable(p.available_to_collab); setLoaded(true) })
+      .then((p) => { setDisplayName(p.display_name); setHeadline(p.headline); setAvatarUrl(p.avatar_url); setCoverUrl(p.banner_url); setBio(p.bio); setLocation(p.location); setRegion(p.region); setAvailable(p.available_to_collab); setLoaded(true) })
       .catch(() => setFailed(true))
   }, [me])
   useEffect(load, [load])
@@ -39,7 +40,7 @@ export function EditProfile() {
     setSaved(false)
     setBusy(true)
     try {
-      await updateMyProfile(me, { display_name: displayName, headline, bio, location, available_to_collab: available })
+      await updateMyProfile(me, { display_name: displayName, headline, bio, location, region, available_to_collab: available })
       setSaved(true)
       await refreshMember()
     } catch (err) {
@@ -145,6 +146,13 @@ export function EditProfile() {
             <div className="field">
               <label htmlFor="e-loc">{fr.editProfile.location}</label>
               <input id="e-loc" maxLength={100} value={location} onChange={(e) => setLocation(e.target.value)} />
+            </div>
+            <div className="field">
+              <label htmlFor="e-region">{fr.editProfile.region}</label>
+              <select id="e-region" value={region} onChange={(e) => setRegion(e.target.value as RegionKey | '')}>
+                <option value="">{fr.editProfile.regionNone}</option>
+                {REGION_KEYS.map((r) => <option key={r} value={r}>{fr.regions[r]}</option>)}
+              </select>
             </div>
             <label style={{ display: 'block', marginBottom: 16 }}>
               <input type="checkbox" checked={available} onChange={(e) => setAvailable(e.target.checked)} /> {fr.editProfile.available}

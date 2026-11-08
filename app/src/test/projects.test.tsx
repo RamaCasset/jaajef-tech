@@ -11,6 +11,7 @@ const trendingCreators = vi.fn()
 const projectLanguages = vi.fn()
 const listGoodFirstIssues = vi.fn()
 const buildStatuses = vi.fn()
+const projectContributors = vi.fn()
 
 vi.mock('../lib/api', () => ({
   searchProjects: (...a: unknown[]) => searchProjects(...a),
@@ -18,6 +19,9 @@ vi.mock('../lib/api', () => ({
   projectLanguages: (...a: unknown[]) => projectLanguages(...a),
   listGoodFirstIssues: (...a: unknown[]) => listGoodFirstIssues(...a),
   buildStatuses: (...a: unknown[]) => buildStatuses(...a),
+  projectContributors: (...a: unknown[]) => projectContributors(...a),
+  projectCoverUrl: (p: string | null) => (p ? `https://img.test/${p}` : null),
+  REGION_KEYS: ['dakar', 'thies', 'diaspora'],
 }))
 vi.mock('../auth/AuthContext', () => ({
   useAuth: () => ({ member: { kopeks: 100, profile: { display_name: 'Moussa Diop' } }, signOut: vi.fn() }),
@@ -29,7 +33,7 @@ const project = (n: number, extra: Partial<ProjectRow> = {}): ProjectRow => ({
   project_id: `p${n}`, title: `Projet ${n}`, summary: `Résumé ${n}`, github_owner: 'ndar', github_repo: `repo-${n}`,
   language: 'Python', tags: [], github_stars: 10, star_count: 2, comment_count: 0, collaborator_count: 0, is_featured: false,
   verified_at: '2026-01-01', owner_id: 'o1', owner_username: 'awa', owner_display_name: 'Awa Diallo', owner_avatar_url: null,
-  owner_clan: 'forgeron', ...extra,
+  owner_clan: 'forgeron', demo_url: null, cover_path: null, github_forks: 18, github_pushed_at: new Date(Date.now() - 2 * 3600 * 1000).toISOString(), owner_region: 'dakar', ...extra,
 })
 
 function mount() {
@@ -37,12 +41,16 @@ function mount() {
 }
 
 beforeEach(() => {
-  for (const m of [searchProjects, trendingCreators, projectLanguages, listGoodFirstIssues, buildStatuses]) m.mockReset()
+  for (const m of [searchProjects, trendingCreators, projectLanguages, listGoodFirstIssues, buildStatuses, projectContributors]) m.mockReset()
   searchProjects.mockImplementation(async (_f, opts) => (opts?.featuredOnly ? [project(0, { github_repo: 'open-city', is_featured: true })] : [project(1), project(2)]))
   trendingCreators.mockResolvedValue([{ user_id: 'u1', username: 'awa', display_name: 'Awa Diallo', avatar_url: null, clan: 'forgeron', contributions: 248 }])
   projectLanguages.mockResolvedValue([{ language: 'Python', project_count: 2 }, { language: 'TypeScript', project_count: 1 }])
   listGoodFirstIssues.mockResolvedValue([])
   buildStatuses.mockResolvedValue({ p1: 'passing' })
+  projectContributors.mockResolvedValue([
+    { project_id: 'p1', user_id: 'o1', username: 'awa', display_name: 'Awa Diallo', avatar_url: null },
+    { project_id: 'p1', user_id: 'o2', username: 'bara', display_name: 'Bara Ndiaye', avatar_url: null },
+  ])
 })
 
 describe('Projects page', () => {
@@ -155,5 +163,33 @@ describe('Projects page', () => {
     expect(within(panel).getByText(/2 commentaires/)).toBeInTheDocument()
     await userEvent.click(within(panel).getByRole('button', { name: 'Fermer' }))
     expect(screen.queryByRole('region', { name: 'Bonnes premières issues' })).not.toBeInTheDocument()
+  })
+
+  it('shows forks, last update and the people on a project', async () => {
+    mount()
+    expect((await screen.findAllByLabelText('18 forks')).length).toBeGreaterThan(0)
+    expect((await screen.findAllByText(/Mis à jour il y a 2 heures/)).length).toBeGreaterThan(0)
+    expect(await screen.findByRole('img', { name: 'Sur ce projet : Awa Diallo, Bara Ndiaye' })).toBeInTheDocument()
+  })
+
+  it('filters by region', async () => {
+    mount()
+    await screen.findByText('repo-1')
+    await userEvent.selectOptions(screen.getByLabelText('Région'), 'thies')
+    await waitFor(() => expect(calledWith({ region: 'thies' })).toBe(true))
+  })
+
+  it('offers the live demo of the featured project, in a new tab, only when there is a link', async () => {
+    searchProjects.mockImplementation(async (_f, opts) => (opts?.featuredOnly ? [project(0, { github_repo: 'open-city', is_featured: true, demo_url: 'https://demo.exemple.sn/jeu' })] : [project(1)]))
+    mount()
+    const link = await screen.findByRole('link', { name: /Tester la démo en live/ })
+    expect(link).toHaveAttribute('href', 'https://demo.exemple.sn/jeu')
+    expect(link).toHaveAttribute('target', '_blank')
+  })
+
+  it('shows no demo button without a link', async () => {
+    mount()
+    await screen.findByRole('heading', { name: 'ndar / open-city' })
+    expect(screen.queryByRole('link', { name: /Tester la démo en live/ })).toBeNull()
   })
 })

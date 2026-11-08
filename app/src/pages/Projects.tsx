@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
+import { Icon } from '../components/Icon'
 import { ClanTag, ProjectCard, BuildBadge } from '../components/ProjectCard'
 import { fr, type ClanKey } from '../i18n/fr'
 import {
-  buildStatuses, listGoodFirstIssues, projectLanguages, searchProjects, trendingCreators,
-  type BuildStatus, type GoodFirstIssue, type LanguageCount, type ProjectRow, type SearchFilters, type SortKey, type TrendingCreator,
+  buildStatuses, listGoodFirstIssues, projectContributors, projectCoverUrl, projectLanguages, REGION_KEYS, searchProjects, trendingCreators,
+  type BuildStatus, type ProjectContributor, type RegionKey, type GoodFirstIssue, type LanguageCount, type ProjectRow, type SearchFilters, type SortKey, type TrendingCreator,
 } from '../lib/api'
 import { useDebounced } from '../hooks'
 
@@ -16,11 +17,13 @@ export function Projects() {
   const [query, setQuery] = useState('')
   const [language, setLanguage] = useState('')
   const [clan, setClan] = useState<ClanKey | ''>('')
+  const [region, setRegion] = useState<RegionKey | ''>('')
   const [sort, setSort] = useState<SortKey>('trending')
   const debouncedQuery = useDebounced(query)
 
   const [projects, setProjects] = useState<ProjectRow[] | null>(null)
   const [builds, setBuilds] = useState<Record<string, BuildStatus | null>>({})
+  const [people, setPeople] = useState<Record<string, ProjectContributor[]>>({})
   const [error, setError] = useState(false)
   const [reloads, setReloads] = useState(0)
 
@@ -33,7 +36,7 @@ export function Projects() {
   // Things that do not depend on the filters. A failure here only hides that block.
   useEffect(() => {
     let alive = true
-    const filters: SearchFilters = { query: '', language: '', clan: '', sort: 'recent' }
+    const filters: SearchFilters = { query: '', language: '', clan: '', sort: 'recent', region: '' }
     searchProjects(filters, { featuredOnly: true, limit: 1 }).then((r) => alive && setFeatured(r[0] ?? null)).catch(() => undefined)
     projectLanguages().then((r) => alive && setLanguages(r)).catch(() => undefined)
     trendingCreators(7, 5).then((r) => alive && setCreators(r)).catch(() => alive && setCreators([]))
@@ -45,7 +48,7 @@ export function Projects() {
   useEffect(() => {
     let alive = true
     setError(false)
-    searchProjects({ query: debouncedQuery, language, clan, sort })
+    searchProjects({ query: debouncedQuery, language, clan, sort, region })
       .then(async (rows) => {
         if (!alive) return
         setProjects(rows)
@@ -53,10 +56,16 @@ export function Projects() {
           const b = await buildStatuses(rows.map((r) => r.project_id))
           if (alive) setBuilds(b)
         } catch { /* the badge is optional */ }
+        try {
+          const list = await projectContributors(rows.map((r) => r.project_id))
+          const grouped: Record<string, ProjectContributor[]> = {}
+          for (const c of list) (grouped[c.project_id] ??= []).push(c)
+          if (alive) setPeople(grouped)
+        } catch { /* the little pictures are optional */ }
       })
       .catch(() => { if (alive) { setProjects(null); setError(true) } })
     return () => { alive = false }
-  }, [debouncedQuery, language, clan, sort, reloads])
+  }, [debouncedQuery, language, clan, sort, region, reloads])
 
   const retry = useCallback(() => { setProjects(null); setReloads((n) => n + 1) }, [])
   const projectsWithIssues = issues ? new Set(issues.map((i) => i.project_id)).size : 0
@@ -70,7 +79,7 @@ export function Projects() {
             <h1 className="page-title">{fr.projects.title}</h1>
             <p className="muted">{fr.projects.subtitle}</p>
           </div>
-          <Link className="btn btn-cta" to="/projets/ajouter">{fr.importProject.newProject}</Link>
+          <Link className="btn btn-cta btn-icon" to="/projets/ajouter"><Icon name="plus" size={16} /> {fr.importProject.newProject}</Link>
         </div>
 
         <div className="filters">
@@ -90,13 +99,17 @@ export function Projects() {
             <option value="">{fr.projects.allClans}</option>
             {CLANS.map((c) => <option key={c} value={c}>{fr.clans[c].name}</option>)}
           </select>
+          <select aria-label={fr.projects.region} value={region} onChange={(e) => setRegion(e.target.value as RegionKey | '')}>
+            <option value="">{fr.projects.allRegions}</option>
+            {REGION_KEYS.map((r) => <option key={r} value={r}>{fr.regions[r]}</option>)}
+          </select>
         </div>
 
         <div className="projects-layout">
           <div className="projects-main">
             {featured && (
               <section className="panel featured" aria-label={fr.projects.featured}>
-                <div className="featured-art" aria-hidden="true" />
+                <div className="featured-art" aria-hidden="true" style={featured.cover_path ? { backgroundImage: `url(${projectCoverUrl(featured.cover_path)})` } : undefined} />
                 <div className="featured-body">
                   <span className="tag tag-accent">{fr.projects.featured.toUpperCase()}</span>
                   <h2>{featured.github_owner} / {featured.github_repo}</h2>
@@ -106,6 +119,9 @@ export function Projects() {
                     <span className="muted">★ {featured.github_stars + featured.star_count}</span>{' '}
                     <BuildBadge status={builds[featured.project_id]} />
                   </p>
+                  {featured.demo_url ? (
+                    <p><a className="btn btn-demo" href={featured.demo_url} target="_blank" rel="noreferrer noopener"><Icon name="play" size={16} /> {fr.projects.demo}</a></p>
+                  ) : null}
                 </div>
               </section>
             )}
@@ -138,7 +154,7 @@ export function Projects() {
             )}
             {projects && projects.length > 0 && (
               <div className="project-grid">
-                {projects.map((p) => <ProjectCard key={p.project_id} project={p} build={builds[p.project_id]} />)}
+                {projects.map((p) => <ProjectCard key={p.project_id} project={p} build={builds[p.project_id]} people={people[p.project_id]} />)}
               </div>
             )}
           </div>
@@ -161,6 +177,7 @@ export function Projects() {
                   </li>
                 ))}
               </ol>
+              <Link className="side-link" to="/arene">{fr.projects.fullRanking} →</Link>
             </section>
 
             <section className="panel side-card">
