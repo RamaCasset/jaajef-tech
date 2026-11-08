@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
-import { CodeEditor } from '../components/CodeEditor'
+import { CodeEditor, languageOf } from '../components/CodeEditor'
 import { useAuth } from '../auth/AuthContext'
 import {
   EditorError, editorCommit, editorFile, editorStatus, editorTree, getProjectFull, isViewable,
@@ -204,7 +204,7 @@ export function Editor() {
         )}
 
         {phase === 'install' && status && (
-          <section className="panel">
+          <section className="panel panel-pad">
             <h2>{t.installTitle}</h2>
             <p>{t.installText}</p>
             <p>
@@ -215,7 +215,7 @@ export function Editor() {
         )}
 
         {phase === 'not_allowed' && status && (
-          <section className="panel">
+          <section className="panel panel-pad">
             <h2>{t.notAllowedTitle}</h2>
             <p>{t.notAllowedText}</p>
             <p>
@@ -229,10 +229,10 @@ export function Editor() {
           <>
             {tree.head === null && <p className="muted">{t.emptyRepo}</p>}
             {tree.head !== null && (
-              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(180px, 1fr) 3fr', gap: 16 }}>
-                <nav aria-label={t.files}>
+              <div className="editor-layout">
+                <nav aria-label={t.files} className="panel editor-files">
                   <h2>{t.files}</h2>
-                  <p>
+                  <div className="editor-newfile">
                     {adding ? (
                       <>
                         <input aria-label={t.newFileName} placeholder={t.newFileName} value={newName} onChange={(e) => setNewName(e.target.value)} />
@@ -240,15 +240,14 @@ export function Editor() {
                         <button type="button" className="btn" onClick={() => { setAdding(false); setNameError(null) }}>{t.cancel}</button>
                         {nameError && <span role="alert" className="alert">{nameError}</span>}
                       </>
-                    ) : <button type="button" className="btn" onClick={() => setAdding(true)}>{t.newFile}</button>}
-                  </p>
-                  <ul style={{ listStyle: 'none', padding: 0, margin: 0, maxHeight: 460, overflow: 'auto' }}>
+                    ) : <button type="button" className="link-btn" onClick={() => setAdding(true)}>{t.newFile}</button>}
+                  </div>
+                  <ul className="file-tree">
                     {entries.map(([path]) => (
                       <li key={path}>
                         <button
                           type="button"
-                          className={`btn ${active === path ? 'btn-cta' : ''}`}
-                          style={{ width: '100%', textAlign: 'left', textDecoration: edits[path]?.deleted ? 'line-through' : undefined }}
+                          className={`file-row ${active === path ? 'file-row-on' : ''} ${edits[path]?.deleted ? 'file-row-deleted' : ''}`}
                           aria-pressed={active === path}
                           onClick={() => void open(path)}
                         >{path}{badge(path) ? ` (${badge(path)})` : ''}</button>
@@ -257,36 +256,42 @@ export function Editor() {
                   </ul>
                 </nav>
 
-                <section aria-label={t.editorLabel}>
-                  <div role="tablist" aria-label={t.openTabs} style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                    {tabs.map((p) => (
-                      <span key={p} className="tag">
-                        <button type="button" role="tab" aria-selected={active === p} className="btn" onClick={() => setActive(p)}>{p}</button>
-                        <button type="button" className="btn" aria-label={t.closeTab(p)} onClick={() => closeTab(p)}>×</button>
-                      </span>
-                    ))}
+                <section aria-label={t.editorLabel} className="editor-card">
+                  <div className="editor-head">
+                    <div role="tablist" aria-label={t.openTabs} className="editor-tabs">
+                      {tabs.map((p) => (
+                        <span key={p} className={`editor-tab ${active === p ? 'editor-tab-on' : ''}`}>
+                          <button type="button" role="tab" aria-selected={active === p} onClick={() => setActive(p)}>{p}</button>
+                          {edits[p] && !edits[p].deleted && <span className="editor-dot" aria-hidden="true" />}
+                          <button type="button" className="editor-close" aria-label={t.closeTab(p)} onClick={() => closeTab(p)}>×</button>
+                        </span>
+                      ))}
+                    </div>
+                    {active && <span className="editor-lang">{languageOf(active)}</span>}
                   </div>
-                  {!active && <p className="muted">{t.noFile}</p>}
-                  {fileError && <p role="alert" className="alert">{fileError}</p>}
-                  {active && !fileError && current(active) === undefined && <p className="muted">{t.loading}</p>}
-                  {active && !fileError && current(active) !== undefined && !edits[active]?.deleted && (
-                    <CodeEditor path={active} value={current(active) as string} onChange={(v) => change(active, v)} />
-                  )}
+                  <div className="editor-body">
+                    {!active && <p className="muted editor-pad">{t.noFile}</p>}
+                    {fileError && <p role="alert" className="alert editor-pad">{fileError}</p>}
+                    {active && !fileError && current(active) === undefined && <p className="muted editor-pad">{t.loading}</p>}
+                    {active && !fileError && current(active) !== undefined && !edits[active]?.deleted && (
+                      <CodeEditor path={active} value={current(active) as string} onChange={(v) => change(active, v)} />
+                    )}
+                  </div>
                   {active && (
-                    <p>
+                    <div className="editor-foot">
                       <button type="button" className="btn" onClick={() => toggleDelete(active)}>
                         {edits[active]?.deleted ? t.restoreFile : t.deleteFile}
-                      </button>{' '}
+                      </button>
                       {edits[active] && !edits[active].isNew && !edits[active].deleted && (
                         <button type="button" className="btn" onClick={() => revert(active)}>{t.revert}</button>
                       )}
-                    </p>
+                    </div>
                   )}
                 </section>
               </div>
             )}
 
-            <section className="panel" style={{ marginTop: 16 }} aria-label={t.commit}>
+            <section className="panel panel-pad editor-commit" aria-label={t.commit}>
               <p>{t.changes(changes.length)}</p>
               {done && <div className="notice" role="status">{t.saved} <a href={done.url} target="_blank" rel="noopener noreferrer">{t.seeCommit}</a></div>}
               {error && <div className="alert" role="alert">{error}</div>}
