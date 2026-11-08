@@ -698,3 +698,17 @@ select { appearance: none; -webkit-appearance: none; background-color: var(--pan
 
 .files-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
 .files-actions .btn { padding: 7px 14px; font-size: 13px; border-radius: 10px; }
+
+/* Questions and answers */
+.qa-filters { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 16px; }
+.qa-filters .field { min-width: 180px; }
+.qa-list { list-style: none; margin: 0 0 16px; padding: 0; display: grid; gap: 12px; }
+.qa-title { margin: 0 0 6px; font-size: 18px; }
+.qa-meta { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; margin: 0 0 8px; }
+.qa-tags { display: flex; gap: 8px; flex-wrap: wrap; margin: 0; }
+.qa-tag { cursor: pointer; background: none; font: inherit; }
+.qa-solved { border-color: #2fa86b; color: #5fd69a; }
+.qa-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin: 0; }
+.qa-answer-solution { border-color: #2fa86b; }
+.qa-actions { margin-top: 12px; }
+.qa-answers > h2 { margin: 8px 0 12px; }

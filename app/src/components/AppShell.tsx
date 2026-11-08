@@ -10,6 +10,7 @@ import { getMyStaffAccess, unreadNotificationCount } from '../lib/api'
 const rail = (): { to: string; icon: string; label: string }[] => [
   { to: '/communautes', icon: 'communities', label: fr.nav.communities },
   { to: '/blog', icon: 'blog', label: fr.nav.blog },
+  { to: '/questions', icon: 'question', label: fr.nav.questions },
   { to: '/quetes', icon: 'quest', label: fr.nav.quests },
   { to: '/souk', icon: 'souk', label: fr.nav.souk },
   { to: '/jobs', icon: 'jobs', label: fr.nav.jobs },

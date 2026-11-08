@@ -1729,3 +1729,31 @@ export async function loadHistory(project: RepoRef, opts: { path?: string; page?
   }))
   return { commits, more: commits.length === 30 }
 }
+
+// ---- Questions and answers
+export type QuestionCard = { id: string; title: string; tags: string[]; author_id: string; author_username: string; answer_count: number; vote_count: number; solved: boolean; created_at: string }
+export type QuestionFull = {
+  id: string; title: string; body: string; tags: string[]; author_id: string; author_username: string; author_display_name: string | null
+  accepted_answer_id: number | null; answer_count: number; vote_count: number; voted_by_me: boolean; created_at: string; edited_at: string | null
+}
+export type AnswerRow = {
+  id: number; body: string; author_id: string; author_username: string; author_display_name: string | null
+  vote_count: number; voted_by_me: boolean; accepted: boolean; created_at: string; edited_at: string | null
+}
+export type QuestionFilter = 'all' | 'open' | 'solved'
+export type QuestionSort = 'recent' | 'useful'
+export const listQuestions = (o: { tag?: string; filter?: QuestionFilter; sort?: QuestionSort; limit?: number; offset?: number } = {}) =>
+  rpc<QuestionCard[]>('list_questions', { p_tag: o.tag?.trim() || null, p_filter: o.filter ?? 'all', p_sort: o.sort ?? 'recent', p_limit: o.limit ?? 20, p_offset: o.offset ?? 0 })
+export async function getQuestion(id: string): Promise<QuestionFull | null> {
+  const rows = await rpc<QuestionFull[]>('get_question', { p_question: id })
+  return rows[0] ?? null
+}
+export const listAnswers = (questionId: string) => rpc<AnswerRow[]>('list_answers', { p_question: questionId })
+export const askQuestion = (title: string, body: string, tags: string[]) => rpc<string>('ask_question', { p_title: title, p_body: body, p_tags: tags })
+export const deleteQuestion = (id: string) => rpc<void>('delete_question', { p_question: id })
+export const postAnswer = (questionId: string, body: string) => rpc<number>('post_answer', { p_question: questionId, p_body: body })
+export const deleteAnswer = (id: number) => rpc<void>('delete_answer', { p_answer: id })
+export const acceptAnswer = (id: number) => rpc<void>('accept_answer', { p_answer: id })
+export const unacceptAnswer = (questionId: string) => rpc<void>('unaccept_answer', { p_question: questionId })
+export const voteQuestion = (id: string, on: boolean) => rpc<void>(on ? 'vote_question' : 'unvote_question', { p_question: id })
+export const voteAnswer = (id: number, on: boolean) => rpc<void>(on ? 'vote_answer' : 'unvote_answer', { p_answer: id })

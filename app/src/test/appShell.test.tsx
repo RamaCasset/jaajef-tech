@@ -33,7 +33,7 @@ describe('AppShell', () => {
     mount()
     const rail = screen.getByRole('navigation', { name: 'Espaces' })
     const hrefs = within(rail).getAllByRole('link').map((a) => a.getAttribute('href'))
-    expect(hrefs).toEqual(['/communautes', '/blog', '/quetes', '/souk', '/jobs'])
+    expect(hrefs).toEqual(['/communautes', '/blog', '/questions', '/quetes', '/souk', '/jobs'])
   })
 
   it('keeps messages and the arena reachable outside the rail', async () => {
