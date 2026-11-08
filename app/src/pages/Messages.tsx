@@ -31,10 +31,10 @@ export function Messages() {
         {items && items.length > 0 && (
           <section className="panel">
             {items.map((c) => (
-              <article key={c.conversation_id} style={{ padding: '10px 0', borderTop: '1px solid var(--line)' }}>
-                <h3 style={{ margin: 0 }}>
+              <article key={c.conversation_id} className="list-row">
+                <h3 className="list-title">
                   <Link to={`/messages/${c.conversation_id}`}>{c.other_display_name || c.other_username}</Link>
-                  {c.unread_count > 0 && <span className="tag" style={{ marginLeft: 8 }}>{fr.messages.unread(Number(c.unread_count))}</span>}
+                  {c.unread_count > 0 && <span className="tag tag-gap">{fr.messages.unread(Number(c.unread_count))}</span>}
                 </h3>
                 <p className="muted tiny">{c.last_message_preview ?? fr.messages.noPreview}</p>
               </article>

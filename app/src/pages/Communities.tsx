@@ -95,12 +95,12 @@ export function Communities() {
         {!failed && (!mine || !others) && <p className="muted">{fr.common.loading}</p>}
 
         {mine && (
-          <section className="panel" style={{ marginBottom: 24 }}>
+          <section className="panel stack-gap">
             <h2>{fr.communities.mine}</h2>
             {mine.length === 0 && <p className="muted">{fr.communities.mineEmpty}</p>}
             {mine.map((c) => (
-              <article key={c.id} style={{ padding: '10px 0', borderTop: '1px solid var(--line)' }}>
-                <h3 style={{ margin: 0 }}><Link to={`/communautes/${c.slug}`}>{c.name}</Link></h3>
+              <article key={c.id} className="list-row">
+                <h3 className="list-title"><Link to={`/communautes/${c.slug}`}>{c.name}</Link></h3>
                 <p className="muted tiny">
                   {fr.communities.roles[c.role]}{counts[c.id] != null ? ` · ${fr.communities.members(counts[c.id] as number)}` : ''}{c.is_private ? ` · ${fr.communities.privateTag}` : ''}
                 </p>
@@ -110,12 +110,12 @@ export function Communities() {
         )}
 
         {others && (
-          <section className="panel" style={{ marginBottom: 24 }}>
+          <section className="panel stack-gap">
             <h2>{fr.communities.discover}</h2>
             {others.length === 0 && <p className="muted">{fr.communities.discoverEmpty}</p>}
             {others.map((c) => (
-              <article key={c.id} style={{ padding: '10px 0', borderTop: '1px solid var(--line)' }}>
-                <h3 style={{ margin: 0 }}>{c.name}</h3>
+              <article key={c.id} className="list-row">
+                <h3 className="list-title">{c.name}</h3>
                 {c.description && <p className="muted">{c.description}</p>}
                 <p className="muted tiny">
                   {counts[c.id] != null ? fr.communities.members(counts[c.id] as number) : ''}{c.is_private ? ` · ${fr.communities.privateTag}` : ''}

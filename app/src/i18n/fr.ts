@@ -264,6 +264,7 @@ export const frMessages = {
     remote: 'Lieu de travail',
     remotes: { onsite: 'Sur place', hybrid: 'Hybride', remote: '100 % remote' },
     sort: 'Trier par',
+    filters: 'Filtres',
     sorts: { recent: 'Plus récentes', pay: 'Mieux payées' },
     any: 'Tous',
     reset: 'Réinitialiser',
