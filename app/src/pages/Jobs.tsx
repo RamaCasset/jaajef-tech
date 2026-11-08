@@ -87,10 +87,13 @@ export function Jobs() {
   return (
     <AppShell>
       <main className="page jobs">
-        <header className="page-head">
-          <h1 className="page-title">{fr.jobs.title}</h1>
-          <p className="muted">{fr.jobs.subtitle}</p>
-          <p><Link to="/dossier">{fr.jobs.myFile}</Link> · <Link to="/employeur">{fr.jobs.employerLink}</Link> · <Link to="/talents">{fr.jobs.talentLink}</Link></p>
+        <header className="page-head-row">
+          <div>
+            <h1 className="page-title">{fr.jobs.title}</h1>
+            <p className="muted">{fr.jobs.subtitle}</p>
+            <p className="tiny"><Link to="/dossier">{fr.jobs.myFile}</Link> · <Link to="/talents">{fr.jobs.talentLink}</Link></p>
+          </div>
+          <Link className="btn btn-cta" to="/employeur">{fr.jobs.employerLink}</Link>
         </header>
 
         <div role="tablist" className="souk-tabs">
@@ -108,36 +111,40 @@ export function Jobs() {
 
         {tab === 'all' && (
           <>
-            <div className="jobs-filters">
+            <div className="jobs-search">
               <input type="search" role="searchbox" aria-label={fr.jobs.search} placeholder={fr.jobs.search} value={filters.query} onChange={(e) => set('query', e.target.value)} />
               <input type="text" aria-label={fr.jobs.place} placeholder={fr.jobs.place} value={filters.place} onChange={(e) => set('place', e.target.value)} />
-              <label>{fr.jobs.kind}
-                <select value={filters.kind} onChange={(e) => set('kind', e.target.value as JobFilters['kind'])}>
-                  <option value="">{fr.jobs.any}</option>
-                  <option value="job">{fr.jobs.kinds.job}</option>
-                  <option value="freelance">{fr.jobs.kinds.freelance}</option>
-                </select>
-              </label>
-              <label>{fr.jobs.contract}
-                <select value={filters.contract} onChange={(e) => set('contract', e.target.value)}>
-                  <option value="">{fr.jobs.any}</option>
-                  {Object.entries(fr.jobs.contracts).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-                </select>
-              </label>
-              <label>{fr.jobs.remote}
-                <select value={filters.remote} onChange={(e) => set('remote', e.target.value)}>
-                  <option value="">{fr.jobs.any}</option>
-                  {Object.entries(fr.jobs.remotes).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-                </select>
-              </label>
-              <label>{fr.jobs.sort}
-                <select value={filters.sort} onChange={(e) => set('sort', e.target.value as JobFilters['sort'])}>
-                  <option value="recent">{fr.jobs.sorts.recent}</option>
-                  <option value="pay">{fr.jobs.sorts.pay}</option>
-                </select>
-              </label>
-              {filtersOn ? <button type="button" className="btn" onClick={() => setFilters(EMPTY)}>{fr.jobs.reset}</button> : null}
             </div>
+            <div className="jobs-layout">
+              <aside className="panel jobs-aside" aria-label={fr.jobs.filters}>
+                <label>{fr.jobs.kind}
+                  <select value={filters.kind} onChange={(e) => set('kind', e.target.value as JobFilters['kind'])}>
+                    <option value="">{fr.jobs.any}</option>
+                    <option value="job">{fr.jobs.kinds.job}</option>
+                    <option value="freelance">{fr.jobs.kinds.freelance}</option>
+                  </select>
+                </label>
+                <label>{fr.jobs.contract}
+                  <select value={filters.contract} onChange={(e) => set('contract', e.target.value)}>
+                    <option value="">{fr.jobs.any}</option>
+                    {Object.entries(fr.jobs.contracts).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                  </select>
+                </label>
+                <label>{fr.jobs.remote}
+                  <select value={filters.remote} onChange={(e) => set('remote', e.target.value)}>
+                    <option value="">{fr.jobs.any}</option>
+                    {Object.entries(fr.jobs.remotes).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                  </select>
+                </label>
+                <label>{fr.jobs.sort}
+                  <select value={filters.sort} onChange={(e) => set('sort', e.target.value as JobFilters['sort'])}>
+                    <option value="recent">{fr.jobs.sorts.recent}</option>
+                    <option value="pay">{fr.jobs.sorts.pay}</option>
+                  </select>
+                </label>
+                {filtersOn ? <button type="button" className="btn" onClick={() => setFilters(EMPTY)}>{fr.jobs.reset}</button> : null}
+              </aside>
+              <div className="jobs-results">
             {jobs === null && !failed ? <p className="muted">{fr.common.loading}</p> : null}
             {jobs && jobs.length === 0 ? <p className="muted">{fr.jobs.empty}</p> : null}
             {jobs && jobs.length > 0 ? (
@@ -150,6 +157,8 @@ export function Jobs() {
                 </div>
               </>
             ) : null}
+              </div>
+            </div>
           </>
         )}
 

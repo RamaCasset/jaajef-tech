@@ -264,6 +264,7 @@ export const en: Messages = {
     remote: 'Place of work',
     remotes: { onsite: 'On site', hybrid: 'Hybrid', remote: '100% remote' },
     sort: 'Sort by',
+    filters: 'Filters',
     sorts: { recent: 'Most recent', pay: 'Best paid' },
     any: 'All',
     reset: 'Reset',

@@ -11,9 +11,30 @@ type Props = {
 }
 
 function Preview({ item }: { item: SoukItem }) {
-  const color = String(item.data.accent ?? item.data.color ?? '')
-  const style = /^#[0-9a-fA-F]{3,8}$/.test(color) ? { borderColor: color, color } : undefined
-  return <div className="souk-preview" style={style} aria-hidden="true">{item.name.slice(0, 2).toUpperCase()}</div>
+  const raw = String(item.data.accent ?? item.data.color ?? item.data.border ?? '')
+  const color = /^#[0-9a-fA-F]{3,8}$/.test(raw) ? raw : 'var(--accent)'
+  const initials = item.name.slice(0, 2).toUpperCase()
+  if (item.kind === 'theme') {
+    return (
+      <div className="souk-preview souk-preview-theme" style={{ ['--pv' as string]: color }} aria-hidden="true">
+        <span className="pv-side" />
+        <span className="pv-tile" /><span className="pv-tile" /><span className="pv-tile" />
+        <span className="pv-term">&gt; init teranga();</span>
+      </div>
+    )
+  }
+  if (item.kind === 'avatar_frame') {
+    return (
+      <div className="souk-preview" aria-hidden="true">
+        <span className="pv-frame" style={{ borderColor: color }}>{initials}</span>
+      </div>
+    )
+  }
+  return (
+    <div className="souk-preview" aria-hidden="true">
+      <span className="pv-badge" style={{ borderColor: color, color }}>{String(item.data.label ?? initials)}</span>
+    </div>
+  )
 }
 
 export function SoukCard({ item, worn, busy, onBuy, onEquip, onUnequip }: Props) {

@@ -113,53 +113,67 @@ export function Community() {
 
         {community && myRole && (
           <>
-            <header className="page-head">
-              <h1 className="page-title">{community.name}</h1>
-              {community.description && <p className="muted">{community.description}</p>}
-            </header>
             {error && <div className="alert" role="alert">{error}</div>}
 
-            <section className="panel" style={{ marginBottom: 24 }}>
-              <h2>{fr.community.channels}</h2>
-              <div role="tablist" className="souk-tabs">
-                {channels.map((c) => (
-                  <button key={c.id} type="button" role="tab" aria-selected={c.id === channelId} className={`pill ${c.id === channelId ? 'pill-on' : ''}`} onClick={() => setChannelId(c.id)}>
-                    # {c.name}
-                  </button>
-                ))}
-              </div>
-              <button type="button" className="btn" onClick={loadMessages}>{fr.community.refresh}</button>
+            <div className="chat-layout">
+              <aside className="panel chat-side">
+                <div className="chat-community">
+                  <h1>{community.name}</h1>
+                  {community.description && <p className="muted tiny">{community.description}</p>}
+                  <p className="tiny muted">{fr.communities.members(members.length)}</p>
+                </div>
+                <h2 className="eyebrow">{fr.community.channels}</h2>
+                <div role="tablist" aria-orientation="vertical" className="chat-channels">
+                  {channels.map((c) => (
+                    <button key={c.id} type="button" role="tab" aria-selected={c.id === channelId} className={`chat-channel ${c.id === channelId ? 'chat-channel-on' : ''}`} onClick={() => setChannelId(c.id)}>
+                      # {c.name}
+                    </button>
+                  ))}
+                </div>
+              </aside>
 
-              {messages === null && <p className="muted">{fr.common.loading}</p>}
-              {messages && messages.length === 0 && <p className="muted">{fr.community.noMessages}</p>}
-              <ul style={{ listStyle: 'none', padding: 0 }}>
-                {(messages ?? []).map((m) => (
-                  <li key={m.id} style={{ padding: '8px 0', borderTop: '1px solid var(--line)' }}>
-                    <div className="tiny muted">
-                      <Link to={`/profil/${m.author_username}`}>{m.author_name || m.author_username}</Link>
-                      {' · '}{new Date(m.created_at).toLocaleString(dateLocale(), { dateStyle: 'short', timeStyle: 'short' })}
-                    </div>
-                    {m.deleted_at ? <em className="muted">{fr.community.deleted}</em> : <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{m.body}</p>}
-                    {!m.deleted_at && m.author_id !== me && <ReportButton type="message" id={m.id} />}
-                    {!m.deleted_at && (m.author_id === me || canModerate) && (
-                      <button type="button" className="btn" disabled={busy} onClick={() => void run(() => deleteMessage(m.id), loadMessages)}>{fr.community.deleteMessage}</button>
-                    )}
-                  </li>
-                ))}
-              </ul>
+              <section className="panel chat-main" aria-label={channel ? `# ${channel.name}` : fr.community.channels}>
+                <header className="chat-head">
+                  <strong>{channel ? `# ${channel.name}` : ''}</strong>
+                  <button type="button" className="btn" onClick={loadMessages}>{fr.community.refresh}</button>
+                </header>
 
-              {canWrite ? (
-                <form onSubmit={onSend} noValidate>
-                  <div className="field">
-                    <label htmlFor="body">{fr.community.messageLabel}</label>
-                    <textarea id="body" rows={3} maxLength={4000} value={body} onChange={(e) => setBody(e.target.value)} />
-                  </div>
-                  <button className="btn btn-cta" type="submit" disabled={busy || !body.trim()}>{fr.community.send}</button>
-                </form>
-              ) : (
-                channel && <p className="muted">{fr.community.announcementOnly}</p>
-              )}
-            </section>
+                <div className="chat-messages">
+                  {messages === null && <p className="muted">{fr.common.loading}</p>}
+                  {messages && messages.length === 0 && <p className="muted">{fr.community.noMessages}</p>}
+                  <ul className="chat-list">
+                    {(messages ?? []).map((m) => (
+                      <li key={m.id} className="chat-msg">
+                        <span className="mini-avatar" aria-hidden="true">{(m.author_name || m.author_username).slice(0, 1).toUpperCase()}</span>
+                        <div className="chat-body">
+                          <div className="tiny muted">
+                            <Link to={`/profil/${m.author_username}`}>{m.author_name || m.author_username}</Link>
+                            {' · '}{new Date(m.created_at).toLocaleString(dateLocale(), { dateStyle: 'short', timeStyle: 'short' })}
+                          </div>
+                          {m.deleted_at ? <em className="muted">{fr.community.deleted}</em> : <p>{m.body}</p>}
+                          <div className="chat-actions">
+                            {!m.deleted_at && m.author_id !== me && <ReportButton type="message" id={m.id} />}
+                            {!m.deleted_at && (m.author_id === me || canModerate) && (
+                              <button type="button" className="btn" disabled={busy} onClick={() => void run(() => deleteMessage(m.id), loadMessages)}>{fr.community.deleteMessage}</button>
+                            )}
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {canWrite ? (
+                  <form onSubmit={onSend} noValidate className="chat-compose">
+                    <label htmlFor="body" className="sr-only">{fr.community.messageLabel}</label>
+                    <textarea id="body" rows={2} maxLength={4000} placeholder={fr.community.messageLabel} value={body} onChange={(e) => setBody(e.target.value)} />
+                    <button className="btn btn-cta" type="submit" disabled={busy || !body.trim()}>{fr.community.send}</button>
+                  </form>
+                ) : (
+                  channel && <p className="muted chat-compose">{fr.community.announcementOnly}</p>
+                )}
+              </section>
+            </div>
 
             {canModerate && (
               <section className="panel" style={{ marginBottom: 24 }}>

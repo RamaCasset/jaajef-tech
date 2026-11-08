@@ -93,18 +93,18 @@ export function Conversation() {
             <button type="button" className="btn" onClick={loadMessages}>{fr.messages.refresh}</button>
             {messages === null && <p className="muted">{fr.common.loading}</p>}
             {messages && messages.length === 0 && <p className="muted">{fr.messages.threadEmpty}</p>}
-            <ul style={{ listStyle: 'none', padding: 0 }}>
+            <ul className="dm-list">
               {(messages ?? []).map((m) => {
                 const mine = m.sender_id === me
                 return (
-                  <li key={m.id} data-mine={mine ? 'true' : 'false'} style={{ padding: '8px 0', borderTop: '1px solid var(--line)' }}>
+                  <li key={m.id} data-mine={mine ? 'true' : 'false'} className="dm-msg">
                     <div className="tiny muted">
                       {mine ? fr.messages.youLabel : name} · {new Date(m.created_at).toLocaleString(dateLocale(), { dateStyle: 'short', timeStyle: 'short' })}
                     </div>
                     {m.deleted_at ? <em className="muted">{fr.messages.deleted}</em> : (
                       <>
-                        {m.body && <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{m.body}</p>}
-                        {m.file_name && <p className="muted tiny" style={{ margin: 0 }}>{fr.messages.fileSent(m.file_name)}</p>}
+                        {m.body && <p className="dm-text">{m.body}</p>}
+                        {m.file_name && <p className="muted tiny dm-text">{fr.messages.fileSent(m.file_name)}</p>}
                       </>
                     )}
                     {!mine && !m.deleted_at && <ReportButton type="direct_message" id={m.id} />}
@@ -124,7 +124,7 @@ export function Conversation() {
               <button className="btn btn-cta" type="submit" disabled={busy || !body.trim()}>{fr.messages.send}</button>
             </form>
 
-            <p style={{ marginTop: 24 }}>
+            <p className="dm-block">
               {blocked ? (
                 <button type="button" className="btn" disabled={busy} onClick={() => void run(() => unblockUser(other.other_user_id), () => setBlocked(false))}>{fr.messages.unblock}</button>
               ) : (

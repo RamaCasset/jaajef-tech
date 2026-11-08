@@ -53,11 +53,13 @@ export function Souk() {
   return (
     <AppShell>
       <main className="page souk">
-        <header className="page-head">
-          <p className="eyebrow">{fr.souk.eyebrow}</p>
-          <h1 className="page-title">{fr.souk.title}</h1>
-          <p className="muted">{fr.souk.subtitle}</p>
-          <p><Link to="/souk/vendre">{fr.soukSell.sellLink}</Link></p>
+        <header className="panel souk-hero">
+          <div>
+            <p className="eyebrow">{fr.souk.eyebrow}</p>
+            <h1 className="page-title">{fr.souk.title}</h1>
+            <p className="muted">{fr.souk.subtitle}</p>
+          </div>
+          <Link className="btn btn-cta" to="/souk/vendre">{fr.soukSell.sellLink}</Link>
         </header>
 
         <div className="souk-bar">
