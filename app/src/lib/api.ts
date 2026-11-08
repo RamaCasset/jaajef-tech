@@ -579,13 +579,13 @@ export async function listPublicRepos(githubName: string, fetchFn: typeof fetch 
   }))
 }
 
-export type MyProject = { id: string; github_owner: string; github_repo: string; verified_at: string | null }
+export type MyProject = { id: string; github_owner: string; github_repo: string; verified_at: string | null; repo_private: boolean }
 
 /** The member's own listed projects, including the ones still waiting to be confirmed. */
 export async function listMyProjects(userId: string): Promise<MyProject[]> {
   const { data, error } = await supabase
     .from('projects')
-    .select('id, github_owner, github_repo, verified_at')
+    .select('id, github_owner, github_repo, verified_at, repo_private')
     .eq('owner_id', userId)
   if (error) throw new Error(error.message)
   return (data ?? []) as MyProject[]
@@ -1589,6 +1589,11 @@ export type EditorStatus = { installed: boolean; install_url: string; github_nam
 export type EditorTree = { branch: string; head: string | null; entries: RepoEntry[]; truncated: boolean }
 export type FileChange = { path: string; content?: string; delete?: boolean }
 export const editorStatus = () => callEditor<EditorStatus>({ action: 'status' })
+export type EditorRepo = { name: string; private: boolean; default_branch: string }
+export const editorRepos = () => callEditor<{ repos: EditorRepo[] }>({ action: 'repos' })
+/** Lists a PRIVATE repository on the platform; it stays private. */
+export const editorAdopt = (repo: string, title: string, summary: string | null) =>
+  callEditor<{ project_id: string }>({ action: 'adopt', repo, title, summary })
 export const editorTree = (repo: string) => callEditor<EditorTree>({ action: 'tree', repo })
 export const editorFile = (repo: string, path: string, ref: string) =>
   callEditor<{ path: string; content: string }>({ action: 'file', repo, path, ref })

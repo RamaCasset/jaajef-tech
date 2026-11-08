@@ -21,6 +21,8 @@ const sha = (s) => createHash('sha1').update(s).digest('hex')
 
 // ---- The pretend GitHub ---------------------------------------------------------------------------------------
 let gh
+let adopted = []
+let adoptError = null
 function resetGithub(publicKey) {
   gh = {
     publicKey,
@@ -105,7 +107,7 @@ async function pretendGithub(url, init) {
   const writing = method !== 'GET'
   if (writing && grant.permissions?.contents !== 'write') return jsonRes(403, { message: 'Resource not accessible by integration' })
 
-  if (rest === '' && method === 'GET') return jsonRes(200, { default_branch: repo.default_branch })
+  if (rest === '' && method === 'GET') return jsonRes(200, { name, default_branch: repo.default_branch, private: repo.private, description: repo.description ?? null, language: repo.language ?? null, owner: { login: owner } })
   let r = rest.match(/^\/git\/ref\/heads\/(.+)$/)
   if (r && method === 'GET') {
     if (!repo.head || decodeURIComponent(r[1]) !== repo.default_branch) return jsonRes(repo.head ? 404 : 409, { message: 'Git Repository is empty.' })
@@ -176,6 +178,13 @@ async function pretendFetch(input, init = {}) {
       const id = TOKENS[(init.headers?.authorization ?? '').replace('Bearer ', '')]
       return id ? jsonRes(200, { id }) : jsonRes(401, { message: 'bad token' })
     }
+    if (url.pathname === '/rest/v1/rpc/adopt_private_project') {
+      if (init.headers?.apikey !== SERVICE_KEY) return jsonRes(401, {})
+      const args = JSON.parse(init.body)
+      adopted.push(args)
+      if (adoptError) return jsonRes(400, { message: adoptError })
+      return jsonRes(200, 'p-1')
+    }
     if (url.pathname === '/rest/v1/profiles') {
       if (init.headers?.apikey !== SERVICE_KEY) return jsonRes(401, {})
       const id = url.searchParams.get('id').replace('eq.', '')
@@ -212,6 +221,8 @@ const headOfAwa = () => gh.repos['awa/appli'].head
 let n = 0
 async function test(name, fn) {
   resetGithub(pkcs1.publicKey)
+  adopted = []
+  adoptError = null
   getEnv = envFor(pkcs1.privateKey)
   await fn()
   n += 1
@@ -373,6 +384,38 @@ await test('commit: bad requests are refused before GitHub is called', async () 
   for (const [name, body] of Object.entries(bads)) assert.equal((await call('t-awa', body)).status, name === 'odd repo' ? 400 : 400, name)
   assert.equal(githubCallsMade(), 0)
   assert.equal(headOfAwa(), base)
+})
+
+await test('adopt: a private repository is listed for its owner, with the owner and repository from GitHub, never from the request', async () => {
+  gh.repos['awa/appli'].description = 'Mon appli'
+  gh.repos['awa/appli'].language = 'Python'
+  const r = await call('t-awa', { action: 'adopt', repo: 'appli', title: 'Appli', owner: 'bob', p_owner: 'x' })
+  assert.deepEqual([r.status, r.json.project_id], [200, 'p-1'])
+  assert.deepEqual(adopted, [{ p_owner: U.awa, p_repo: 'appli', p_title: 'Appli', p_summary: 'Mon appli', p_language: 'Python' }])
+  // the token used to look at the repository is read-only and limited to that repository
+  const minted = [...gh.tokens.values()]
+  assert.ok(minted.every((t) => t.permissions.contents === 'read'))
+})
+
+await test('adopt: refusals', async () => {
+  // a public repository goes through the normal list
+  assert.deepEqual((await call('t-awa', { action: 'adopt', repo: 'vide' })).json, { error: 'repo_is_public' })
+  // app not installed on that repository / account
+  assert.equal((await call('t-awa', { action: 'adopt', repo: 'secret' })).status, 403)
+  assert.deepEqual((await call('t-cara', { action: 'adopt', repo: 'appli' })).json, { error: 'not_installed' })
+  // someone else's installation is never used
+  assert.equal((await call('t-awa', { action: 'adopt', repo: 'secret' })).status, 403)
+  // bad input
+  assert.equal((await call('t-awa', { action: 'adopt', repo: '../x' })).status, 400)
+  assert.equal((await call('t-awa', { action: 'adopt' })).status, 400)
+  assert.equal(adopted.length, 0)
+  // database answers
+  adoptError = 'This repository is already listed'
+  assert.deepEqual((await call('t-awa', { action: 'adopt', repo: 'appli' })).json, { error: 'already_listed' })
+  adoptError = 'You have reached the limit of projects you can list'
+  assert.deepEqual((await call('t-awa', { action: 'adopt', repo: 'appli' })).json, { error: 'limit_reached' })
+  adoptError = 'boom'
+  assert.equal((await call('t-awa', { action: 'adopt', repo: 'appli' })).status, 502)
 })
 
 await test('when GitHub is down the member gets a clear error, not a crash', async () => {
