@@ -8,7 +8,7 @@ const api = vi.hoisted(() => ({
   deleteProjectComment: vi.fn(), listCollaborators: vi.fn(), listCollabRequests: vi.fn(), requestCollaboration: vi.fn(),
   withdrawCollabRequest: vi.fn(), decideCollabRequest: vi.fn(), removeCollaborator: vi.fn(), getRepoTree: vi.fn(), getLastCommits: vi.fn(),
   GithubError: class GithubError extends Error { code = 'failed' },
-  projectCoverUrl: vi.fn(), saveProjectShowcase: vi.fn(), uploadProjectCover: vi.fn(), addCollaborator: vi.fn(),
+  projectCoverUrl: vi.fn(), saveProjectShowcase: vi.fn(), uploadProjectCover: vi.fn(), inviteCollaborator: vi.fn(), listProjectInvites: vi.fn(), cancelCollabInvite: vi.fn(),
 }))
 vi.mock('../lib/api', () => api)
 vi.mock('../auth/AuthContext', () => ({
@@ -36,9 +36,10 @@ beforeEach(() => {
   ])
   api.listCollaborators.mockResolvedValue([{ user_id: 'u4', username: 'cheikh', display_name: 'Cheikh' }])
   api.listCollabRequests.mockResolvedValue([])
+  api.listProjectInvites.mockResolvedValue([])
   api.getRepoTree.mockResolvedValue({ branch: 'main', truncated: false, entries: [{ path: 'src', type: 'tree', size: 0 }, { path: 'app.py', type: 'blob', size: 10 }] })
   api.getLastCommits.mockResolvedValue({})
-  for (const f of [api.starProject, api.unstarProject, api.postProjectComment, api.deleteProjectComment, api.requestCollaboration, api.withdrawCollabRequest, api.decideCollabRequest, api.removeCollaborator, api.addCollaborator]) f.mockResolvedValue(undefined)
+  for (const f of [api.starProject, api.unstarProject, api.postProjectComment, api.deleteProjectComment, api.requestCollaboration, api.withdrawCollabRequest, api.decideCollabRequest, api.removeCollaborator, api.inviteCollaborator, api.cancelCollabInvite]) f.mockResolvedValue(undefined)
 })
 
 describe('Project page', () => {
@@ -176,27 +177,33 @@ describe('Project page', () => {
     expect(screen.queryByRole('button', { name: 'Signaler' })).not.toBeInTheDocument()
   })
 
-  it('the owner adds a collaborator by username; nobody else sees the form', async () => {
+  it('the owner invites a collaborator by username, sees waiting invitations and can cancel one; nobody else sees the form', async () => {
     api.getProjectFull.mockResolvedValue(project({ owner_id: 'me' }))
     const first = mount()
-    await userEvent.type(await screen.findByLabelText("Ajouter un collaborateur (nom d'utilisateur)"), 'ibou_dev')
-    await userEvent.click(screen.getByRole('button', { name: 'Ajouter' }))
-    await waitFor(() => expect(api.addCollaborator).toHaveBeenCalledWith('p1', 'ibou_dev'))
-    expect(await screen.findByText(/Collaborateur ajouté/)).toBeInTheDocument()
-    expect(screen.getByLabelText("Ajouter un collaborateur (nom d'utilisateur)")).toHaveValue('')
+    await userEvent.type(await screen.findByLabelText("Inviter un collaborateur (nom d'utilisateur)"), 'ibou_dev')
+    await userEvent.click(screen.getByRole('button', { name: 'Inviter' }))
+    await waitFor(() => expect(api.inviteCollaborator).toHaveBeenCalledWith('p1', 'ibou_dev'))
+    expect(await screen.findByText(/Invitation envoyée/)).toBeInTheDocument()
+    expect(screen.getByLabelText("Inviter un collaborateur (nom d'utilisateur)")).toHaveValue('')
+    api.listProjectInvites.mockResolvedValue([{ id: 'i1', invitee_username: 'ibou_dev' }])
     first.unmount()
+    const second = mount()
+    await userEvent.click(await screen.findByRole('button', { name: 'Annuler : ibou_dev' }))
+    expect(api.cancelCollabInvite).toHaveBeenCalledWith('i1')
+    second.unmount()
     api.getProjectFull.mockResolvedValue(project())
+    api.listProjectInvites.mockResolvedValue([])
     mount()
     await screen.findByText('Cheikh')
-    expect(screen.queryByLabelText("Ajouter un collaborateur (nom d'utilisateur)")).toBeNull()
+    expect(screen.queryByLabelText("Inviter un collaborateur (nom d'utilisateur)")).toBeNull()
   })
 
   it('explains in French when the username does not exist', async () => {
     api.getProjectFull.mockResolvedValue(project({ owner_id: 'me' }))
-    api.addCollaborator.mockRejectedValue(new Error('No member with this username'))
+    api.inviteCollaborator.mockRejectedValue(new Error('No member with this username'))
     mount()
-    await userEvent.type(await screen.findByLabelText("Ajouter un collaborateur (nom d'utilisateur)"), 'personne')
-    await userEvent.click(screen.getByRole('button', { name: 'Ajouter' }))
+    await userEvent.type(await screen.findByLabelText("Inviter un collaborateur (nom d'utilisateur)"), 'personne')
+    await userEvent.click(screen.getByRole('button', { name: 'Inviter' }))
     expect(await screen.findByRole('alert')).toHaveTextContent("Aucun membre n'a ce nom d'utilisateur.")
   })
 

@@ -6,7 +6,7 @@ import type { MyRepo } from '../lib/api'
 
 const api = vi.hoisted(() => ({
   listMyRepos: vi.fn(), setProjectPinned: vi.fn(), setProjectVisibility: vi.fn(), loadProfile: vi.fn(),
-  countMyStars: vi.fn(), getNextBadge: vi.fn(), listMyStarred: vi.fn(), removeProject: vi.fn(), editorPresence: vi.fn(), removeCollaborator: vi.fn(),
+  countMyStars: vi.fn(), getNextBadge: vi.fn(), listMyStarred: vi.fn(), removeProject: vi.fn(), editorPresence: vi.fn(), removeCollaborator: vi.fn(), listMyInvites: vi.fn(), answerCollabInvite: vi.fn(),
 }))
 vi.mock('../lib/api', () => api)
 vi.mock('../auth/AuthContext', () => ({
@@ -32,6 +32,8 @@ beforeEach(() => {
   api.setProjectVisibility.mockResolvedValue(undefined)
   api.removeProject.mockResolvedValue(undefined)
   api.removeCollaborator.mockResolvedValue(undefined)
+  api.listMyInvites.mockResolvedValue([])
+  api.answerCollabInvite.mockResolvedValue(undefined)
   api.editorPresence.mockResolvedValue({ checked: true })
   api.loadProfile.mockResolvedValue({
     profile: { id: 'me', username: 'moussa', display_name: 'Moussa Diop', headline: 'Dev à Dakar', avatar_url: null, banner_url: null, bio: 'Je code.', location: 'Dakar', github_username: 'moussa', clan: null, mastery: 'bagne', xp: 25000, is_verified: false, available_to_collab: true, created_at: '2024-03-01T00:00:00Z' },
@@ -227,5 +229,29 @@ describe('Removing a repository and private repositories that are gone', () => {
     await userEvent.click(within(box).getByRole('button', { name: 'Quitter' }))
     await waitFor(() => expect(api.removeCollaborator).toHaveBeenCalledWith('r2', 'me'))
     expect(api.removeProject).not.toHaveBeenCalled()
+  })
+
+  it('shows the invitations to collaborate, and answers them', async () => {
+    api.listMyInvites.mockResolvedValueOnce([{ invite_id: 'i1', project_title: 'Carnet secret', owner_username: 'awa', created_at: '2026-11-08' }]).mockResolvedValue([])
+    mount()
+    const box = (await screen.findByRole('heading', { name: /Invitations à collaborer/ })).closest('section')!
+    expect(within(box).getByText('@awa vous invite à collaborer sur « Carnet secret ».')).toBeInTheDocument()
+    await userEvent.click(within(box).getByRole('button', { name: 'Accepter' }))
+    await waitFor(() => expect(api.answerCollabInvite).toHaveBeenCalledWith('i1', true))
+    await waitFor(() => expect(screen.queryByRole('heading', { name: /Invitations à collaborer/ })).toBeNull())
+    await waitFor(() => expect(api.listMyRepos.mock.calls.length).toBeGreaterThan(1))
+  })
+
+  it('declines an invitation', async () => {
+    api.listMyInvites.mockResolvedValueOnce([{ invite_id: 'i2', project_title: 'Autre', owner_username: 'bass', created_at: '2026-11-08' }]).mockResolvedValue([])
+    mount()
+    await userEvent.click(await screen.findByRole('button', { name: 'Refuser' }))
+    await waitFor(() => expect(api.answerCollabInvite).toHaveBeenCalledWith('i2', false))
+  })
+
+  it('shows no invitations box when there is none', async () => {
+    mount()
+    await screen.findByText('7 publics')
+    expect(screen.queryByRole('heading', { name: /Invitations à collaborer/ })).toBeNull()
   })
 })

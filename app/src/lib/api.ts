@@ -1004,6 +1004,7 @@ export const saveApplicationFile = (f: {
 export type NotificationKind =
   | 'project_starred' | 'project_comment' | 'project_confirmed' | 'project_hidden'
   | 'collab_request' | 'collab_accepted' | 'collab_declined'
+  | 'collab_invite' | 'collab_invite_accepted' | 'collab_invite_declined'
   | 'join_request' | 'join_approved' | 'join_declined'
   | 'badge_unlocked' | 'warning' | 'suspension'
 
@@ -1249,8 +1250,28 @@ export async function listCollabRequests(projectId: string): Promise<CollabReque
 export const requestCollaboration = (projectId: string, message: string) => rpc<string>('request_collaboration', { p_project: projectId, p_message: message.trim() })
 export const withdrawCollabRequest = (id: string) => rpc<void>('withdraw_collab_request', { p_request: id })
 export const decideCollabRequest = (id: string, accept: boolean) => rpc<void>('decide_collab_request', { p_request: id, p_accept: accept })
-/** The owner adds a member as collaborator, by username. */
-export const addCollaborator = (projectId: string, username: string) => rpc<string>('add_collaborator', { p_project: projectId, p_username: username.trim().replace(/^@/, '') })
+/** The owner invites a member by username. The member sees nothing until they accept. */
+export const inviteCollaborator = (projectId: string, username: string) => rpc<string | null>('invite_collaborator', { p_project: projectId, p_username: username.trim().replace(/^@/, '') })
+export const cancelCollabInvite = (inviteId: string) => rpc<void>('cancel_collab_invite', { p_invite: inviteId })
+export const answerCollabInvite = (inviteId: string, accept: boolean) => rpc<void>('answer_collab_invite', { p_invite: inviteId, p_accept: accept })
+
+export type ProjectInvite = { id: string; invitee_username: string }
+/** The invitations still waiting on a project (the owner sees them). */
+export async function listProjectInvites(projectId: string): Promise<ProjectInvite[]> {
+  const { data, error } = await supabase
+    .from('collab_invites')
+    .select('id, profiles:invitee_id(username)')
+    .eq('project_id', projectId)
+    .eq('status', 'pending')
+    .order('created_at')
+  if (error) throw new Error(error.message)
+  type Row = { id: string; profiles: { username: string } | { username: string }[] | null }
+  return ((data ?? []) as unknown as Row[]).map((r) => ({ id: r.id, invitee_username: (Array.isArray(r.profiles) ? r.profiles[0]?.username : r.profiles?.username) ?? '' }))
+}
+
+export type MyInvite = { invite_id: string; project_title: string; owner_username: string; created_at: string }
+/** The invitations to collaborate that wait for the member's answer. */
+export const listMyInvites = () => rpc<MyInvite[]>('my_collab_invites')
 export const removeCollaborator = (projectId: string, userId: string) => rpc<void>('remove_collaborator', { p_project: projectId, p_user: userId })
 // ---- Staff area ---------------------------------------------------------------------------------------
 export type StaffAccess = { role: 'admin' | 'moderator' | null; shopManager: boolean; questWriter: boolean; shopOwner: boolean }

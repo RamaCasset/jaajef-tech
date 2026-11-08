@@ -8,7 +8,7 @@ import { SpaceToggle } from '../components/SpaceToggle'
 import { useAuth } from '../auth/AuthContext'
 import { fr } from '../i18n/fr'
 import { friendlyError } from '../lib/errors'
-import { editorPresence, listMyRepos, removeCollaborator, removeProject, setProjectPinned, setProjectVisibility, type MyRepo } from '../lib/api'
+import { answerCollabInvite, editorPresence, listMyInvites, listMyRepos, removeCollaborator, removeProject, setProjectPinned, setProjectVisibility, type MyInvite, type MyRepo } from '../lib/api'
 
 const PAGE_SIZE = 6
 type Sort = 'activity' | 'stars' | 'name'
@@ -31,13 +31,16 @@ export function MyRepos() {
   const [page, setPage] = useState(1)
 
   const [removing, setRemoving] = useState<MyRepo | null>(null)
+  const [invites, setInvites] = useState<MyInvite[]>([])
   const checkedPresence = useRef(false)
 
   const load = useCallback(() => {
     setFailed(false)
     listMyRepos(me).then(setRepos).catch(() => setFailed(true))
   }, [me])
+  const loadInvites = useCallback(() => { listMyInvites().then(setInvites).catch(() => undefined) }, [])
   useEffect(load, [load])
+  useEffect(loadInvites, [loadInvites])
 
   // Once per visit: ask GitHub whether the private repositories are still there (silent when it cannot).
   useEffect(() => {
@@ -98,6 +101,23 @@ export function MyRepos() {
               <Link className="btn btn-cta btn-icon" to="/projets/ajouter"><Icon name="plus" size={16} /> {t.newRepo}</Link>
             </div>
           </div>
+          {invites.length > 0 && (
+            <section className="panel invites-box" aria-labelledby="inv-h">
+              <h2 id="inv-h">{t.invitesTitle} <span className="count-pill">{invites.length}</span></h2>
+              <ul>
+                {invites.map((i) => (
+                  <li key={i.invite_id}>
+                    <span>{t.inviteText(i.owner_username, i.project_title)}</span>
+                    <span className="remove-actions">
+                      <button type="button" className="btn" onClick={() => void change(() => answerCollabInvite(i.invite_id, false).then(loadInvites))}>{t.inviteDecline}</button>
+                      <button type="button" className="btn btn-cta" onClick={() => void change(() => answerCollabInvite(i.invite_id, true).then(loadInvites))}>{t.inviteAccept}</button>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
           {repos ? (
             <p className="repo-counts tiny">
               <span>{t.publicCount(publicCount)}</span><span>{t.privateCount(privateCount)}</span><span>{t.pinnedCount(pinned.length)}</span>

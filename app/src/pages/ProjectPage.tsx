@@ -10,9 +10,9 @@ import { useAuth } from '../auth/AuthContext'
 import { fr } from '../i18n/fr'
 import { friendlyError } from '../lib/errors'
 import {
-  addCollaborator, decideCollabRequest, deleteProjectComment, getProjectFull, listCollabRequests, listCollaborators, listProjectComments,
+  cancelCollabInvite, decideCollabRequest, inviteCollaborator, listProjectInvites, deleteProjectComment, getProjectFull, listCollabRequests, listCollaborators, listProjectComments,
   postProjectComment, removeCollaborator, requestCollaboration, starProject, unstarProject, withdrawCollabRequest,
-  type CollabRequest, type Collaborator, type ProjectComment, type ProjectFull,
+  type CollabRequest, type Collaborator, type ProjectInvite, type ProjectComment, type ProjectFull,
 } from '../lib/api'
 
 export function ProjectPage() {
@@ -26,6 +26,7 @@ export function ProjectPage() {
   const [text, setText] = useState('')
   const [pitch, setPitch] = useState('')
   const [newCollab, setNewCollab] = useState('')
+  const [invites, setInvites] = useState<ProjectInvite[]>([])
   const [failed, setFailed] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
@@ -35,6 +36,7 @@ export function ProjectPage() {
     listProjectComments(id).then(setComments).catch(() => undefined)
     listCollaborators(id).then(setCollabs).catch(() => undefined)
     listCollabRequests(id).then(setRequests).catch(() => undefined)
+    listProjectInvites(id).then(setInvites).catch(() => undefined)
   }, [id])
 
   const load = useCallback(() => {
@@ -67,7 +69,7 @@ export function ProjectPage() {
   async function onAddCollab(e: FormEvent) {
     e.preventDefault()
     if (!newCollab.trim()) return
-    await run(() => addCollaborator(id, newCollab), () => { setNewCollab(''); setNotice(fr.projectPage.collabAdded); loadSide() })
+    await run(() => inviteCollaborator(id, newCollab), () => { setNewCollab(''); setNotice(fr.projectPage.collabInvited); loadSide() })
   }
 
   async function onPitch(e: FormEvent) {
@@ -156,8 +158,20 @@ export function ProjectPage() {
                     <label htmlFor="add-collab">{fr.projectPage.collabAddLabel}</label>
                     <input id="add-collab" value={newCollab} maxLength={40} placeholder={fr.projectPage.collabAddPlaceholder} onChange={(e) => setNewCollab(e.target.value)} />
                   </div>
-                  <button className="btn btn-cta" type="submit" disabled={busy || !newCollab.trim()}>{fr.projectPage.collabAdd}</button>
+                  <button className="btn btn-cta" type="submit" disabled={busy || !newCollab.trim()}>{fr.projectPage.collabInvite}</button>
                 </form>
+              )}
+
+              {isOwner && invites.length > 0 && (
+                <>
+                  <h3>{fr.projectPage.invitesTitle}</h3>
+                  {invites.map((i) => (
+                    <div key={i.id} className="invite-line">
+                      <Link to={`/profil/${i.invitee_username}`}>@{i.invitee_username}</Link>
+                      <button type="button" className="btn" disabled={busy} aria-label={`${fr.projectPage.inviteCancel} : ${i.invitee_username}`} onClick={() => void run(() => cancelCollabInvite(i.id), loadSide)}>{fr.projectPage.inviteCancel}</button>
+                    </div>
+                  ))}
+                </>
               )}
 
               {isOwner && listed && (
