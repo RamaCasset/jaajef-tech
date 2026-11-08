@@ -89,6 +89,7 @@ export function MyRepos() {
   return (
     <AppShell>
       <main className="page repos-page">
+        <div className="space-bar"><SpaceToggle active="personal" /></div>
         <RepoSide repoCount={repos ? all.length : null} />
         <div className="repos-main">
           <p className="mono tiny muted repo-crumb">{t.root} / {username} / <span className="crumb-on">{t.nav.repos}</span></p>
@@ -97,10 +98,7 @@ export function MyRepos() {
               <h1 className="page-title">{t.title} {repos ? <span className="count-pill">{all.length}</span> : null}</h1>
               <p className="muted">{t.subtitle}</p>
             </div>
-            <div className="head-actions">
-              <SpaceToggle active="personal" />
-              <Link className="btn btn-cta btn-icon" to="/projets/ajouter"><Icon name="plus" size={16} /> {t.newRepo}</Link>
-            </div>
+            <Link className="btn btn-cta btn-icon" to="/projets/ajouter"><Icon name="plus" size={16} /> {t.newRepo}</Link>
           </div>
           {invites.length > 0 && (
             <section className="panel invites-box" aria-labelledby="inv-h">

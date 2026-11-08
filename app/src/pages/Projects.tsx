@@ -74,16 +74,14 @@ export function Projects() {
   return (
     <AppShell>
       <main className="page">
+        <div className="space-bar"><SpaceToggle active="community" /></div>
         <div className="page-head-row">
           <div>
             <p className="eyebrow">{fr.projects.eyebrow}</p>
             <h1 className="page-title">{fr.projects.title}</h1>
             <p className="muted">{fr.projects.subtitle}</p>
           </div>
-          <div className="head-actions">
-            <SpaceToggle active="community" />
-            <Link className="btn btn-cta btn-icon" to="/projets/ajouter"><Icon name="plus" size={16} /> {fr.importProject.newProject}</Link>
-          </div>
+          <Link className="btn btn-cta btn-icon" to="/projets/ajouter"><Icon name="plus" size={16} /> {fr.importProject.newProject}</Link>
         </div>
 
         <div className="filters">
