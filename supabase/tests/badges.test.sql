@@ -87,8 +87,8 @@ insert into auth.users (id, email, raw_app_meta_data, raw_user_meta_data) values
 do $$
 declare ok boolean;
 begin
-  if (select count(*) from public.badge_rules where metric <> 'manual') <> 3 then raise exception 'FAIL: expected 3 automatic badges'; end if;
-  if (select count(*) from public.badge_rules where metric = 'manual' and threshold is null) <> 4 then raise exception 'FAIL: expected 4 manual badges'; end if;
+  if (select count(*) from public.badge_rules where metric <> 'manual') <> 4 then raise exception 'FAIL: expected 4 automatic badges'; end if;
+  if (select count(*) from public.badge_rules where metric = 'manual' and threshold is null) <> 3 then raise exception 'FAIL: expected 3 manual badges'; end if;
   if (select count(*) from public.badge_rules) <> (select count(*) from public.badges) then raise exception 'FAIL: every badge needs a rule'; end if;
 
   ok := false;
@@ -105,7 +105,7 @@ begin
   begin update public.badge_rules set threshold = 5 where badge_slug = 'champion_du_sahel';
   exception when check_violation then ok := true; end;
   if not ok then raise exception 'FAIL: a manual badge was given a goal'; end if;
-  raise notice 'OK 1: three automatic badges, four manual, and the rules cannot be nonsense';
+  raise notice 'OK 1: four automatic badges, three manual, and the rules cannot be nonsense';
 end $$;
 
 -- Lower the goals so the test is short (restored at the end).

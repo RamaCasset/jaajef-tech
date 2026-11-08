@@ -22,6 +22,7 @@ const data = (extra: Partial<ProfileData> = {}): ProfileData => ({
   badges: [{ slug: 'b1', name: 'Maître Griot', description: '100 contributions', tier: 'common' }],
   projects: [{ id: 'p1', github_owner: 'moussa-diop', github_repo: 'teranga-ui', title: 'Teranga UI', summary: 'Composants accessibles', language: 'TypeScript', github_stars: 248, build_status: 'passing' }],
   questsSolved: 128,
+  appreciation: 342,
   ...extra,
 })
 

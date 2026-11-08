@@ -2,10 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
 import { useAuth } from '../auth/AuthContext'
-import {
-  getDailyQuest, getMyStreak, getRecentBadges, getXpPerLevel,
-  type DailyQuest, type ProfileBadge, type StreakInfo,
-} from '../lib/api'
+import { ProfileView } from '../components/ProfileView'
+import { getDailyQuest, getMyStreak, loadProfile, type DailyQuest, type ProfileData, type StreakInfo } from '../lib/api'
 import { fr } from '../i18n/fr'
 
 type Loaded<T> = { state: 'loading' } | { state: 'failed' } | { state: 'ready'; value: T }
@@ -87,75 +85,46 @@ function StreakCard({ block }: { block: Loaded<StreakInfo | null> }) {
 
 export function Home() {
   const { member } = useAuth()
-  const p = member?.profile
-  const userId = p?.id ?? ''
+  const me = member?.profile
+  const [data, setData] = useState<ProfileData | null | undefined>(undefined)
+  const [failed, setFailed] = useState(false)
+  const [reload, setReload] = useState(0)
   const quest = useBlock(getDailyQuest, 'quest')
   const streak = useBlock(getMyStreak, 'streak')
-  const per = useBlock(getXpPerLevel, 'per')
-  const badges = useBlock<ProfileBadge[]>(() => getRecentBadges(userId), userId)
 
-  const xp = p?.xp ?? 0
-  const perLevel = per.state === 'ready' ? per.value : null
-  const level = perLevel ? 1 + Math.floor(xp / perLevel) : null
-  const inLevel = perLevel ? xp % perLevel : 0
+  const username = me?.username
+  const myId = me?.id
+  useEffect(() => {
+    if (!username || !myId) return
+    let alive = true
+    setFailed(false)
+    loadProfile(username, myId).then((d) => { if (alive) setData(d) }).catch(() => { if (alive) setFailed(true) })
+    return () => { alive = false }
+  }, [username, myId, reload])
 
   return (
     <AppShell>
-      <main className="page">
-        <header className="page-head">
-          <h1 className="page-title">{p ? fr.home.greeting(p.display_name) : fr.home.welcome}</h1>
-          {p?.clan && p.mastery ? (
-            <p>
-              <span className="tag">{fr.clans[p.clan].name}</span>{' '}
-              <span className="muted">{fr.masteries[p.mastery].name}</span>
-            </p>
-          ) : null}
-        </header>
-
-        <div className="home-grid">
-          <QuestCard block={quest} />
-
-          <section className="panel home-card" aria-label={fr.home.level(level ?? 1)}>
-            {per.state === 'failed' ? <p role="alert" className="alert">{fr.home.levelError}</p> : null}
-            {level !== null && perLevel ? (
-              <>
-                <h2>{fr.home.level(level)}</h2>
-                <div className="xp-track" role="progressbar" aria-valuemin={0} aria-valuemax={perLevel} aria-valuenow={inLevel} aria-label={fr.home.xpProgress(inLevel, perLevel)}>
-                  <div className="xp-fill" style={{ width: `${Math.min(100, (inLevel / perLevel) * 100)}%` }} />
-                </div>
-                <p className="mono tiny">{fr.home.xpProgress(inLevel, perLevel)}</p>
-                <p className="muted tiny">{fr.home.toNext(perLevel - inLevel, level + 1)}</p>
-              </>
-            ) : per.state === 'loading' ? <p className="muted">{fr.common.loading}</p> : null}
-            <p className="home-big">{member?.kopeks ?? 0} <span className="muted tiny">{fr.home.kopeks}</span></p>
-          </section>
-
-          <StreakCard block={streak} />
-
-          <section className="panel home-card" aria-label={fr.home.badges.title}>
-            <h2>{fr.home.badges.title}</h2>
-            {badges.state === 'loading' ? <p className="muted">{fr.common.loading}</p> : null}
-            {badges.state === 'failed' ? <p role="alert" className="alert">{fr.home.badges.error}</p> : null}
-            {badges.state === 'ready' && badges.value.length === 0 ? <p className="muted">{fr.home.badges.none}</p> : null}
-            {badges.state === 'ready' && badges.value.length > 0 ? (
-              <ul className="home-badges">
-                {badges.value.map((b) => <li key={b.slug} className="tag" title={b.description ?? undefined}>{b.name}</li>)}
-              </ul>
-            ) : null}
-            {p ? <p><Link to={`/profil/${p.username}`}>{fr.home.badges.all} →</Link></p> : null}
-          </section>
-        </div>
-
-        <section aria-label={fr.home.shortcuts}>
-          <h2>{fr.home.shortcuts}</h2>
-          <div className="home-shortcuts">
-            <Link className="btn" to="/quetes">{fr.nav.quests}</Link>
-            <Link className="btn" to="/projets">{fr.nav.projects}</Link>
-            <Link className="btn" to="/souk">{fr.nav.souk}</Link>
-            <Link className="btn" to="/jobs">{fr.nav.jobs}</Link>
-            {p ? <Link className="btn" to={`/profil/${p.username}`}>{fr.profile.myProfile}</Link> : null}
+      <main className="page profile">
+        {failed ? (
+          <div className="alert" role="alert">
+            {fr.home.profileError} <button type="button" className="btn" onClick={() => setReload((n) => n + 1)}>{fr.profile.retry}</button>
           </div>
-        </section>
+        ) : data === undefined ? (
+          <p className="muted">{fr.common.loading}</p>
+        ) : data === null ? (
+          <p role="status">{fr.profile.notFound}</p>
+        ) : (
+          <ProfileView
+            data={data}
+            viewerId={me?.id ?? ''}
+            extra={(
+              <div className="home-strip">
+                <QuestCard block={quest} />
+                <StreakCard block={streak} />
+              </div>
+            )}
+          />
+        )}
       </main>
     </AppShell>
   )

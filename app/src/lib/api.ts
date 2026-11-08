@@ -199,6 +199,8 @@ export type ProfileData = {
   projects: ProfileProject[]
   /** Only known for your own profile (attempts are private). */
   questsSolved: number | null
+  /** Stars on the member's projects plus likes on their posts. */
+  appreciation: number
 }
 
 /** Everything the profile page shows. Returns null when no member has this username. */
@@ -213,7 +215,7 @@ export async function loadProfile(username: string, viewerId: string): Promise<P
   const profile = found.data as PublicProfile
   const mine = profile.id === viewerId
 
-  const [config, badges, projects, quests] = await Promise.all([
+  const [config, badges, projects, quests, appreciation] = await Promise.all([
     supabase.from('game_config').select('value').eq('key', 'xp_per_level').maybeSingle(),
     supabase.from('user_badges').select('unlocked_at, badges(slug, name, description, tier)').eq('user_id', profile.id).not('unlocked_at', 'is', null),
     supabase.from('projects').select('id, github_owner, github_repo, title, summary, language, github_stars, build_status')
@@ -221,8 +223,9 @@ export async function loadProfile(username: string, viewerId: string): Promise<P
     mine
       ? supabase.from('quest_attempts').select('id', { count: 'exact', head: true }).eq('user_id', profile.id).eq('status', 'solved')
       : Promise.resolve({ count: null, error: null }),
+    supabase.rpc('received_appreciation', { p_user: profile.id }),
   ])
-  for (const r of [config, badges, projects, quests]) if (r.error) throw new Error(r.error.message)
+  for (const r of [config, badges, projects, quests, appreciation]) if (r.error) throw new Error(r.error.message)
 
   const per = Number(config.data?.value ?? 10000) || 10000
   type BadgeRow = { badges: ProfileBadge | ProfileBadge[] | null }
@@ -235,6 +238,7 @@ export async function loadProfile(username: string, viewerId: string): Promise<P
     badges: badgeList,
     projects: (projects.data ?? []) as ProfileProject[],
     questsSolved: mine ? (quests.count ?? 0) : null,
+    appreciation: Number(appreciation.data ?? 0),
   }
 }
 
