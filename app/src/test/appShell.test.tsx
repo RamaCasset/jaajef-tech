@@ -10,6 +10,7 @@ vi.mock('../auth/AuthContext', () => ({
 vi.mock('../lib/api', () => ({
   getMyStaffAccess: vi.fn().mockResolvedValue({ role: null, shopManager: false, shopOwner: false, questWriter: false }),
   unreadNotificationCount: vi.fn().mockResolvedValue(3),
+  listMyCommunities: vi.fn().mockResolvedValue([{ id: 'c1', slug: 'gamedev', name: 'GameDev Senegal', role: 'member' }]),
 }))
 import { AppShell } from '../components/AppShell'
 
@@ -28,11 +29,19 @@ describe('AppShell', () => {
     expect(await screen.findByRole('link', { name: 'Notifications (3)' })).toHaveAttribute('href', '/notifications')
   })
 
-  it('keeps every other space reachable from the side rail', () => {
+  it('shows my communities, then the other spaces, in the side rail', async () => {
     mount()
     const rail = screen.getByRole('navigation', { name: 'Espaces' })
+    expect(await within(rail).findByRole('link', { name: 'GameDev Senegal' })).toHaveAttribute('href', '/communautes/gamedev')
     const hrefs = within(rail).getAllByRole('link').map((a) => a.getAttribute('href'))
-    expect(hrefs).toEqual(['/blog', '/messages', '/communautes', '/arene', '/jobs'])
+    expect(hrefs).toEqual(['/communautes/gamedev', '/communautes', '/blog', '/quetes', '/souk', '/jobs'])
+  })
+
+  it('keeps messages and the arena reachable outside the rail', async () => {
+    mount()
+    expect(screen.getByRole('link', { name: 'Messages' })).toHaveAttribute('href', '/messages')
+    await userEvent.click(screen.getByLabelText('Menu du compte'))
+    expect(screen.getByRole('link', { name: 'Arène' })).toHaveAttribute('href', '/arene')
   })
 
   it('shows the Kopeks balance and the search entry', () => {
