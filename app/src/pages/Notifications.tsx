@@ -88,6 +88,7 @@ export function Notifications() {
                       <span>{sentence(n)}</span>
                     </button>
                     {n.kind.startsWith('proposal_') && typeof n.data.project_id === 'string' && <div className="tiny"><Link to={`/projets/${n.data.project_id}/propositions`}>{fr.notifications.seeProposals}</Link></div>}
+                    {(n.kind === 'question_answered' || n.kind === 'answer_accepted') && typeof n.data.question_id === 'string' && <div className="tiny"><Link to={`/questions/${n.data.question_id}`}>{fr.notifications.seeQuestion}</Link></div>}
                     {who && <div className="tiny"><Link to={`/profil/${who}`}>@{who}</Link></div>}
                     <div className="muted tiny">{new Date(n.created_at).toLocaleString(dateLocale(), { dateStyle: 'medium', timeStyle: 'short' })}</div>
                   </li>

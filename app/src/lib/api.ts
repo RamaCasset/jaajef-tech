@@ -1013,6 +1013,7 @@ export type NotificationKind =
   | 'collab_request' | 'collab_accepted' | 'collab_declined'
   | 'collab_invite' | 'collab_invite_accepted' | 'collab_invite_declined'
   | 'proposal_opened' | 'proposal_merged' | 'proposal_declined'
+  | 'question_answered' | 'answer_accepted'
   | 'join_request' | 'join_approved' | 'join_declined'
   | 'badge_unlocked' | 'warning' | 'suspension'
 
