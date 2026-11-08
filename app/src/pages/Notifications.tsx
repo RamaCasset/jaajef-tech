@@ -87,6 +87,7 @@ export function Notifications() {
                       {!n.read_at && <span className="tag">{fr.notifications.unread}</span>}{' '}
                       <span>{sentence(n)}</span>
                     </button>
+                    {n.kind.startsWith('proposal_') && typeof n.data.project_id === 'string' && <div className="tiny"><Link to={`/projets/${n.data.project_id}/propositions`}>{fr.notifications.seeProposals}</Link></div>}
                     {who && <div className="tiny"><Link to={`/profil/${who}`}>@{who}</Link></div>}
                     <div className="muted tiny">{new Date(n.created_at).toLocaleString(dateLocale(), { dateStyle: 'medium', timeStyle: 'short' })}</div>
                   </li>

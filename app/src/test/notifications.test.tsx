@@ -56,6 +56,22 @@ describe('Notifications page', () => {
     expect(screen.getByRole('link', { name: '@awa' })).toHaveAttribute('href', '/profil/awa')
   })
 
+  it('tells the owner about a proposal and the author about its outcome, with a link to the proposals', async () => {
+    listNotifications.mockResolvedValue([
+      note(10, 'proposal_opened', { actor_username: 'ndeye_k', project_title: 'Teranga', title: 'Corrige le titre', project_id: 'p1' }),
+      note(11, 'proposal_merged', { project_title: 'Teranga', title: 'Corrige le titre', project_id: 'p1' }),
+      note(12, 'proposal_declined', { project_title: 'Teranga', title: 'Autre idée', project_id: 'p1' }),
+    ])
+    mount()
+    expect(await screen.findByText('ndeye_k propose des changements pour « Teranga » : « Corrige le titre ».')).toBeInTheDocument()
+    expect(screen.getByText('Votre proposition « Corrige le titre » a été fusionnée dans « Teranga ».')).toBeInTheDocument()
+    expect(screen.getByText("Votre proposition « Autre idée » n'a pas été retenue pour « Teranga ».")).toBeInTheDocument()
+    const links = screen.getAllByRole('link', { name: 'Voir les propositions' })
+    expect(links).toHaveLength(3)
+    expect(links[0]).toHaveAttribute('href', '/projets/p1/propositions')
+    expect(screen.getByLabelText('Proposition de changements reçue')).toBeInTheDocument()
+  })
+
   it('opening an unread notice marks it read once; an already read one does nothing', async () => {
     mount()
     await userEvent.click(await screen.findByText(/a mis une étoile/))

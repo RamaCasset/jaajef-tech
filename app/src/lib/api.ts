@@ -1005,6 +1005,7 @@ export type NotificationKind =
   | 'project_starred' | 'project_comment' | 'project_confirmed' | 'project_hidden'
   | 'collab_request' | 'collab_accepted' | 'collab_declined'
   | 'collab_invite' | 'collab_invite_accepted' | 'collab_invite_declined'
+  | 'proposal_opened' | 'proposal_merged' | 'proposal_declined'
   | 'join_request' | 'join_approved' | 'join_declined'
   | 'badge_unlocked' | 'warning' | 'suspension'
 
