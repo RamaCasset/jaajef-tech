@@ -5,6 +5,7 @@ import { useAuth } from '../auth/AuthContext'
 import { useDebounced } from '../hooks'
 import { getDailyQuest, getMyStreak, listMyQuestProgress, listQuests, type DailyQuest, type MyQuestProgress, type QuestFilters, type QuestSummary, type StreakInfo } from '../lib/api'
 import { Companion } from '../components/Companion'
+import mascot from '../assets/art/mascot.png'
 import { fr, type ClanKey, type MasteryKey } from '../i18n/fr'
 
 const EMPTY: QuestFilters = { clan: '', mastery: '', language: '', query: '' }
@@ -70,6 +71,10 @@ function Hero() {
             </>
           )
         })() : <p className="muted">{t.none}</p>}
+        <div className="hero-mascot" aria-hidden="true">
+          <img src={mascot} alt="" />
+          <span>{fr.quests.mascotSays}</span>
+        </div>
       </section>
       {streak ? (
         <section className="panel hero-streak" aria-label={st.title}>

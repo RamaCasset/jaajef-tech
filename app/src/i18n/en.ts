@@ -381,6 +381,7 @@ export const en: Messages = {
     inProgress: (done: number, total: number) => (total > 0 ? `In progress (${done}/${total})` : 'In progress'),
     open: 'Open',
     launch: 'Start the quest',
+    mascotSays: 'Shall we push together?',
     resume: 'Resume',
     review: 'Review',
     available: 'Available',

@@ -381,6 +381,7 @@ export const frMessages = {
     inProgress: (done: number, total: number) => (total > 0 ? `En cours (${done}/${total})` : 'En cours'),
     open: 'Ouvrir',
     launch: 'Lancer la quête',
+    mascotSays: 'On pousse ensemble ?',
     resume: 'Reprendre',
     review: 'Revoir',
     available: 'Disponible',
