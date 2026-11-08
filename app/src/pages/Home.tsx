@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
 import { useAuth } from '../auth/AuthContext'
 import { ProfileView } from '../components/ProfileView'
-import { getDailyQuest, getMyStreak, loadProfile, type DailyQuest, type ProfileData, type StreakInfo } from '../lib/api'
+import { getDailyQuest, loadProfile, type DailyQuest, type ProfileData } from '../lib/api'
 import { fr } from '../i18n/fr'
 
 type Loaded<T> = { state: 'loading' } | { state: 'failed' } | { state: 'ready'; value: T }
@@ -22,25 +22,7 @@ function useBlock<T>(load: () => Promise<T>, key: string): Loaded<T> {
   return block
 }
 
-/** One small line: the streak, its state, and the record. */
-function StreakLine({ block }: { block: Loaded<StreakInfo | null> }) {
-  const t = fr.home.streak
-  if (block.state === 'loading') return null
-  if (block.state === 'failed') return <p role="alert" className="muted tiny">{t.error}</p>
-  const s = block.value
-  if (!s) return null
-  const state = s.done_today ? t.doneToday : s.protected_by_freeze ? t.protectedByFreeze : s.at_risk && s.current_streak > 0 ? t.atRisk : s.current_streak === 0 ? t.none : null
-  return (
-    <div className="quest-streak" aria-label={t.title}>
-      <p><strong>{t.title} : {t.days(s.current_streak)}</strong> <span className="muted">· {t.longest(s.longest_streak)}</span></p>
-      {state ? <p className="muted tiny">{state}</p> : null}
-      {s.next_chest_in !== null && s.chest_kopeks > 0 ? <p className="muted tiny">{t.chest(s.next_chest_in, s.chest_kopeks)}</p> : null}
-      {s.freeze_max > 0 ? <p className="muted tiny">{t.freezes(s.freezes, s.freeze_max)}</p> : null}
-    </div>
-  )
-}
-
-function QuestCard({ block, streak }: { block: Loaded<DailyQuest | null>; streak: Loaded<StreakInfo | null> }) {
+function QuestCard({ block }: { block: Loaded<DailyQuest | null> }) {
   const t = fr.home.quest
   return (
     <section className="panel home-card home-quest" aria-label={t.title}>
@@ -71,7 +53,6 @@ function QuestCard({ block, streak }: { block: Loaded<DailyQuest | null>; streak
           </>
         )
       })() : null}
-      <StreakLine block={streak} />
     </section>
   )
 }
@@ -83,7 +64,6 @@ export function Home() {
   const [failed, setFailed] = useState(false)
   const [reload, setReload] = useState(0)
   const quest = useBlock(getDailyQuest, 'quest')
-  const streak = useBlock(getMyStreak, 'streak')
 
   const username = me?.username
   const myId = me?.id
@@ -112,7 +92,7 @@ export function Home() {
             viewerId={me?.id ?? ''}
             extra={(
               <div className="home-strip">
-                <QuestCard block={quest} streak={streak} />
+                <QuestCard block={quest} />
               </div>
             )}
           />

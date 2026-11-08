@@ -2,16 +2,14 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { DailyQuest, StreakInfo } from '../lib/api'
+import type { DailyQuest } from '../lib/api'
 
 const getDailyQuest = vi.fn()
-const getMyStreak = vi.fn()
 const loadProfile = vi.fn()
 const listMyBlogPosts = vi.fn()
 
 vi.mock('../lib/api', () => ({
   getDailyQuest: (...a: unknown[]) => getDailyQuest(...a),
-  getMyStreak: (...a: unknown[]) => getMyStreak(...a),
   loadProfile: (...a: unknown[]) => loadProfile(...a),
   listMyBlogPosts: (...a: unknown[]) => listMyBlogPosts(...a),
   startConversation: vi.fn(),
@@ -31,10 +29,6 @@ const quest = (extra: Partial<DailyQuest> = {}): DailyQuest => ({
   topic: 'Algorithmes', language: 'python', est_minutes: 25, xp_reward: 250, kopek_reward: 50, source: 'scheduled', day: '2026-11-06',
   seconds_left: 5 * 3600 + 12 * 60 + 30, status: null, ...extra,
 })
-const streak = (extra: Partial<StreakInfo> = {}): StreakInfo => ({
-  current_streak: 4, longest_streak: 9, done_today: false, at_risk: true, chest_every: 7, chest_kopeks: 100, next_chest_in: 3,
-  last_active_on: '2026-11-05', freezes: 1, freeze_max: 2, protected_by_freeze: false, ...extra,
-})
 const profileData = (extra = {}) => ({
   profile: { id: 'u1', username: 'moussa_dev', display_name: 'Moussa Diop', headline: 'Développeur web à Dakar', bio: 'Je construis des outils.', location: 'Dakar, Sénégal', github_username: 'moussa-diop', avatar_url: null, banner_url: null, clan: 'saltigue', mastery: 'bagne', xp: 25000, is_verified: false, available_to_collab: true, created_at: '2024-03-01T00:00:00Z' },
   xpPerLevel: 10000,
@@ -53,9 +47,8 @@ const profileData = (extra = {}) => ({
 const mount = () => render(<MemoryRouter><Home /></MemoryRouter>)
 
 beforeEach(() => {
-  for (const m of [getDailyQuest, getMyStreak, loadProfile, listMyBlogPosts]) m.mockReset()
+  for (const m of [getDailyQuest, loadProfile, listMyBlogPosts]) m.mockReset()
   getDailyQuest.mockResolvedValue(quest())
-  getMyStreak.mockResolvedValue(streak())
   loadProfile.mockResolvedValue(profileData())
   listMyBlogPosts.mockResolvedValue([
     { id: 'b1', slug: 'mon-article', title: 'Mon article', status: 'published', staff_hidden: false, updated_at: '2026-11-01T00:00:00Z' },
@@ -140,16 +133,6 @@ describe('Cité home', () => {
     getDailyQuest.mockResolvedValue(null)
     mount()
     expect(await screen.findByText("Pas de quête aujourd'hui. Revenez bientôt.")).toBeInTheDocument()
-  })
-
-  it('shows the streak as a small line inside the quest box', async () => {
-    mount()
-    const line = await screen.findByLabelText('Série')
-    expect(within(line).getByText('Série : 4 jours')).toBeInTheDocument()
-    expect(within(line).getByText(/Record : 9 jours/)).toBeInTheDocument()
-    expect(within(line).getByText("Résolvez une quête aujourd'hui pour garder votre série.")).toBeInTheDocument()
-    expect(within(line).getByText('Coffre dans 3 jours : +100 Kopeks')).toBeInTheDocument()
-    expect(within(line).getByText('Gels de série : 1 sur 2')).toBeInTheDocument()
   })
 
   it('keeps the other blocks when one of them fails', async () => {
