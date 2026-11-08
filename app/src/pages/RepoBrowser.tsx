@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useState, type FormEvent, type MouseEvent } from 'react'
+import { useCallback, useRef, useEffect, useMemo, useState, type FormEvent, type MouseEvent } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
 import { CodeEditor } from '../components/CodeEditor'
+import { ChangeDiff } from '../components/ChangeDiff'
 import { EditorTabs } from '../components/EditorTabs'
 import { FileTree } from '../components/FileTree'
 import { Icon } from '../components/Icon'
@@ -13,7 +14,7 @@ import {
 } from '../lib/api'
 import { fr } from '../i18n/fr'
 import {
-  MAX_SERVER_FILES, PendingError, addText, changeAt, discard, editText, listChanges, markedPaths, removeFile, serverFileCount, toServerFiles, type Pending,
+  MAX_SERVER_FILES, MAX_UPLOAD_BYTES, PendingError, addText, addUpload, renameFile, changeAt, discard, editText, listChanges, markedPaths, removeFile, serverFileCount, toServerFiles, type Pending,
 } from '../lib/pending'
 
 const errorText = (e: unknown) => fr.editor.errors[e instanceof EditorError ? e.code : 'unknown'] ?? fr.editor.errors.unknown
@@ -47,6 +48,11 @@ export function RepoBrowser() {
   const [base, setBase] = useState<Base | null>(null)
   const [tabs, setTabs] = useState<string[]>([])
   const [box, setBox] = useState(false)
+  const [showDiff, setShowDiff] = useState(false)
+  const [renaming, setRenaming] = useState<string | null>(null)
+  const [folderName, setFolderName] = useState<string | null>(null)
+  const fileInput = useRef<HTMLInputElement>(null)
+  const pendingRef = useRef<Pending>({})
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
@@ -74,6 +80,7 @@ export function RepoBrowser() {
   const branchPrefix = isOwner ? '' : `${username}/`
   const newBranchSlug = newBranch ?? slugBranch(message)
   const newBranchName = slugBranch(newBranchSlug) ? `${branchPrefix}${slugBranch(newBranchSlug)}` : ''
+  pendingRef.current = pending
   const changes = useMemo(() => listChanges(pending), [pending])
   const changeCount = changes.length
   const dirty = changeCount > 0
@@ -201,6 +208,69 @@ export function RepoBrowser() {
     setPending((p) => removeFile(p, path))
   }
 
+  async function startRename() {
+    if (!path) return
+    const ctx = await ensureBase()
+    if (ctx) setRenaming(path)
+  }
+
+  function doRename(e: FormEvent) {
+    e.preventDefault()
+    if (!project || renaming === null) return
+    const to = renaming.trim()
+    try {
+      setPending(renameFile(pending, treePaths, path, to))
+      setRenaming(null)
+      setActionError(null)
+      if (to !== path) setTabs((tt) => tt.filter((x) => x !== path))
+      if (to !== path) navigate(fileUrl(project.id, to, shownBranch), { replace: true })
+    } catch (err) {
+      setActionError(pendingText(err))
+    }
+  }
+
+  async function startFolder() {
+    const ctx = await ensureBase()
+    if (ctx) setFolderName(dir || parentOf(path) ? `${dir || parentOf(path)}/` : '')
+  }
+
+  function doFolder(e: FormEvent) {
+    e.preventDefault()
+    if (folderName === null) return
+    const name = folderName.trim().replace(/\/+$/, '')
+    try {
+      setPending(addText(pending, treePaths, `${name}/.gitkeep`))
+      setFolderName(null)
+      setActionError(null)
+    } catch (err) {
+      setActionError(pendingText(err))
+    }
+  }
+
+  async function onUpload(file: File | undefined) {
+    if (!file || !project) return
+    if (file.size > MAX_UPLOAD_BYTES) { setActionError(fr.editor.uploadTooBig); return }
+    const ctx = await ensureBase()
+    if (!ctx) return
+    try {
+      const data = await new Promise<string>((ok, no) => {
+        const r = new FileReader()
+        r.onload = () => ok(String(r.result).split(',')[1] ?? '')
+        r.onerror = () => no(new Error('read'))
+        r.readAsDataURL(file)
+      })
+      const folder = dir || parentOf(path)
+      const to = `${folder ? `${folder}/` : ''}${file.name}`
+      // The latest changes, read from the ref: the screen may have moved on while the file was being read.
+      const next = addUpload(pendingRef.current, treePaths, to, data, file.size)
+      pendingRef.current = next
+      setPending(next)
+      setActionError(null)
+    } catch (err) {
+      setActionError(err instanceof PendingError ? pendingText(err) : fr.editor.uploadFailed)
+    }
+  }
+
   function restore() {
     const c = Object.values(pending).find((x) => x.kind === 'delete' && x.path === path)
     if (c) setPending((p) => discard(p, c.key))
@@ -237,6 +307,7 @@ export function RepoBrowser() {
       setPending({})
       setBase(null)
       setBox(false)
+      setShowDiff(false)
       setMessage('')
       setTexts({})
       setTabs((tt) => tt.filter((x) => !gone.has(x)))
@@ -392,6 +463,23 @@ export function RepoBrowser() {
                       <h2>{t.panelTitle}</h2>
                       <button type="button" className="icon-btn icon-btn-small" aria-label={t.hidePanel} title={t.hidePanel} onClick={() => setPanelOpen(false)}><Icon name="chevron-left" size={16} /></button>
                     </div>
+                    {isMember && (
+                      <div className="panel-tools">
+                        <button type="button" className="btn" disabled={busy} onClick={() => void startFolder()}>{fr.editor.newFolder}</button>
+                        <button type="button" className="btn" disabled={busy} onClick={() => fileInput.current?.click()}>{fr.editor.upload}</button>
+                        <input ref={fileInput} type="file" hidden aria-label={fr.editor.upload} onChange={(e) => { void onUpload(e.target.files?.[0]); e.target.value = '' }} />
+                      </div>
+                    )}
+                    {folderName !== null && (
+                      <form className="panel-form" onSubmit={doFolder} noValidate>
+                        <label htmlFor="folder-name" className="sr-only">{fr.editor.folderLabel}</label>
+                        <input id="folder-name" placeholder={fr.editor.folderLabel} value={folderName} onChange={(e) => setFolderName(e.target.value)} autoFocus />
+                        <div className="panel-form-actions">
+                          <button type="button" className="btn" onClick={() => setFolderName(null)}>{fr.editor.cancelShort}</button>
+                          <button type="submit" className="btn btn-cta" disabled={!folderName.trim()}>{fr.editor.folderCreate}</button>
+                        </div>
+                      </form>
+                    )}
                     <FileTree projectId={project.id} paths={marked.paths} current={path} branch={shownBranch} marks={marked.marks} />
                   </aside>
                 )}
@@ -409,10 +497,22 @@ export function RepoBrowser() {
                         <button type="button" className="icon-btn" aria-label={t.save} title={dirty ? t.save : t.noChanges} disabled={busy || !dirty} onClick={() => setBox(true)}><Icon name="save" size={18} /></button>
                       )}
                       {isMember && (
+                        <button type="button" className="btn" disabled={busy || removedHere || renaming !== null || (shownContent === null && !active)} onClick={() => void startRename()}>{fr.editor.renameTitle}</button>
+                      )}
+                      {isMember && (
                         <button type="button" className="icon-btn icon-btn-danger" aria-label={t.delete} title={t.delete} disabled={busy || removedHere || (shownContent === null && !active)} onClick={() => void startDelete()}><Icon name="trash" size={18} /></button>
                       )}
                     </div>
                   </div>
+
+                  {renaming !== null && (
+                    <form className="rename-form" onSubmit={doRename} noValidate>
+                      <label htmlFor="rename-path" className="sr-only">{fr.editor.renameLabel}</label>
+                      <input id="rename-path" aria-label={fr.editor.renameLabel} value={renaming} onChange={(e) => setRenaming(e.target.value)} autoFocus />
+                      <button type="button" className="btn" onClick={() => setRenaming(null)}>{fr.editor.cancelShort}</button>
+                      <button type="submit" className="btn btn-cta" disabled={!renaming.trim()}>{fr.editor.renameDo}</button>
+                    </form>
+                  )}
 
                   {box && (
                     <form className="commit-box" onSubmit={(e) => void commit(e)} noValidate>
@@ -425,6 +525,8 @@ export function RepoBrowser() {
                           </li>
                         ))}
                       </ul>
+                      <button type="button" className="btn" aria-expanded={showDiff} onClick={() => setShowDiff((v) => !v)}>{showDiff ? fr.editor.hideChanges : fr.editor.seeChanges}</button>
+                      {showDiff && <div className="change-diffs">{changes.map((c) => <ChangeDiff key={c.key} change={c} />)}</div>}
                       <label htmlFor="commit-message" className="sr-only">{fr.editor.commitMessage}</label>
                       <input id="commit-message" maxLength={500} placeholder={t.commitPlaceholder} aria-label={fr.editor.commitMessage} value={message} onChange={(e) => setMessage(e.target.value)} autoFocus />
                       <fieldset className="commit-target">
