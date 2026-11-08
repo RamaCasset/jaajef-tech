@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent, type MouseEv
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
 import { CodeEditor } from '../components/CodeEditor'
+import { EditorTabs } from '../components/EditorTabs'
 import { FileTree } from '../components/FileTree'
 import { Icon } from '../components/Icon'
 import { ProjectFiles, dirUrl, fileUrl, parentOf } from '../components/ProjectFiles'
@@ -11,14 +12,17 @@ import {
   pullRequestUrl, type BranchList, type EditorStatus, type ProjectFull, type RepoTree,
 } from '../lib/api'
 import { fr } from '../i18n/fr'
+import {
+  MAX_SERVER_FILES, PendingError, addText, changeAt, discard, editText, listChanges, markedPaths, removeFile, serverFileCount, toServerFiles, type Pending,
+} from '../lib/pending'
 
 const errorText = (e: unknown) => fr.editor.errors[e instanceof EditorError ? e.code : 'unknown'] ?? fr.editor.errors.unknown
 const viewError = (e: unknown) => (e instanceof GithubError ? fr.repoViewer.errors[e.code] : e instanceof EditorError ? errorText(e) : fr.repoViewer.errors.failed)
 
-type Draft = { text: string; head: string; branch: string; isNew: boolean }
+const pendingText = (e: unknown) => (e instanceof PendingError ? fr.editor.errors[e.code === 'exists' ? 'path_exists' : 'bad_request'] : errorText(e))
+type Base = { head: string; branch: string }
 /** A branch name made of letters, digits, dots, dashes and underscores, from whatever the member typed. */
 export const slugBranch = (text: string) => text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9._-]+/g, '-').replace(/^[-._]+|[-._]+$/g, '').slice(0, 50)
-type Box = 'save' | 'delete' | null
 
 export function RepoBrowser() {
   const t = fr.repoBrowser
@@ -37,10 +41,12 @@ export function RepoBrowser() {
   const [tree, setTree] = useState<RepoTree | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [reload, setReload] = useState(0)
-  const [content, setContent] = useState<string | null>(null)
+  const [texts, setTexts] = useState<Record<string, string>>({})
   const [fileError, setFileError] = useState<string | null>(null)
-  const [draft, setDraft] = useState<Draft | null>(null)
-  const [box, setBox] = useState<Box>(null)
+  const [pending, setPending] = useState<Pending>({})
+  const [base, setBase] = useState<Base | null>(null)
+  const [tabs, setTabs] = useState<string[]>([])
+  const [box, setBox] = useState(false)
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
@@ -68,7 +74,15 @@ export function RepoBrowser() {
   const branchPrefix = isOwner ? '' : `${username}/`
   const newBranchSlug = newBranch ?? slugBranch(message)
   const newBranchName = slugBranch(newBranchSlug) ? `${branchPrefix}${slugBranch(newBranchSlug)}` : ''
-  const dirty = draft !== null && (draft.isNew || draft.text !== content)
+  const changes = useMemo(() => listChanges(pending), [pending])
+  const changeCount = changes.length
+  const dirty = changeCount > 0
+  const treePaths = useMemo(() => new Set((tree?.entries ?? []).filter((e) => e.type === 'blob').map((e) => e.path)), [tree])
+  const active = path ? changeAt(pending, path) : undefined
+  const removedHere = !!path && Object.values(pending).some((c) => c.kind === 'delete' && c.path === path)
+  const sourcePath = active?.from ?? path
+  const original = texts[sourcePath]
+  const shownContent: string | null = active && active.kind === 'add' ? active.text ?? '' : active?.text ?? original ?? null
 
   useEffect(() => {
     let alive = true
@@ -99,23 +113,33 @@ export function RepoBrowser() {
     return () => window.removeEventListener('beforeunload', warn)
   }, [dirty])
 
-  // Opening another file starts from a clean state.
+  // A new branch or project starts from a clean state: the changes belong to the branch they were made on.
+  useEffect(() => { setTexts({}); setPending({}); setBase(null); setBox(false) }, [id, branchParam])
+
+  // Opening another file clears the old messages and adds a tab.
   useEffect(() => {
-    setContent(null); setFileError(null); setDraft(null); setBox(null); setMessage(''); setActionError(null); setDone(null); setInstall(null); setNotAllowed(false)
+    setFileError(null); setActionError(null); setInstall(null); setNotAllowed(false)
+    if (path) setTabs((t) => (t.includes(path) ? t : [...t, path]))
   }, [path])
 
+  // Read the file from GitHub the first time it is opened (a new file has nothing to read).
   useEffect(() => {
-    if (!project || !tree || !path) return
-    if (wantsNew) { setContent(''); return }
-    const entry = tree.entries.find((e) => e.path === path && e.type === 'blob')
+    if (!project || !tree || !path || removedHere) return
+    const c = changeAt(pending, path)
+    if (c?.kind === 'add' || (wantsNew && !treePaths.has(path))) return
+    const src = c?.from ?? path
+    if (texts[src] !== undefined) return
+    const entry = tree.entries.find((e) => e.path === src && e.type === 'blob')
     if (!entry) { setFileError(fr.repoViewer.errors.not_found); return }
     if (!isViewable(entry)) { setFileError(fr.repoViewer.notViewable); return }
     let alive = true
-    loadRepoFile(project, tree.branch, path)
-      .then((c) => { if (alive) setContent(c) })
+    loadRepoFile(project, tree.branch, src)
+      .then((text) => { if (alive) setTexts((x) => ({ ...x, [src]: text })) })
       .catch((e) => { if (alive) setFileError(viewError(e)) })
     return () => { alive = false }
-  }, [project, tree, path, wantsNew])
+    // `pending` is read only to know where the file came from; a text edit must not read it again.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [project, tree, path, removedHere, texts, wantsNew])
 
   /** Asks GitHub (through the editor function) for the latest state of the branch being viewed, and checks the app is installed. */
   const prepare = useCallback(async (): Promise<{ head: string; branch: string } | null> => {
@@ -142,64 +166,104 @@ export function RepoBrowser() {
     }
   }, [project, isOwner, branchParam])
 
-  // When editing starts: save on this branch if the member may, otherwise on a new branch of their own.
-  useEffect(() => { if (draft) { setTarget(canWriteHere ? 'here' : 'new'); setNewBranch(null) } }, [draft === null, canWriteHere]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  async function startEdit() {
-    if (!project || content === null) return
+  // Editing starts for the whole workspace: the latest state of the branch is read once, and every change is measured against it.
+  async function ensureBase(): Promise<Base | null> {
+    if (base) return base
     const ctx = await prepare()
-    if (!ctx) return
+    if (!ctx) return null
+    setBase(ctx)
     setDone(null)
-    setDraft({ text: content, head: ctx.head, branch: ctx.branch, isNew: false })
+    setTarget(canWriteHere ? 'here' : 'new')
+    setNewBranch(null)
+    return ctx
   }
 
   // A new file (from the "Nouveau fichier" button) opens straight in editing mode.
   useEffect(() => {
-    if (!wantsNew || !isMember || draft || !path) return
+    if (!wantsNew || !isMember || !path || !tree || changeAt(pending, path) || treePaths.has(path)) return
     let alive = true
-    void prepare().then((ctx) => { if (alive && ctx) setDraft({ text: '', head: ctx.head, branch: ctx.branch, isNew: true }) })
+    void ensureBase().then((ctx) => {
+      if (!alive || !ctx) return
+      try { setPending((p) => (changeAt(p, path) ? p : addText(p, treePaths, path))) } catch (e) { setActionError(pendingText(e)) }
+    })
     return () => { alive = false }
-  }, [wantsNew, isMember, path, draft, prepare])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wantsNew, isMember, path, tree])
 
-  async function startDelete() {
-    setDone(null)
-    if (draft) { setBox('delete'); return }
-    const ctx = await prepare()
-    if (!ctx) return
-    setDraft({ text: content ?? '', head: ctx.head, branch: ctx.branch, isNew: false })
-    setBox('delete')
+  async function startEdit() {
+    await ensureBase()
   }
 
-  async function commit(kind: 'save' | 'delete', e: FormEvent) {
+  async function startDelete() {
+    if (!path) return
+    const ctx = await ensureBase()
+    if (!ctx) return
+    setPending((p) => removeFile(p, path))
+  }
+
+  function restore() {
+    const c = Object.values(pending).find((x) => x.kind === 'delete' && x.path === path)
+    if (c) setPending((p) => discard(p, c.key))
+  }
+
+  function onType(v: string) {
+    if (!path) return
+    setPending((p) => editText(p, path, v, original ?? ''))
+  }
+
+  function closeTab(closing: string) {
+    if (!project) return
+    const rest = tabs.filter((x) => x !== closing)
+    setTabs(rest)
+    if (closing !== path) return
+    const next = rest[rest.length - 1]
+    navigate(next ? fileUrl(project.id, next, shownBranch) : dirUrl(project.id, parentOf(closing), shownBranch))
+  }
+
+  async function commit(e: FormEvent) {
     e.preventDefault()
-    if (!project || !draft || !message.trim()) return
+    if (!project || !base || !message.trim() || !dirty) return
+    if (serverFileCount(pending) > MAX_SERVER_FILES) { setActionError(fr.editor.tooMany(MAX_SERVER_FILES)); return }
     setActionError(null)
     setBusy(true)
     try {
-      const change = kind === 'delete' ? { path, delete: true } : { path, content: draft.text }
       const toNew = target === 'new' || !canWriteHere
       if (toNew && !newBranchName) { setActionError(fr.editor.errors.bad_request); return }
-      const into = toNew ? newBranchName : draft.branch
-      const r = await editorCommitTo(project.id, { branch: into, createFrom: toNew ? draft.branch : undefined, baseSha: draft.head, message: message.trim(), files: [change] })
+      const into = toNew ? newBranchName : base.branch
+      const r = await editorCommitTo(project.id, { branch: into, createFrom: toNew ? base.branch : undefined, baseSha: base.head, message: message.trim(), files: toServerFiles(pending) })
       const urlBranch = into === mainBranch ? null : into
-      if (kind === 'delete') {
-        navigate(dirUrl(project.id, parentOf(path), urlBranch))
-        return
-      }
-      setTree((tr) => (tr && !tr.entries.some((x) => x.path === path) ? { ...tr, entries: [...tr.entries, { path, type: 'blob', size: draft.text.length }] } : tr))
-      setContent(draft.text)
-      setDraft(null)
-      setBox(null)
+      const stillThere = path && !Object.values(pending).some((c) => c.kind === 'delete' && c.path === path) ? path : null
+      const gone = new Set(Object.values(pending).filter((c) => c.kind === 'delete').map((c) => c.path))
+      setPending({})
+      setBase(null)
+      setBox(false)
       setMessage('')
+      setTexts({})
+      setTabs((tt) => tt.filter((x) => !gone.has(x)))
       setDone(r.html_url)
       if (toNew) setBranches((b) => (b && !b.branches.includes(into) ? { ...b, branches: [...b.branches, into] } : b))
-      if (wantsNew || toNew) navigate(fileUrl(project.id, path, urlBranch), { replace: true })
+      if (!toNew) setReload((n) => n + 1)
+      if (stillThere) { if (wantsNew || toNew) navigate(fileUrl(project.id, stillThere, urlBranch), { replace: true }) }
+      else navigate(dirUrl(project.id, parentOf(path), urlBranch))
     } catch (err) {
       setActionError(errorText(err))
     } finally {
       setBusy(false)
     }
   }
+
+  // Ctrl+S (or Cmd+S) opens the save box instead of the browser's own "save page".
+  useEffect(() => {
+    if (!isMember || !path) return
+    const onKey = (ev: KeyboardEvent) => {
+      if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === 's') {
+        ev.preventDefault()
+        if (dirty && !busy) setBox(true)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [isMember, path, dirty, busy])
 
   async function sendProposal(e: FormEvent) {
     e.preventDefault()
@@ -221,15 +285,13 @@ export function RepoBrowser() {
 
   const guard = (ev: MouseEvent) => { if (dirty && !window.confirm(fr.editor.leaveWarning)) ev.preventDefault() }
 
-  const allFiles = useMemo(() => {
-    const paths = new Set((tree?.entries ?? []).filter((e) => e.type === 'blob').map((e) => e.path))
-    if (wantsNew && path) paths.add(path)
-    return [...paths].sort((a, b) => a.localeCompare(b))
-  }, [tree, wantsNew, path])
+  const marked = useMemo(() => markedPaths([...treePaths], pending), [treePaths, pending])
+  const changedPaths = useMemo(() => new Set(changes.filter((c) => c.kind !== 'delete').map((c) => c.path)), [changes])
+  const removedPaths = useMemo(() => new Set(changes.filter((c) => c.kind === 'delete').map((c) => c.path)), [changes])
 
   const segments = (path || dir).split('/').filter(Boolean)
-  const shownText = draft ? draft.text : content ?? ''
-  const lineCount = content === null && !draft ? 0 : shownText.split('\n').length
+  const shownText = shownContent ?? ''
+  const lineCount = shownContent === null ? 0 : shownText.split('\n').length
   const githubUrl = project ? `https://github.com/${project.github_owner}/${project.github_repo}` : '#'
 
   const branchOptions = useMemo(() => {
@@ -330,30 +392,39 @@ export function RepoBrowser() {
                       <h2>{t.panelTitle}</h2>
                       <button type="button" className="icon-btn icon-btn-small" aria-label={t.hidePanel} title={t.hidePanel} onClick={() => setPanelOpen(false)}><Icon name="chevron-left" size={16} /></button>
                     </div>
-                    <FileTree projectId={project.id} paths={allFiles} current={path} branch={shownBranch} onNavigate={guard} />
+                    <FileTree projectId={project.id} paths={marked.paths} current={path} branch={shownBranch} marks={marked.marks} />
                   </aside>
                 )}
                 <section className="editor-card" aria-label={path}>
+                  <EditorTabs tabs={tabs} active={path} changed={changedPaths} removed={removedPaths} hrefFor={(p) => fileUrl(project.id, p, shownBranch)} onClose={closeTab} />
                   <div className="file-bar">
                     <Link className="muted tiny" to={`/projets/${project.id}/historique?fichier=${encodeURIComponent(path)}`} onClick={guard}>{t.fileHistory}</Link>
-                    {content !== null && <span className="muted tiny">{fr.repoViewer.lines(lineCount)}</span>}
+                    {shownContent !== null && <span className="muted tiny">{fr.repoViewer.lines(lineCount)}</span>}
+                    {dirty && <span className="muted tiny">{fr.editor.changesTitle(changeCount)}</span>}
                     <div className="file-actions">
-                      {isMember && !wantsNew && (
-                        <button type="button" className={`icon-btn ${draft ? 'icon-btn-on' : ''}`} aria-label={t.edit} title={t.edit} aria-pressed={draft !== null} disabled={busy || content === null || draft !== null} onClick={() => void startEdit()}><Icon name="pen" size={18} /></button>
+                      {isMember && (
+                        <button type="button" className={`icon-btn ${base ? 'icon-btn-on' : ''}`} aria-label={t.edit} title={t.edit} aria-pressed={base !== null} disabled={busy || base !== null || (shownContent === null && !removedHere)} onClick={() => void startEdit()}><Icon name="pen" size={18} /></button>
                       )}
                       {isMember && (
-                        <button type="button" className="icon-btn" aria-label={t.save} title={dirty ? t.save : t.noChanges} disabled={busy || !dirty} onClick={() => setBox('save')}><Icon name="save" size={18} /></button>
+                        <button type="button" className="icon-btn" aria-label={t.save} title={dirty ? t.save : t.noChanges} disabled={busy || !dirty} onClick={() => setBox(true)}><Icon name="save" size={18} /></button>
                       )}
-                      {isMember && !wantsNew && (
-                        <button type="button" className="icon-btn icon-btn-danger" aria-label={t.delete} title={t.delete} disabled={busy || content === null} onClick={() => void startDelete()}><Icon name="trash" size={18} /></button>
+                      {isMember && (
+                        <button type="button" className="icon-btn icon-btn-danger" aria-label={t.delete} title={t.delete} disabled={busy || removedHere || (shownContent === null && !active)} onClick={() => void startDelete()}><Icon name="trash" size={18} /></button>
                       )}
                     </div>
                   </div>
 
                   {box && (
-                    <form className="commit-box" onSubmit={(e) => void commit(box, e)} noValidate>
-                      <h3>{box === 'delete' ? t.deleteTitle : t.commitTitle}</h3>
-                      {box === 'delete' && <p className="muted">{t.deleteHelp(path)}</p>}
+                    <form className="commit-box" onSubmit={(e) => void commit(e)} noValidate>
+                      <h3>{t.commitTitle}</h3>
+                      <ul className="change-list">
+                        {changes.map((c) => (
+                          <li key={c.key}>
+                            <code>{c.path}</code> <span className="muted tiny">{c.kind === 'add' ? fr.editor.changeNew : c.kind === 'delete' ? fr.editor.changeDeleted : c.path !== c.from ? fr.editor.changeRenamed(c.from ?? '') : fr.editor.changeEdited}</span>{' '}
+                            <button type="button" className="linklike" onClick={() => setPending((p) => discard(p, c.key))}>{fr.editor.discard}</button>
+                          </li>
+                        ))}
+                      </ul>
                       <label htmlFor="commit-message" className="sr-only">{fr.editor.commitMessage}</label>
                       <input id="commit-message" maxLength={500} placeholder={t.commitPlaceholder} aria-label={fr.editor.commitMessage} value={message} onChange={(e) => setMessage(e.target.value)} autoFocus />
                       <fieldset className="commit-target">
@@ -371,9 +442,9 @@ export function RepoBrowser() {
                         {!isOwner && !canWriteHere && <p className="muted tiny">{t.collabHint}</p>}
                       </fieldset>
                       <div className="commit-actions">
-                        <button type="button" className="btn" onClick={() => { setBox(null); setMessage('') }}>{t.cancel}</button>
-                        <button type="submit" className={`btn ${box === 'delete' ? 'btn-danger' : 'btn-cta'}`} disabled={busy || !message.trim()}>
-                          {busy ? fr.editor.saving : box === 'delete' ? t.deleteConfirm : t.saveConfirm}
+                        <button type="button" className="btn" onClick={() => { setBox(false); setMessage('') }}>{t.cancel}</button>
+                        <button type="submit" className="btn btn-cta" disabled={busy || !message.trim() || !dirty}>
+                          {busy ? fr.editor.saving : t.saveConfirm}
                         </button>
                       </div>
                     </form>
@@ -381,9 +452,12 @@ export function RepoBrowser() {
 
                   <div className="editor-body">
                     {fileError && <p role="alert" className="alert editor-pad">{fileError}</p>}
-                    {!fileError && content === null && <p className="muted editor-pad">{fr.repoViewer.loading}</p>}
-                    {!fileError && content !== null && (
-                      <CodeEditor path={path} value={shownText} readOnly={draft === null} onChange={(v) => setDraft((d) => (d ? { ...d, text: v } : d))} />
+                    {removedHere && (
+                      <p className="editor-pad">{fr.editor.willBeDeleted} <button type="button" className="btn" onClick={restore}>{fr.editor.restoreFile}</button></p>
+                    )}
+                    {!fileError && !removedHere && shownContent === null && <p className="muted editor-pad">{fr.repoViewer.loading}</p>}
+                    {!fileError && !removedHere && shownContent !== null && (
+                      <CodeEditor path={path} value={shownText} readOnly={base === null} onChange={onType} />
                     )}
                   </div>
                 </section>

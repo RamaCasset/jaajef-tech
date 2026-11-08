@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState, type MouseEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { Icon } from './Icon'
 import { fileUrl } from './ProjectFiles'
+import type { Mark } from '../lib/pending'
+import { fr } from '../i18n/fr'
 
 type Node = { name: string; path: string; folders: Node[]; files: Node[] }
 
@@ -26,7 +28,7 @@ function build(paths: string[]): Node {
 const ancestors = (path: string) => path.split('/').slice(0, -1).map((_, i, a) => a.slice(0, i + 1).join('/'))
 
 /** Folder tree of the repository: folders open and close, the open file is highlighted. */
-export function FileTree({ projectId, paths, current, branch = null, onNavigate }: { projectId: string; paths: string[]; current: string; branch?: string | null; onNavigate?: (ev: MouseEvent) => void }) {
+export function FileTree({ projectId, paths, current, branch = null, marks = {}, onNavigate }: { projectId: string; paths: string[]; current: string; branch?: string | null; marks?: Record<string, Mark>; onNavigate?: (ev: MouseEvent) => void }) {
   const root = useMemo(() => build(paths), [paths])
   const [open, setOpen] = useState<Set<string>>(() => new Set(ancestors(current)))
   useEffect(() => { setOpen((o) => new Set([...o, ...ancestors(current)])) }, [current])
@@ -45,7 +47,10 @@ export function FileTree({ projectId, paths, current, branch = null, onNavigate 
       ))}
       {n.files.map((f) => (
         <li key={f.path}>
-          <Link className={`file-row ${f.path === current ? 'file-row-on' : ''}`} style={{ paddingLeft: 10 + depth * 14 + 20 }} to={fileUrl(projectId, f.path, branch)} onClick={onNavigate} aria-current={f.path === current ? 'page' : undefined} title={f.path}>{f.name}</Link>
+          <Link className={`file-row ${f.path === current ? 'file-row-on' : ''} ${marks[f.path] ? `file-row-${marks[f.path]}` : ''}`} style={{ paddingLeft: 10 + depth * 14 + 20 }} to={fileUrl(projectId, f.path, branch)} onClick={onNavigate} aria-current={f.path === current ? 'page' : undefined} title={f.path}>
+            {f.name}
+            {marks[f.path] && <span className="file-mark" title={fr.editor.marks[marks[f.path]]}>{marks[f.path] === 'deleted' ? '−' : marks[f.path] === 'new' ? '+' : '•'}<span className="sr-only"> {fr.editor.marks[marks[f.path]]}</span></span>}
+          </Link>
         </li>
       ))}
     </ul>

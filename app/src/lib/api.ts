@@ -1623,7 +1623,7 @@ async function callEditor<T>(body: Record<string, unknown>): Promise<T> {
 }
 export type EditorStatus = { installed: boolean; install_url: string; github_name: string }
 export type EditorTree = { branch: string; default_branch?: string; head: string | null; entries: RepoEntry[]; truncated: boolean }
-export type FileChange = { path: string; content?: string; delete?: boolean }
+export type FileChange = { path: string; content?: string; content_base64?: string; delete?: boolean; move_from?: string }
 export const editorStatus = () => callEditor<EditorStatus>({ action: 'status' })
 export type EditorRepo = { name: string; private: boolean; default_branch: string }
 export const editorRepos = () => callEditor<{ repos: EditorRepo[] }>({ action: 'repos' })
