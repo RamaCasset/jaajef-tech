@@ -55,3 +55,4 @@ Assumptions to confirm with Marie:
 - Editor commits show as made by the GitHub app ("Saved from jaajef.tech by @username"). Accepted.
 - Bonus values and payments (PayDunya) are placeholders until the end.
 - The 365 quests are written by Claude, in batches, each tested with the code runner, after the main features.
+- Project room: a private room for the owner and the collaborators of a project (a hidden community linked to the project, created by the owner with one button). Public talk about a project stays in its comments. Assumption to confirm with Marie: the room is a button on the project page that opens the community screen, not a tab, and it also shows in the member's list of communities.

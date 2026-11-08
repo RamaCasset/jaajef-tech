@@ -11,7 +11,7 @@ import { useAuth } from '../auth/AuthContext'
 import { fr } from '../i18n/fr'
 import { friendlyError } from '../lib/errors'
 import {
-  cancelCollabInvite, decideCollabRequest, inviteCollaborator, listProjectInvites, deleteProjectComment, getProjectFull, listCollabRequests, listCollaborators, listProjectComments,
+  cancelCollabInvite, decideCollabRequest, getProjectRoom, openProjectRoom, inviteCollaborator, listProjectInvites, deleteProjectComment, getProjectFull, listCollabRequests, listCollaborators, listProjectComments,
   postProjectComment, removeCollaborator, requestCollaboration, starProject, unstarProject, withdrawCollabRequest,
   type CollabRequest, type Collaborator, type ProjectInvite, type ProjectComment, type ProjectFull,
 } from '../lib/api'
@@ -28,6 +28,7 @@ export function ProjectPage() {
   const [pitch, setPitch] = useState('')
   const [newCollab, setNewCollab] = useState('')
   const [invites, setInvites] = useState<ProjectInvite[]>([])
+  const [room, setRoom] = useState<string | null>(null)
   const [failed, setFailed] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
@@ -38,6 +39,7 @@ export function ProjectPage() {
     listCollaborators(id).then(setCollabs).catch(() => undefined)
     listCollabRequests(id).then(setRequests).catch(() => undefined)
     listProjectInvites(id).then(setInvites).catch(() => undefined)
+    getProjectRoom(id).then(setRoom).catch(() => undefined)
   }, [id])
 
   const load = useCallback(() => {
@@ -128,6 +130,18 @@ export function ProjectPage() {
             </header>
             {error && <div className="alert" role="alert">{error}</div>}
             {notice && <div className="notice" role="status">{notice}</div>}
+
+            {(room || isOwner) && (
+              <section className="panel panel-pad stack-gap project-room">
+                <h2>{fr.projectPage.roomTitle}</h2>
+                <p className="muted">{fr.projectPage.roomHelp}</p>
+                {room ? (
+                  <p><Link className="btn btn-cta" to={`/communautes/${room}`}>{fr.projectPage.roomGo}</Link></p>
+                ) : (
+                  <p><button type="button" className="btn btn-cta" disabled={busy} onClick={() => void run(() => openProjectRoom(project.id), loadSide)}>{fr.projectPage.roomOpen}</button></p>
+                )}
+              </section>
+            )}
 
             <div className="stack-gap"><ProjectFiles project={project} dir="" canEdit={isOwner || iCollaborate} /></div>
 

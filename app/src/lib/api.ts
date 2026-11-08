@@ -876,6 +876,13 @@ export async function listDiscoverCommunities(): Promise<Community[]> {
 export const communityMemberCount = (id: string) => rpc<number | null>('community_member_count', { p_community: id })
 export const createCommunity = (slug: string, name: string, description: string, isPrivate: boolean, isListed: boolean) =>
   rpc<string>('create_community', { p_slug: slug, p_name: name, p_description: description.trim() || null, p_is_private: isPrivate, p_is_listed: isListed })
+/** The chat room of a project: its slug when the signed-in member is in the team (the owner or a collaborator), otherwise null. */
+export async function getProjectRoom(projectId: string): Promise<string | null> {
+  const { data, error } = await supabase.from('communities').select('slug').eq('project_id', projectId).maybeSingle()
+  if (error) throw new Error(error.message)
+  return (data as { slug: string } | null)?.slug ?? null
+}
+export const openProjectRoom = (projectId: string) => rpc<string>('open_project_room', { p_project: projectId })
 export const joinCommunity = (id: string) => rpc<void>('join_community', { p_community: id })
 export const requestToJoin = (id: string, message: string) => rpc<string>('request_to_join', { p_community: id, p_message: message.trim() || null })
 export const leaveCommunity = (id: string) => rpc<void>('leave_community', { p_community: id })
