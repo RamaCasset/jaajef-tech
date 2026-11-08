@@ -8,7 +8,7 @@ const api = vi.hoisted(() => ({
   deleteProjectComment: vi.fn(), listCollaborators: vi.fn(), listCollabRequests: vi.fn(), requestCollaboration: vi.fn(),
   withdrawCollabRequest: vi.fn(), decideCollabRequest: vi.fn(), removeCollaborator: vi.fn(), getRepoTree: vi.fn(), getLastCommits: vi.fn(),
   GithubError: class GithubError extends Error { code = 'failed' },
-  projectCoverUrl: vi.fn(), saveProjectShowcase: vi.fn(), uploadProjectCover: vi.fn(),
+  projectCoverUrl: vi.fn(), saveProjectShowcase: vi.fn(), uploadProjectCover: vi.fn(), addCollaborator: vi.fn(),
 }))
 vi.mock('../lib/api', () => api)
 vi.mock('../auth/AuthContext', () => ({
@@ -19,7 +19,7 @@ import { ProjectPage } from '../pages/ProjectPage'
 
 const project = (extra = {}) => ({
   id: 'p1', title: 'Teranga', summary: 'Une appli', github_owner: 'awa', github_repo: 'teranga', language: 'Python', tags: ['web'],
-  github_stars: 10, owner_id: 'u2', owner_username: 'awa', owner_display_name: 'Awa Diallo', star_count: 4, starred_by_me: false, demo_url: null, cover_path: null, ...extra,
+  github_stars: 10, owner_id: 'u2', owner_username: 'awa', owner_display_name: 'Awa Diallo', star_count: 4, starred_by_me: false, demo_url: null, cover_path: null, is_public: true, repo_private: false, ...extra,
 })
 const mount = () => render(
   <MemoryRouter initialEntries={['/projets/p1']}>
@@ -38,7 +38,7 @@ beforeEach(() => {
   api.listCollabRequests.mockResolvedValue([])
   api.getRepoTree.mockResolvedValue({ branch: 'main', truncated: false, entries: [{ path: 'src', type: 'tree', size: 0 }, { path: 'app.py', type: 'blob', size: 10 }] })
   api.getLastCommits.mockResolvedValue({})
-  for (const f of [api.starProject, api.unstarProject, api.postProjectComment, api.deleteProjectComment, api.requestCollaboration, api.withdrawCollabRequest, api.decideCollabRequest, api.removeCollaborator]) f.mockResolvedValue(undefined)
+  for (const f of [api.starProject, api.unstarProject, api.postProjectComment, api.deleteProjectComment, api.requestCollaboration, api.withdrawCollabRequest, api.decideCollabRequest, api.removeCollaborator, api.addCollaborator]) f.mockResolvedValue(undefined)
 })
 
 describe('Project page', () => {
@@ -174,5 +174,51 @@ describe('Project page', () => {
     mount()
     await screen.findByText('Votre projet')
     expect(screen.queryByRole('button', { name: 'Signaler' })).not.toBeInTheDocument()
+  })
+
+  it('the owner adds a collaborator by username; nobody else sees the form', async () => {
+    api.getProjectFull.mockResolvedValue(project({ owner_id: 'me' }))
+    const first = mount()
+    await userEvent.type(await screen.findByLabelText("Ajouter un collaborateur (nom d'utilisateur)"), 'ibou_dev')
+    await userEvent.click(screen.getByRole('button', { name: 'Ajouter' }))
+    await waitFor(() => expect(api.addCollaborator).toHaveBeenCalledWith('p1', 'ibou_dev'))
+    expect(await screen.findByText(/Collaborateur ajouté/)).toBeInTheDocument()
+    expect(screen.getByLabelText("Ajouter un collaborateur (nom d'utilisateur)")).toHaveValue('')
+    first.unmount()
+    api.getProjectFull.mockResolvedValue(project())
+    mount()
+    await screen.findByText('Cheikh')
+    expect(screen.queryByLabelText("Ajouter un collaborateur (nom d'utilisateur)")).toBeNull()
+  })
+
+  it('explains in French when the username does not exist', async () => {
+    api.getProjectFull.mockResolvedValue(project({ owner_id: 'me' }))
+    api.addCollaborator.mockRejectedValue(new Error('No member with this username'))
+    mount()
+    await userEvent.type(await screen.findByLabelText("Ajouter un collaborateur (nom d'utilisateur)"), 'personne')
+    await userEvent.click(screen.getByRole('button', { name: 'Ajouter' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent("Aucun membre n'a ce nom d'utilisateur.")
+  })
+
+  it('a private project has no stars, comments or join requests, says who can see it, and waits for the private code view', async () => {
+    api.getProjectFull.mockResolvedValue(project({ is_public: false, repo_private: true }))
+    api.listCollaborators.mockResolvedValue([{ user_id: 'me', username: 'moussa', display_name: 'Moussa' }])
+    mount()
+    expect(await screen.findByText('Privé', { selector: '.tag' })).toBeInTheDocument()
+    expect(screen.getByText(/seuls le propriétaire et les collaborateurs le voient/)).toBeInTheDocument()
+    expect(screen.queryByText(/étoiles? de la Cité/)).toBeNull()
+    expect(screen.queryByRole('button', { name: /étoile/i })).toBeNull()
+    expect(screen.queryByText('Commentaires')).toBeNull()
+    expect(screen.queryByLabelText('Dites pourquoi vous voulez collaborer')).toBeNull()
+    expect(screen.getByText(/Le code des dépôts privés s'affiche bientôt/)).toBeInTheDocument()
+    expect(api.getRepoTree).not.toHaveBeenCalled()
+    expect(await screen.findByText('Moussa')).toBeInTheDocument()
+  })
+
+  it('a collaborator on a public project sees "you collaborate" instead of the star button', async () => {
+    api.listCollaborators.mockResolvedValue([{ user_id: 'me', username: 'moussa', display_name: 'Moussa' }])
+    mount()
+    expect(await screen.findByText('Vous collaborez à ce projet')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Mettre une étoile/ })).toBeNull()
   })
 })

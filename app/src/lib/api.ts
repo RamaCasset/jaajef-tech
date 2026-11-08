@@ -609,15 +609,24 @@ export type MyRepo = {
   pinned_at: string | null
   repo_private: boolean
   repo_missing_at: string | null
+  owner_id: string
+  owner_username: string
 }
 
-const REPO_COLUMNS = 'id, github_owner, github_repo, title, summary, language, github_stars, github_forks, github_pushed_at, updated_at, is_public, verified_at, build_status, pinned_at, repo_private, repo_missing_at'
+const REPO_COLUMNS = 'id, github_owner, github_repo, title, summary, language, github_stars, github_forks, github_pushed_at, updated_at, is_public, verified_at, build_status, pinned_at, repo_private, repo_missing_at, owner_id, profiles:owner_id(username)'
 
-/** All of the member's own projects, hidden and unconfirmed ones included, with the stars given on the platform. */
+/** The member's own projects (hidden and unconfirmed ones included) and the ones they collaborate on, with the stars given on the platform. */
 export async function listMyRepos(userId: string): Promise<MyRepo[]> {
-  const { data, error } = await supabase.from('projects').select(REPO_COLUMNS).eq('owner_id', userId)
+  const joined = await supabase.from('project_collaborators').select('project_id').eq('user_id', userId)
+  if (joined.error) throw new Error(joined.error.message)
+  const ids = (joined.data ?? []).map((r) => r.project_id as string)
+  const base = supabase.from('projects').select(REPO_COLUMNS)
+  const { data, error } = await (ids.length > 0 ? base.or(`owner_id.eq.${userId},id.in.(${ids.join(',')})`) : base.eq('owner_id', userId))
   if (error) throw new Error(error.message)
-  const rows = (data ?? []) as Omit<MyRepo, 'star_count'>[]
+  type Row = Omit<MyRepo, 'star_count' | 'owner_username'> & { profiles: { username: string } | { username: string }[] | null }
+  const rows = ((data ?? []) as unknown as Row[]).map(({ profiles, ...r }) => ({
+    ...r, owner_username: (Array.isArray(profiles) ? profiles[0]?.username : profiles?.username) ?? '',
+  }))
   if (rows.length === 0) return []
   const stats = await supabase.from('project_stats').select('project_id, star_count').in('project_id', rows.map((r) => r.id))
   if (stats.error) throw new Error(stats.error.message)
@@ -634,7 +643,7 @@ export async function removeProject(projectId: string): Promise<void> {
 export const setProjectPinned = (projectId: string, pinned: boolean) => rpc<void>('set_project_pinned', { p_project: projectId, p_pinned: pinned })
 export const setProjectVisibility = (projectId: string, isPublic: boolean) => rpc<void>('update_project', { p_project: projectId, p_is_public: isPublic })
 
-export type StarredRepo = Omit<MyRepo, 'pinned_at' | 'updated_at' | 'build_status' | 'star_count' | 'repo_private' | 'repo_missing_at'> & { owner_username: string }
+export type StarredRepo = Omit<MyRepo, 'pinned_at' | 'updated_at' | 'build_status' | 'star_count' | 'repo_private' | 'repo_missing_at' | 'owner_id'> & { owner_username: string }
 
 /** The projects the member starred (only the ones anyone can see). */
 export async function listMyStarred(userId: string): Promise<StarredRepo[]> {
@@ -1172,11 +1181,13 @@ export type ProjectFull = {
   starred_by_me: boolean
   demo_url: string | null
   cover_path: string | null
+  is_public: boolean
+  repo_private: boolean
 }
 export async function getProjectFull(id: string): Promise<ProjectFull | null> {
   const { data, error } = await supabase
     .from('projects')
-    .select('id, title, summary, github_owner, github_repo, language, tags, github_stars, demo_url, cover_path, owner_id, profiles:owner_id(username, display_name)')
+    .select('id, title, summary, github_owner, github_repo, language, tags, github_stars, demo_url, cover_path, is_public, repo_private, owner_id, profiles:owner_id(username, display_name)')
     .eq('id', id)
     .maybeSingle()
   if (error) throw new Error(error.message)
@@ -1238,6 +1249,8 @@ export async function listCollabRequests(projectId: string): Promise<CollabReque
 export const requestCollaboration = (projectId: string, message: string) => rpc<string>('request_collaboration', { p_project: projectId, p_message: message.trim() })
 export const withdrawCollabRequest = (id: string) => rpc<void>('withdraw_collab_request', { p_request: id })
 export const decideCollabRequest = (id: string, accept: boolean) => rpc<void>('decide_collab_request', { p_request: id, p_accept: accept })
+/** The owner adds a member as collaborator, by username. */
+export const addCollaborator = (projectId: string, username: string) => rpc<string>('add_collaborator', { p_project: projectId, p_username: username.trim().replace(/^@/, '') })
 export const removeCollaborator = (projectId: string, userId: string) => rpc<void>('remove_collaborator', { p_project: projectId, p_user: userId })
 // ---- Staff area ---------------------------------------------------------------------------------------
 export type StaffAccess = { role: 'admin' | 'moderator' | null; shopManager: boolean; questWriter: boolean; shopOwner: boolean }

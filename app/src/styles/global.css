@@ -610,3 +610,9 @@ select { appearance: none; -webkit-appearance: none; background-color: var(--pan
 .remove-confirm h2, .remove-confirm p { margin: 0; }
 .remove-actions { display: flex; gap: 12px; flex-wrap: wrap; }
 .btn-danger { background: var(--danger, #e5484d); border-color: var(--danger, #e5484d); color: #fff; }
+.tag-collab { border-color: var(--accent); color: var(--accent); }
+.collab-panel { display: grid; gap: 14px; }
+.collab-panel h2, .collab-panel h3, .collab-panel p, .collab-panel form { margin: 0; }
+.collab-panel h3 { margin-top: 6px; }
+.collab-panel form { display: grid; gap: 12px; justify-items: start; }
+.collab-panel form .field { width: 100%; }

@@ -10,7 +10,7 @@ import { useAuth } from '../auth/AuthContext'
 import { fr } from '../i18n/fr'
 import { friendlyError } from '../lib/errors'
 import {
-  decideCollabRequest, deleteProjectComment, getProjectFull, listCollabRequests, listCollaborators, listProjectComments,
+  addCollaborator, decideCollabRequest, deleteProjectComment, getProjectFull, listCollabRequests, listCollaborators, listProjectComments,
   postProjectComment, removeCollaborator, requestCollaboration, starProject, unstarProject, withdrawCollabRequest,
   type CollabRequest, type Collaborator, type ProjectComment, type ProjectFull,
 } from '../lib/api'
@@ -25,6 +25,7 @@ export function ProjectPage() {
   const [requests, setRequests] = useState<CollabRequest[]>([])
   const [text, setText] = useState('')
   const [pitch, setPitch] = useState('')
+  const [newCollab, setNewCollab] = useState('')
   const [failed, setFailed] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
@@ -63,6 +64,12 @@ export function ProjectPage() {
     await run(() => postProjectComment(id, text), () => { setText(''); loadSide() })
   }
 
+  async function onAddCollab(e: FormEvent) {
+    e.preventDefault()
+    if (!newCollab.trim()) return
+    await run(() => addCollaborator(id, newCollab), () => { setNewCollab(''); setNotice(fr.projectPage.collabAdded); loadSide() })
+  }
+
   async function onPitch(e: FormEvent) {
     e.preventDefault()
     if (!pitch.trim()) return
@@ -72,6 +79,8 @@ export function ProjectPage() {
   const isOwner = project?.owner_id === me
   const iCollaborate = collabs.some((c) => c.user_id === me)
   const myPending = requests.find((r) => r.requester_id === me)
+  // Stars, comments and join requests exist only for projects listed for everyone.
+  const listed = project?.is_public ?? false
 
   return (
     <AppShell>
@@ -88,7 +97,7 @@ export function ProjectPage() {
         {project && (
           <>
             <header className="page-head">
-              <h1 className="page-title">{project.title}</h1>
+              <h1 className="page-title">{project.title}{!listed ? <> <span className="tag tag-private">{fr.projectPage.private}</span></> : null}</h1>
               {!isOwner && <ReportButton type="project" id={project.id} />}
               <p className="muted tiny">
                 <Link to={`/profil/${project.owner_username}`}>{fr.projectPage.by(project.owner_display_name || project.owner_username)}</Link>
@@ -102,25 +111,33 @@ export function ProjectPage() {
                 {project.language && <span className="tag">{project.language}</span>}
                 {project.tags.map((t) => <span key={t} className="tag">{t}</span>)}
               </div>
-              <p>
-                {isOwner ? (
-                  <span className="muted">{fr.projectPage.ownProject}</span>
-                ) : (
-                  <button type="button" className="btn" disabled={busy} aria-pressed={project.starred_by_me} onClick={() => void toggleStar()}>
-                    {project.starred_by_me ? '★ ' + fr.projectPage.unstar : '☆ ' + fr.projectPage.star}
-                  </button>
-                )}{' '}
-                {fr.projectPage.stars(project.star_count)}
-              </p>
+              {listed ? (
+                <p>
+                  {isOwner ? (
+                    <span className="muted">{fr.projectPage.ownProject}</span>
+                  ) : iCollaborate ? (
+                    <span className="muted">{fr.projectPage.youCollaborate}</span>
+                  ) : (
+                    <button type="button" className="btn" disabled={busy} aria-pressed={project.starred_by_me} onClick={() => void toggleStar()}>
+                      {project.starred_by_me ? '★ ' + fr.projectPage.unstar : '☆ ' + fr.projectPage.star}
+                    </button>
+                  )}{' '}
+                  {fr.projectPage.stars(project.star_count)}
+                </p>
+              ) : (
+                <p className="muted">{isOwner ? fr.projectPage.privateOwner : fr.projectPage.privateMember}</p>
+              )}
             </header>
             {error && <div className="alert" role="alert">{error}</div>}
             {notice && <div className="notice" role="status">{notice}</div>}
 
-            <div className="stack-gap"><ProjectFiles project={project} dir="" canEdit={isOwner} /></div>
+            {project.repo_private
+              ? <section className="panel panel-pad stack-gap"><p className="muted">{fr.projectPage.privateCodeSoon}</p></section>
+              : <div className="stack-gap"><ProjectFiles project={project} dir="" canEdit={isOwner} /></div>}
 
             {isOwner && <ProjectShowcase projectId={project.id} userId={me} demoUrl={project.demo_url} coverPath={project.cover_path} onSaved={load} />}
 
-            <section className="panel panel-pad stack-gap">
+            <section className="panel panel-pad stack-gap collab-panel">
               <h2>{fr.projectPage.collabTitle}</h2>
               <h3>{fr.projectPage.collaborators}</h3>
               {collabs.length === 0 && <p className="muted">{fr.projectPage.collabNone}</p>}
@@ -134,6 +151,16 @@ export function ProjectPage() {
               ))}
 
               {isOwner && (
+                <form onSubmit={onAddCollab} noValidate>
+                  <div className="field">
+                    <label htmlFor="add-collab">{fr.projectPage.collabAddLabel}</label>
+                    <input id="add-collab" value={newCollab} maxLength={40} placeholder={fr.projectPage.collabAddPlaceholder} onChange={(e) => setNewCollab(e.target.value)} />
+                  </div>
+                  <button className="btn btn-cta" type="submit" disabled={busy || !newCollab.trim()}>{fr.projectPage.collabAdd}</button>
+                </form>
+              )}
+
+              {isOwner && listed && (
                 <>
                   <h3>{fr.projectPage.requestsTitle}</h3>
                   {requests.length === 0 && <p className="muted">{fr.projectPage.requestsEmpty}</p>}
@@ -147,13 +174,13 @@ export function ProjectPage() {
                 </>
               )}
 
-              {!isOwner && !iCollaborate && myPending && (
+              {listed && !isOwner && !iCollaborate && myPending && (
                 <p>
                   {fr.projectPage.collabWaiting}{' '}
                   <button type="button" className="btn" disabled={busy} onClick={() => void run(() => withdrawCollabRequest(myPending.id), loadSide)}>{fr.projectPage.collabWithdraw}</button>
                 </p>
               )}
-              {!isOwner && !iCollaborate && !myPending && (
+              {listed && !isOwner && !iCollaborate && !myPending && (
                 <form onSubmit={onPitch} noValidate>
                   <div className="field">
                     <label htmlFor="pitch">{fr.projectPage.collabMessage}</label>
@@ -164,7 +191,7 @@ export function ProjectPage() {
               )}
             </section>
 
-            <section className="panel panel-pad">
+            {listed && <section className="panel panel-pad">
               <h2>{fr.projectPage.commentsTitle}</h2>
               {comments.length === 0 && <p className="muted">{fr.projectPage.commentsEmpty}</p>}
               <ul style={{ listStyle: 'none', padding: 0 }}>
@@ -185,7 +212,7 @@ export function ProjectPage() {
                 </div>
                 <button className="btn btn-cta" type="submit" disabled={busy || !text.trim()}>{fr.projectPage.commentSend}</button>
               </form>
-            </section>
+            </section>}
           </>
         )}
       </main>
