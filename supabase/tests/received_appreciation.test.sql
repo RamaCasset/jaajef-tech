@@ -9,7 +9,8 @@ create function apkit.uid(p_n int) returns uuid language sql immutable as $$ sel
 insert into auth.users (id, email, raw_app_meta_data, raw_user_meta_data) values
   (apkit.uid(1), 'ana-ap@exemple.sn', '{"provider":"email"}', '{}'),
   (apkit.uid(2), 'bara-ap@exemple.sn', '{"provider":"email"}', '{}'),
-  (apkit.uid(3), 'coumba-ap@exemple.sn', '{"provider":"email"}', '{}');
+  (apkit.uid(3), 'coumba-ap@exemple.sn', '{"provider":"email"}', '{}'),
+  (apkit.uid(4), 'dior-ap@exemple.sn', '{"provider":"email"}', '{}');
 
 do $$
 declare shown uuid; pending uuid; hidden uuid; pub uuid; draft uuid;
@@ -54,8 +55,35 @@ begin
   raise notice 'OK 1: stars on visible projects plus likes on published posts, nothing else';
 end $$;
 
+-- The "Teranga légendaire" badge unlocks from this number. The goal is lowered to 3 for the test and put back.
+do $$
+declare shown uuid;
+begin
+  if (select metric from public.badge_rules where badge_slug = 'teranga_legendaire') <> 'appreciation' then
+    raise exception 'FAIL: the badge should be counted from appreciation';
+  end if;
+  if (select threshold from public.badge_rules where badge_slug = 'teranga_legendaire') <> 100 then
+    raise exception 'FAIL: the goal should be 100';
+  end if;
+  if exists (select 1 from public.badges where slug = 'teranga_legendaire' and description ilike '%karma%') then
+    raise exception 'FAIL: the word karma should be gone';
+  end if;
+  update public.badge_rules set threshold = 3 where badge_slug = 'teranga_legendaire';
+  select id into shown from public.projects where owner_id = apkit.uid(1) and github_repo = 'shown';
+  update public.projects set staff_hidden = false where id = shown;
+  if exists (select 1 from public.user_badges where user_id = apkit.uid(1) and badge_slug = 'teranga_legendaire' and unlocked_at is not null) then
+    raise exception 'FAIL: the badge unlocked too early';
+  end if;
+  insert into public.project_stars (project_id, user_id) values (shown, apkit.uid(4));
+  if not exists (select 1 from public.user_badges where user_id = apkit.uid(1) and badge_slug = 'teranga_legendaire' and unlocked_at is not null) then
+    raise exception 'FAIL: reaching the goal should unlock the badge';
+  end if;
+  update public.badge_rules set threshold = 100 where badge_slug = 'teranga_legendaire';
+  raise notice 'OK 2: the Teranga légendaire badge unlocks when the goal is reached';
+end $$;
+
 -- Clean up
 delete from public.blog_posts where author_id = apkit.uid(1);
 delete from public.projects where owner_id = apkit.uid(1);
-delete from auth.users where id in (apkit.uid(1), apkit.uid(2), apkit.uid(3));
+delete from auth.users where id in (apkit.uid(1), apkit.uid(2), apkit.uid(3), apkit.uid(4));
 drop schema apkit cascade;
