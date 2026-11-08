@@ -48,21 +48,21 @@ export function TalentProfile() {
               </p>
               <p><button type="button" className="btn btn-cta" onClick={() => void write()}>{t.write}</button></p>
             </header>
-            {p.summary && <section className="panel"><p style={{ whiteSpace: 'pre-wrap' }}>{p.summary}</p></section>}
+            {p.summary && <section className="panel panel-pad"><p style={{ whiteSpace: 'pre-wrap' }}>{p.summary}</p></section>}
             {p.skills.length > 0 && (
-              <section className="panel">
+              <section className="panel panel-pad">
                 <h2>{t.skills}</h2>
                 <p>{p.skills.map((k) => <span key={k} className="tag">{k}</span>)}</p>
               </section>
             )}
             {(p.website || p.linkedin_url) && (
-              <section className="panel">
+              <section className="panel panel-pad">
                 {p.website && <p><a href={p.website} target="_blank" rel="noopener noreferrer nofollow">{t.website}</a></p>}
                 {p.linkedin_url && <p><a href={p.linkedin_url} target="_blank" rel="noopener noreferrer nofollow">{t.linkedin}</a></p>}
               </section>
             )}
             {p.portfolio.length > 0 && (
-              <section className="panel">
+              <section className="panel panel-pad">
                 <h2>{t.portfolio}</h2>
                 <ul style={{ listStyle: 'none', padding: 0 }}>
                   {p.portfolio.map((it, i) => (

@@ -65,7 +65,7 @@ export function Notifications() {
         {error && <div className="alert" role="alert">{error}</div>}
 
         {failed && (
-          <div className="panel">
+          <div className="panel panel-pad">
             <p className="muted">{fr.notifications.loadFailed}</p>
             <button className="btn" type="button" onClick={load}>{fr.notifications.retry}</button>
           </div>
@@ -73,7 +73,7 @@ export function Notifications() {
         {!failed && !items && <p className="muted">{fr.common.loading}</p>}
 
         {items && (
-          <section className="panel" style={{ marginBottom: 24 }}>
+          <section className="panel panel-pad" style={{ marginBottom: 24 }}>
             {unread > 0 && (
               <button className="btn" type="button" onClick={() => void readAll()} style={{ marginBottom: 12 }}>{fr.notifications.markAll}</button>
             )}
@@ -96,7 +96,7 @@ export function Notifications() {
           </section>
         )}
 
-        <section className="panel">
+        <section className="panel panel-pad">
           <h2>{fr.notifications.settingsTitle}</h2>
           <p className="muted tiny">{fr.notifications.settingsHint}</p>
           {KINDS.map((k) => {

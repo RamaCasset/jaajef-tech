@@ -27,18 +27,18 @@ export function Staff() {
         {access !== undefined && !any && <p className="muted">{fr.staff.denied}</p>}
         {access && access.role !== null && (
           <>
-            <section className="panel" style={{ marginBottom: 16 }}>
+            <section className="panel panel-pad" style={{ marginBottom: 16 }}>
               <h2><Link to="/equipe/signalements">{fr.staff.tools.reports}</Link></h2>
               <p className="muted">{fr.staff.tools.reportsText}</p>
             </section>
-            <section className="panel" style={{ marginBottom: 16 }}>
+            <section className="panel panel-pad" style={{ marginBottom: 16 }}>
               <h2><Link to="/equipe/validation">{fr.staff.tools.review}</Link></h2>
               <p className="muted">{fr.staff.tools.reviewText}</p>
             </section>
           </>
         )}
         {shop && (
-          <section className="panel" style={{ marginBottom: 16 }}>
+          <section className="panel panel-pad" style={{ marginBottom: 16 }}>
             <h2><Link to="/equipe/souk">{fr.staff.tools.souk}</Link></h2>
             <p className="muted">{fr.staff.tools.soukText}</p>
           </section>

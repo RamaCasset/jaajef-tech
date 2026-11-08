@@ -34,7 +34,7 @@ function SubmissionCard({ item, mine, onDone }: { item: SoukSubmissionStaff; min
   }
 
   return (
-    <article className="panel" style={{ marginBottom: 16 }}>
+    <article className="panel panel-pad" style={{ marginBottom: 16 }}>
       <h3 style={{ marginTop: 0 }}><span className="tag">{t.kinds[item.kind]}</span> {item.name}</h3>
       <p className="tiny muted">
         <Link to={`/profil/${item.creator_username}`}>{t.by(item.creator_username)}</Link> · {t.proposedPrice(item.proposed_price)} · {new Date(item.created_at).toLocaleDateString(dateLocale())}

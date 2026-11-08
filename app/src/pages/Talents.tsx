@@ -39,7 +39,7 @@ function MyListing() {
   if (!mine) return null
   const status = mine.hidden_by_staff ? t.hiddenStaff : !mine.listed ? t.off : mine.visible ? t.on : t.hiddenOn
   return (
-    <section className="panel" style={{ marginBottom: 16 }} aria-label={t.title}>
+    <section className="panel panel-pad" style={{ marginBottom: 16 }} aria-label={t.title}>
       <h2>{t.title}</h2>
       <p className="muted">{t.hint}</p>
       <p>{status}</p>

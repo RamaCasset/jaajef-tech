@@ -95,7 +95,7 @@ function StaffTeamPage() {
         {!failed && !staff && <p className="muted">{fr.common.loading}</p>}
 
         {staff && (
-          <section className="panel" style={{ marginBottom: 16 }}>
+          <section className="panel panel-pad" style={{ marginBottom: 16 }}>
             <h2>{t.staffTitle}</h2>
             {staff.length === 0 && <p className="muted">{t.empty}</p>}
             <ul>
@@ -115,7 +115,7 @@ function StaffTeamPage() {
         )}
 
         {back && (
-          <section className="panel" style={{ marginBottom: 16 }}>
+          <section className="panel panel-pad" style={{ marginBottom: 16 }}>
             <h2>{t.backTitle}</h2>
             {back.length === 0 && <p className="muted">{t.backEmpty}</p>}
             <ul>
@@ -146,7 +146,7 @@ function StaffTeamPage() {
         )}
 
         {staff && (
-          <section className="panel" style={{ marginBottom: 16 }}>
+          <section className="panel panel-pad" style={{ marginBottom: 16 }}>
             <h2>{t.liftTitle}</h2>
             <p className="muted">{t.liftText}</p>
             <UsernameForm id="lift-name" label={t.usernameLabel} button={t.lift} run={(id) => liftSuspension(id)} onDone={changed} />

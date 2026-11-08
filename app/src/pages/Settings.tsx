@@ -95,13 +95,13 @@ export function Settings() {
         <EmailSection />
         <BlockedSection />
 
-        <section className="panel" style={{ marginBottom: 24 }}>
+        <section className="panel panel-pad" style={{ marginBottom: 24 }}>
           <h2>{fr.settings.exportTitle}</h2>
           <p className="muted">{fr.settings.exportText}</p>
           <button className="btn" type="button" onClick={() => void download()} disabled={busy}>{fr.settings.exportButton}</button>
         </section>
 
-        <section className="panel">
+        <section className="panel panel-pad">
           <h2>{fr.settings.deleteTitle}</h2>
           {loadFailed && (
             <>

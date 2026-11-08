@@ -55,7 +55,7 @@ export function Search() {
           const group = hits.filter((h) => h.kind === kind)
           if (group.length === 0) return null
           return (
-            <section key={kind} className="panel" style={{ marginBottom: 16 }}>
+            <section key={kind} className="panel panel-pad" style={{ marginBottom: 16 }}>
               <h2>{fr.search.groups[kind]}</h2>
               {group.map((h) => {
                 const t = target(h)

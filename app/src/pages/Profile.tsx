@@ -100,8 +100,8 @@ function ProfileView({ data, viewerId }: { data: ProfileData; viewerId: string }
       </section>
 
       <dl className="profile-stats">
-        {questsSolved !== null ? <div className="panel"><span className="stat-icon"><Icon name="quest" size={28} /></span><div><dd>{questsSolved}</dd><dt>{fr.profile.stats.quests}</dt></div></div> : null}
-        <div className="panel"><span className="stat-icon"><Icon name="repo" size={28} /></span><div><dd>{projects.length}</dd><dt>{fr.profile.stats.projects}</dt></div></div>
+        {questsSolved !== null ? <div className="panel panel-pad"><span className="stat-icon"><Icon name="quest" size={28} /></span><div><dd>{questsSolved}</dd><dt>{fr.profile.stats.quests}</dt></div></div> : null}
+        <div className="panel panel-pad"><span className="stat-icon"><Icon name="repo" size={28} /></span><div><dd>{projects.length}</dd><dt>{fr.profile.stats.projects}</dt></div></div>
       </dl>
 
       <div className="profile-cols">

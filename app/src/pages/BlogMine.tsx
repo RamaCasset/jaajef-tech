@@ -44,7 +44,7 @@ export function BlogMine() {
         {!failed && !posts && <p className="muted">{fr.common.loading}</p>}
         {posts && posts.length === 0 && <p className="muted">{fr.blog.mineEmpty}</p>}
         {(posts ?? []).map((p) => (
-          <article key={p.id} className="panel" style={{ marginBottom: 12 }}>
+          <article key={p.id} className="panel panel-pad" style={{ marginBottom: 12 }}>
             <h3 style={{ margin: 0 }}><Link to={`/blog/${p.slug}`}>{p.title}</Link></h3>
             <p className="muted tiny">
               {p.status === 'published' ? fr.blog.statusPublished : fr.blog.statusDraft}{p.staff_hidden ? ` · ${fr.blog.hidden}` : ''}

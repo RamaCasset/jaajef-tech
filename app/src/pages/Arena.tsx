@@ -52,7 +52,7 @@ export function Arena() {
 
         {data && (
           <>
-            <section className="panel" style={{ marginBottom: 16 }} aria-label={t.today}>
+            <section className="panel panel-pad" style={{ marginBottom: 16 }} aria-label={t.today}>
               <h2>{t.today}</h2>
               {!data.today && <p className="muted">{t.todayNone}</p>}
               {data.today && (
@@ -66,7 +66,7 @@ export function Arena() {
               )}
             </section>
 
-            <section className="panel" style={{ marginBottom: 16 }} aria-label={t.missed}>
+            <section className="panel panel-pad" style={{ marginBottom: 16 }} aria-label={t.missed}>
               <h2>{t.missed}</h2>
               {data.past.length === 0 && <p className="muted">{t.missedEmpty}</p>}
               <ul style={{ listStyle: 'none', padding: 0 }}>
@@ -80,7 +80,7 @@ export function Arena() {
               </ul>
             </section>
 
-            <section className="panel" aria-label={t.mine}>
+            <section className="panel panel-pad" aria-label={t.mine}>
               <h2>{t.mine}</h2>
               {data.solved.length === 0 && <p className="muted">{t.mineEmpty}</p>}
               <ul style={{ listStyle: 'none', padding: 0 }}>

@@ -85,7 +85,7 @@ export function ApplicationFile() {
         {!failed && !file && <p className="muted">{fr.common.loading}</p>}
 
         {file && (
-          <form className="panel" onSubmit={onSubmit} noValidate>
+          <form className="panel panel-pad" onSubmit={onSubmit} noValidate>
             <p><strong>{fr.applicationFile.completion(file.completion)}</strong></p>
             {file.missing.length > 0 && (
               <>

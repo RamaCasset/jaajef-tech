@@ -105,7 +105,7 @@ export function Employer() {
         {error && <div className="alert" role="alert">{error}</div>}
 
         {loaded && !employer && (
-          <section className="panel">
+          <section className="panel panel-pad">
             <h2>{t.createTitle}</h2>
             <p className="muted">{t.createHint}</p>
             <ProfileForm current={null} onDone={(m) => { setNotice(m); load() }} />
@@ -114,7 +114,7 @@ export function Employer() {
 
         {loaded && employer && (
           <>
-            <section className="panel" style={{ marginBottom: 16 }}>
+            <section className="panel panel-pad" style={{ marginBottom: 16 }}>
               <h2>{employer.name}</h2>
               <p>{t.profileStatus[employer.status]}</p>
               {employer.status === 'rejected' && employer.review_note && <p className="muted">{t.reason(employer.review_note)}</p>}
@@ -123,7 +123,7 @@ export function Employer() {
                 : <button type="button" className="btn" onClick={() => setEditing(true)}>{t.editProfile}</button>}
             </section>
 
-            <section className="panel">
+            <section className="panel panel-pad">
               <h2>{t.offers}</h2>
               <p><Link className="btn btn-cta" to="/employeur/offres/nouvelle">{t.newOffer}</Link></p>
               {offers.length === 0 && <p className="muted">{t.noOffers}</p>}

@@ -69,13 +69,13 @@ export function JobDetail() {
               </p>
             </header>
 
-            <section className="panel" style={{ marginBottom: 24 }}>
+            <section className="panel panel-pad" style={{ marginBottom: 24 }}>
               <h2>{fr.jobDetail.about}</h2>
               {/* Plain text only: line breaks are kept, nothing from the offer is ever treated as markup. */}
               <p style={{ whiteSpace: 'pre-wrap' }}>{offer.description}</p>
             </section>
 
-            <section className="panel">
+            <section className="panel panel-pad">
               <h2>{fr.jobDetail.applyTitle}</h2>
               {sent ? (
                 <>

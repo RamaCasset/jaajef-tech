@@ -29,7 +29,7 @@ export function Messages() {
         {!failed && !items && <p className="muted">{fr.common.loading}</p>}
         {items && items.length === 0 && <p className="muted">{fr.messages.empty}</p>}
         {items && items.length > 0 && (
-          <section className="panel">
+          <section className="panel panel-pad">
             {items.map((c) => (
               <article key={c.conversation_id} className="list-row">
                 <h3 className="list-title">

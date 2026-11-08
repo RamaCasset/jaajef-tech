@@ -58,7 +58,7 @@ export function EditProfile() {
         )}
         {!failed && !loaded && <p className="muted">{fr.common.loading}</p>}
         {loaded && (
-          <form className="panel" onSubmit={onSubmit} noValidate>
+          <form className="panel panel-pad" onSubmit={onSubmit} noValidate>
             {error && <div className="alert" role="alert">{error}</div>}
             {saved && <div className="notice" role="status">{fr.editProfile.saved} <Link to={`/profil/${username}`}>{fr.editProfile.seeProfile}</Link></div>}
             <div className="field">

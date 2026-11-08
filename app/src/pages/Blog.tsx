@@ -58,7 +58,7 @@ export function Blog() {
         {!failed && !posts && <p className="muted">{fr.common.loading}</p>}
         {posts && posts.length === 0 && <p className="muted">{fr.blog.empty}</p>}
         {(posts ?? []).map((p) => (
-          <article key={p.id} className="panel" style={{ marginBottom: 16 }}>
+          <article key={p.id} className="panel panel-pad" style={{ marginBottom: 16 }}>
             <h2 style={{ marginTop: 0 }}><Link to={`/blog/${p.slug}`}>{p.title}</Link></h2>
             <p className="muted tiny">
               {fr.blog.by(p.author_username)} · {new Date(p.published_at).toLocaleDateString(dateLocale())}

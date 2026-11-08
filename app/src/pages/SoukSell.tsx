@@ -87,14 +87,14 @@ export function SoukSell() {
         )}
 
         {summary && (
-          <section className="panel" style={{ marginBottom: 24 }}>
+          <section className="panel panel-pad" style={{ marginBottom: 24 }}>
             <h2>{fr.soukSell.summaryTitle}</h2>
             <p>{fr.soukSell.onSale(summary.items_on_sale)} · {fr.soukSell.sold(summary.sales_count)} · {fr.soukSell.earned(summary.kopeks_earned)}</p>
             <p className="muted tiny">{fr.soukSell.share(summary.share_percent)}</p>
           </section>
         )}
 
-        <form className="panel" onSubmit={onSubmit} noValidate style={{ marginBottom: 24 }}>
+        <form className="panel panel-pad" onSubmit={onSubmit} noValidate style={{ marginBottom: 24 }}>
           <h2>{fr.soukSell.formTitle}</h2>
           <div className="field">
             <label htmlFor="s-kind">{fr.soukSell.kind}</label>
@@ -122,7 +122,7 @@ export function SoukSell() {
           <button className="btn btn-cta" type="submit" disabled={busy || !ready}>{fr.soukSell.submit}</button>
         </form>
 
-        <section className="panel" style={{ marginBottom: 24 }}>
+        <section className="panel panel-pad" style={{ marginBottom: 24 }}>
           <h2>{fr.soukSell.listTitle}</h2>
           {subs && subs.length === 0 && <p className="muted">{fr.soukSell.listEmpty}</p>}
           {(subs ?? []).map((s) => (
@@ -137,7 +137,7 @@ export function SoukSell() {
           ))}
         </section>
 
-        <section className="panel">
+        <section className="panel panel-pad">
           <h2>{fr.soukSell.salesTitle}</h2>
           {sales && sales.length === 0 && <p className="muted">{fr.soukSell.salesEmpty}</p>}
           {(sales ?? []).map((s) => (

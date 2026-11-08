@@ -138,7 +138,7 @@ export function Communities() {
           </section>
         )}
 
-        <form className="panel" onSubmit={onCreate} noValidate>
+        <form className="panel panel-pad" onSubmit={onCreate} noValidate>
           <h2>{fr.communities.create}</h2>
           <div className="field">
             <label htmlFor="c-name">{fr.communities.createName}</label>
