@@ -237,7 +237,7 @@ export async function loadProfile(username: string, viewerId: string): Promise<P
     supabase.from('game_config').select('value').eq('key', 'xp_per_level').maybeSingle(),
     supabase.from('user_badges').select('unlocked_at, badges(slug, name, description, tier)').eq('user_id', profile.id).not('unlocked_at', 'is', null),
     supabase.from('projects').select('id, github_owner, github_repo, title, summary, language, github_stars, build_status')
-      .eq('owner_id', profile.id).eq('is_public', true).not('verified_at', 'is', null).order('github_stars', { ascending: false }),
+      .eq('owner_id', profile.id).eq('is_public', true).not('verified_at', 'is', null).order('pinned_at', { ascending: false, nullsFirst: false }).order('github_stars', { ascending: false }),
     mine
       ? supabase.from('quest_attempts').select('id', { count: 'exact', head: true }).eq('user_id', profile.id).eq('status', 'solved')
       : Promise.resolve({ count: null, error: null }),
@@ -589,6 +589,87 @@ export async function listMyProjects(userId: string): Promise<MyProject[]> {
     .eq('owner_id', userId)
   if (error) throw new Error(error.message)
   return (data ?? []) as MyProject[]
+}
+
+export type MyRepo = {
+  id: string
+  github_owner: string
+  github_repo: string
+  title: string
+  summary: string | null
+  language: string | null
+  github_stars: number
+  star_count: number
+  github_forks: number
+  github_pushed_at: string | null
+  updated_at: string
+  is_public: boolean
+  verified_at: string | null
+  build_status: BuildStatus | null
+  pinned_at: string | null
+}
+
+const REPO_COLUMNS = 'id, github_owner, github_repo, title, summary, language, github_stars, github_forks, github_pushed_at, updated_at, is_public, verified_at, build_status, pinned_at'
+
+/** All of the member's own projects, hidden and unconfirmed ones included, with the stars given on the platform. */
+export async function listMyRepos(userId: string): Promise<MyRepo[]> {
+  const { data, error } = await supabase.from('projects').select(REPO_COLUMNS).eq('owner_id', userId)
+  if (error) throw new Error(error.message)
+  const rows = (data ?? []) as Omit<MyRepo, 'star_count'>[]
+  if (rows.length === 0) return []
+  const stats = await supabase.from('project_stats').select('project_id, star_count').in('project_id', rows.map((r) => r.id))
+  if (stats.error) throw new Error(stats.error.message)
+  const counts = new Map((stats.data ?? []).map((s) => [s.project_id as string, Number(s.star_count)]))
+  return rows.map((r) => ({ ...r, star_count: counts.get(r.id) ?? 0 }))
+}
+
+export const setProjectPinned = (projectId: string, pinned: boolean) => rpc<void>('set_project_pinned', { p_project: projectId, p_pinned: pinned })
+export const setProjectVisibility = (projectId: string, isPublic: boolean) => rpc<void>('update_project', { p_project: projectId, p_is_public: isPublic })
+
+export type StarredRepo = Omit<MyRepo, 'pinned_at' | 'updated_at' | 'build_status' | 'star_count'> & { owner_username: string }
+
+/** The projects the member starred (only the ones anyone can see). */
+export async function listMyStarred(userId: string): Promise<StarredRepo[]> {
+  const { data, error } = await supabase
+    .from('project_stars')
+    .select('created_at, projects(id, github_owner, github_repo, title, summary, language, github_stars, github_forks, github_pushed_at, is_public, verified_at, profiles:owner_id(username))')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+  if (error) throw new Error(error.message)
+  type Row = { projects: (Omit<StarredRepo, 'owner_username'> & { profiles: { username: string } | { username: string }[] | null }) | null }
+  return ((data ?? []) as unknown as Row[])
+    .map((r) => r.projects)
+    .filter((p): p is NonNullable<Row['projects']> => !!p && !!p.verified_at && p.is_public)
+    .map(({ profiles, ...p }) => ({ ...p, owner_username: (Array.isArray(profiles) ? profiles[0]?.username : profiles?.username) ?? '' }))
+}
+
+export async function countMyStars(userId: string): Promise<number> {
+  const { count, error } = await supabase.from('project_stars').select('project_id', { count: 'exact', head: true }).eq('user_id', userId)
+  if (error) throw new Error(error.message)
+  return count ?? 0
+}
+
+export type NextBadge = { slug: string; name: string; description: string | null; progress: number; threshold: number }
+
+/** The automatic badge the member is closest to unlocking, or null when there is none in progress. */
+export async function getNextBadge(userId: string): Promise<NextBadge | null> {
+  const [mine, rules] = await Promise.all([
+    supabase.from('user_badges').select('badge_slug, progress, badges(name, description)').eq('user_id', userId).is('unlocked_at', null),
+    supabase.from('badge_rules').select('badge_slug, threshold').neq('metric', 'manual'),
+  ])
+  if (mine.error) throw new Error(mine.error.message)
+  if (rules.error) throw new Error(rules.error.message)
+  const goal = new Map((rules.data ?? []).map((r) => [r.badge_slug as string, Number(r.threshold)]))
+  type Row = { badge_slug: string; progress: number; badges: { name: string; description: string | null } | { name: string; description: string | null }[] | null }
+  let best: NextBadge | null = null
+  for (const r of (mine.data ?? []) as unknown as Row[]) {
+    const threshold = goal.get(r.badge_slug)
+    const b = Array.isArray(r.badges) ? r.badges[0] : r.badges
+    if (!threshold || !b) continue
+    const candidate = { slug: r.badge_slug, name: b.name, description: b.description, progress: Number(r.progress), threshold }
+    if (!best || candidate.progress / candidate.threshold > best.progress / best.threshold) best = candidate
+  }
+  return best
 }
 
 export const publishProject = (repoUrl: string, title: string, summary: string | null) =>

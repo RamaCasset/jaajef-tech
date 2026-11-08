@@ -1,0 +1,90 @@
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
+import { BuildBadge } from './ProjectCard'
+import { Icon } from './Icon'
+import { fr } from '../i18n/fr'
+import { timeAgo } from '../lib/time'
+import type { MyRepo } from '../lib/api'
+
+function RepoFacts({ r }: { r: MyRepo }) {
+  const stars = r.github_stars + r.star_count
+  const updated = timeAgo(r.github_pushed_at ?? r.updated_at)
+  return (
+    <p className="repo-facts muted tiny">
+      {r.language ? <span className="repo-lang"><span className="lang-dot" aria-hidden="true" />{r.language}</span> : null}
+      <span aria-label={fr.projects.stars(stars)}><Icon name="star" size={13} /> {stars}</span>
+      <span aria-label={fr.projects.forks(r.github_forks)}><Icon name="fork" size={13} /> {r.github_forks}</span>
+      {updated ? <span>{fr.myRepos.updated(updated)}</span> : null}
+    </p>
+  )
+}
+
+function Tags({ r }: { r: MyRepo }) {
+  const t = fr.myRepos
+  return (
+    <>
+      <span className={`tag ${r.is_public ? '' : 'tag-private'}`}>{r.is_public ? t.public : t.private}</span>
+      {!r.verified_at ? <span className="tag tag-pending">{t.pending}</span> : null}
+    </>
+  )
+}
+
+function RowMenu({ repo, onPin, onVisibility }: { repo: MyRepo; onPin: () => void; onVisibility: () => void }) {
+  const t = fr.myRepos
+  const [open, setOpen] = useState(false)
+  const pick = (fn: () => void) => () => { setOpen(false); fn() }
+  return (
+    <div className="row-menu">
+      <button type="button" className="icon-btn" aria-label={t.actions(repo.github_repo)} aria-expanded={open} onClick={() => setOpen((v) => !v)}><Icon name="dots" size={18} /></button>
+      {open ? (
+        <div className="row-menu-pop" role="menu">
+          <button type="button" role="menuitem" onClick={pick(onPin)}>{repo.pinned_at ? t.unpin : t.pin}</button>
+          <button type="button" role="menuitem" onClick={pick(onVisibility)}>{repo.is_public ? t.makePrivate : t.makePublic}</button>
+          <Link role="menuitem" to={`/projets/${repo.id}`} onClick={() => setOpen(false)}>{t.editShowcase}</Link>
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
+export function PinnedCard({ repo, onPin, onVisibility }: { repo: MyRepo; onPin: () => void; onVisibility: () => void }) {
+  return (
+    <article className="panel pinned-card">
+      <header className="pinned-head">
+        <span className="mono muted tiny">{repo.github_owner} /</span>
+        <span className="pinned-pin" aria-hidden="true"><Icon name="pin" size={16} /></span>
+      </header>
+      <h3 className="pinned-title">
+        <span className="project-icon" aria-hidden="true"><Icon name={repo.is_public ? 'repo' : 'lock'} size={18} /></span>
+        <Link to={`/projets/${repo.id}`}>{repo.github_repo}</Link>
+        <Tags r={repo} />
+      </h3>
+      <p className="muted project-summary">{repo.summary ?? repo.title}</p>
+      <RepoFacts r={repo} />
+      <footer className="pinned-foot">
+        <BuildBadge status={repo.build_status} />
+        <RowMenu repo={repo} onPin={onPin} onVisibility={onVisibility} />
+      </footer>
+    </article>
+  )
+}
+
+export function RepoListRow({ repo, onPin, onVisibility }: { repo: MyRepo; onPin: () => void; onVisibility: () => void }) {
+  return (
+    <li className="repo-row">
+      <div className="repo-row-main">
+        <h3 className="repo-row-title">
+          <span className="project-icon" aria-hidden="true"><Icon name={repo.is_public ? 'repo' : 'lock'} size={18} /></span>
+          <Link to={`/projets/${repo.id}`}>{repo.github_repo}</Link>
+          <Tags r={repo} />
+        </h3>
+        <p className="muted">{repo.summary ?? repo.title}</p>
+        <RepoFacts r={repo} />
+      </div>
+      <div className="repo-row-actions">
+        <Link className="btn" to={`/projets/${repo.id}`}>{fr.myRepos.open}</Link>
+        <RowMenu repo={repo} onPin={onPin} onVisibility={onVisibility} />
+      </div>
+    </li>
+  )
+}

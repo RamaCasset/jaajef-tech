@@ -192,4 +192,11 @@ describe('Projects page', () => {
     await screen.findByRole('heading', { name: 'ndar / open-city' })
     expect(screen.queryByRole('link', { name: /Tester la démo en live/ })).toBeNull()
   })
+
+  it('has the switch to my personal space', async () => {
+    mount()
+    const toggle = await screen.findByRole('navigation', { name: 'Affichage des projets' })
+    expect(within(toggle).getByRole('link', { name: 'Espace personnel' })).toHaveAttribute('href', '/depots')
+    expect(within(toggle).getByRole('link', { name: 'Communauté' })).toHaveAttribute('aria-current', 'page')
+  })
 })
