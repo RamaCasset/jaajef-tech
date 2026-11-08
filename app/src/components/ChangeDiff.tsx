@@ -3,7 +3,7 @@ import { languageOf } from './CodeEditor'
 import { fr } from '../i18n/fr'
 import type { Change } from '../lib/pending'
 
-const Diff = lazy(() => import('@monaco-editor/react').then((m) => ({ default: m.DiffEditor })))
+const Diff = lazy(async () => { await import('./monacoSetup'); return import('@monaco-editor/react').then((m) => ({ default: m.DiffEditor })) })
 
 const kb = (n: number) => `${Math.max(1, Math.round(n / 1000))} Ko`
 
