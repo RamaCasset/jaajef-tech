@@ -17,6 +17,8 @@ const PATHS: Record<string, string> = {
   terminal: 'M4 5h16v14H4V5Zm4 4 3 3-3 3m5 0h4',
   back: 'M19 12H5m6-6-6 6 6 6',
   forward: 'M5 12h14m-6-6 6 6-6 6',
+  souk: 'M4 9 5.5 4h13L20 9M4 9h16M4 9v1a2.5 2.5 0 0 0 4 2 2.5 2.5 0 0 0 4 0 2.5 2.5 0 0 0 4 0 2.5 2.5 0 0 0 4-2V9M5 13v7h14v-7M10 20v-4h4v4',
+  plus: 'M12 5v14M5 12h14',
   search: 'M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14Zm5-2 4 4',
 }
 
