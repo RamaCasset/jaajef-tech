@@ -14,7 +14,7 @@ export function CodeEditor({ path, value, onChange, readOnly = false }: { path: 
   return (
     <Suspense fallback={<p className="muted">…</p>}>
       <Monaco
-        height="460px"
+        height="max(460px, calc(100vh - 320px))"
         path={path}
         language={languageOf(path)}
         value={value}

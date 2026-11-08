@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent, type MouseEv
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
 import { CodeEditor } from '../components/CodeEditor'
+import { FileTree } from '../components/FileTree'
 import { Icon } from '../components/Icon'
 import { ProjectFiles, dirUrl, fileUrl, parentOf } from '../components/ProjectFiles'
 import { useAuth } from '../auth/AuthContext'
@@ -171,6 +172,23 @@ export function RepoBrowser() {
   const lineCount = content === null && !draft ? 0 : shownText.split('\n').length
   const githubUrl = project ? `https://github.com/${project.github_owner}/${project.github_repo}` : '#'
 
+  const crumbsEl = project && (
+    <nav className="crumbs" aria-label={fr.repoBrowser.fileBar}>
+      <Link to={`/projets/${project.id}`} onClick={guard}>{project.title}</Link>
+      {segments.map((s, i) => {
+        const upTo = segments.slice(0, i + 1).join('/')
+        const last = i === segments.length - 1
+        return (
+          <span key={upTo}>
+            <span aria-hidden="true"> / </span>
+            {last && path ? <strong>{s}</strong> : <Link to={dirUrl(project.id, upTo)} onClick={guard}>{s}</Link>}
+          </span>
+        )
+      })}
+      <a className="crumbs-github" href={githubUrl} target="_blank" rel="noopener noreferrer">{t.openGithub}</a>
+    </nav>
+  )
+
   return (
     <AppShell>
       <main className="page repo-page">
@@ -179,20 +197,7 @@ export function RepoBrowser() {
 
         {project && (
           <>
-            <nav className="crumbs" aria-label={fr.repoBrowser.fileBar}>
-              <Link to={`/projets/${project.id}`} onClick={guard}>{project.title}</Link>
-              {segments.map((s, i) => {
-                const upTo = segments.slice(0, i + 1).join('/')
-                const last = i === segments.length - 1
-                return (
-                  <span key={upTo}>
-                    <span aria-hidden="true"> / </span>
-                    {last && path ? <strong>{s}</strong> : <Link to={dirUrl(project.id, upTo)} onClick={guard}>{s}</Link>}
-                  </span>
-                )
-              })}
-              <a className="crumbs-github" href={githubUrl} target="_blank" rel="noopener noreferrer">{t.openGithub}</a>
-            </nav>
+            {!path && crumbsEl}
 
             {done && <div className="notice" role="status">{fr.editor.saved} <a href={done} target="_blank" rel="noopener noreferrer">{fr.editor.seeCommit}</a></div>}
             {actionError && <div className="alert" role="alert">{actionError}</div>}
@@ -217,10 +222,20 @@ export function RepoBrowser() {
             {!path && <ProjectFiles project={project} dir={dir} canEdit={isOwner} tree={tree} />}
 
             {path && (
-              <div className={`repo-view ${panelOpen ? 'repo-view-panel' : ''}`}>
+              <div className="workspace">
+                <div className="workspace-top">
+                  <button type="button" className={`icon-btn ${panelOpen ? 'icon-btn-on' : ''}`} aria-label={t.togglePanel} title={t.togglePanel} aria-pressed={panelOpen} onClick={() => setPanelOpen((v) => !v)}><Icon name="sidebar" size={18} /></button>
+                  {crumbsEl}
+                </div>
+                <div className={`workspace-body ${panelOpen ? 'workspace-body-panel' : ''}`}>
+                {panelOpen && (
+                  <aside className="repo-panel" aria-label={t.panelTitle}>
+                    <h2>{t.panelTitle}</h2>
+                    <FileTree projectId={project.id} paths={allFiles} current={path} onNavigate={guard} />
+                  </aside>
+                )}
                 <section className="editor-card" aria-label={path}>
                   <div className="file-bar">
-                    <span className="file-path">{path}</span>
                     <Link className="muted tiny" to={`/projets/${project.id}/historique?fichier=${encodeURIComponent(path)}`} onClick={guard}>{t.fileHistory}</Link>
                     {content !== null && <span className="muted tiny">{fr.repoViewer.lines(lineCount)}</span>}
                     <div className="file-actions">
@@ -233,8 +248,6 @@ export function RepoBrowser() {
                       {isOwner && !wantsNew && (
                         <button type="button" className="icon-btn icon-btn-danger" aria-label={t.delete} title={t.delete} disabled={busy || content === null} onClick={() => void startDelete()}><Icon name="trash" size={18} /></button>
                       )}
-                      <span className="file-sep" aria-hidden="true" />
-                      <button type="button" className={`icon-btn ${panelOpen ? 'icon-btn-on' : ''}`} aria-label={t.togglePanel} title={t.togglePanel} aria-pressed={panelOpen} onClick={() => setPanelOpen((v) => !v)}><Icon name="panel" size={18} /></button>
                     </div>
                   </div>
 
@@ -262,18 +275,7 @@ export function RepoBrowser() {
                   </div>
                 </section>
 
-                {panelOpen && (
-                  <aside className="panel repo-panel" aria-label={t.panelTitle}>
-                    <h2>{t.panelTitle}</h2>
-                    <ul className="file-tree">
-                      {allFiles.map((p) => (
-                        <li key={p}>
-                          <Link className={`file-row ${p === path ? 'file-row-on' : ''}`} to={fileUrl(project.id, p)} onClick={guard} aria-current={p === path ? 'page' : undefined}>{p}</Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </aside>
-                )}
+                </div>
               </div>
             )}
           </>
