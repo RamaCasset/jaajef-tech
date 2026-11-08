@@ -125,7 +125,19 @@ describe('Repository: viewing a file', () => {
     expect(screen.queryByRole('button', { name: 'Supprimer ce fichier' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Enregistrer' })).toBeNull()
     const panel = screen.getByRole('complementary', { name: 'Tous les fichiers' })
-    expect(within(panel).getAllByRole('link').map((a) => a.textContent)).toEqual(['logo.png', 'main.py', 'README.md', 'src/util.py'])
+    expect(within(panel).getAllByRole('link').map((a) => a.textContent)).toEqual(['logo.png', 'main.py', 'README.md'])
+    const folder = within(panel).getByRole('button', { name: 'src' })
+    expect(folder).toHaveAttribute('aria-expanded', 'false')
+    await userEvent.click(folder)
+    expect(folder).toHaveAttribute('aria-expanded', 'true')
+    expect(within(panel).getByRole('link', { name: 'util.py' })).toHaveAttribute('href', '/projets/p1/code?fichier=src%2Futil.py')
+  })
+
+  it('opens the folder of the current file in the file list', async () => {
+    mount('/projets/p1/code?fichier=src%2Futil.py')
+    const panel = await screen.findByRole('complementary', { name: 'Tous les fichiers' })
+    expect(within(panel).getByRole('button', { name: 'src' })).toHaveAttribute('aria-expanded', 'true')
+    expect(within(panel).getByRole('link', { name: 'util.py' })).toHaveAttribute('aria-current', 'page')
   })
 
   it('hides and shows the list of files', async () => {

@@ -446,6 +446,14 @@ select { appearance: none; -webkit-appearance: none; background-color: var(--pan
 .crumbs a { color: var(--accent); text-decoration: none; }
 .crumbs a:hover { text-decoration: underline; }
 .crumbs-github { margin-left: auto; font: 13px var(--font-body); }
+.workspace { border: 1px solid var(--line); border-radius: 16px; background: #0b1120; overflow: hidden; }
+.workspace-top { display: flex; align-items: center; gap: 14px; padding: 10px 16px; border-bottom: 1px solid var(--line); background: #0e1526; }
+.workspace-top .crumbs { margin: 0; flex: 1; min-width: 0; }
+.workspace-body { display: grid; grid-template-columns: minmax(0, 1fr); align-items: stretch; }
+.workspace-body-panel { grid-template-columns: 260px minmax(0, 1fr); }
+.workspace .editor-card { border: 0; border-radius: 0; background: transparent; }
+.workspace .file-bar { background: transparent; }
+.workspace-body-panel .editor-card { border-left: 1px solid var(--line); }
 .repo-view { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; align-items: start; }
 .repo-view-panel { grid-template-columns: minmax(0, 1fr) 280px; }
 .file-bar { display: flex; align-items: center; gap: 14px; padding: 10px 16px; border-bottom: 1px solid var(--line); background: #0e1526; }
@@ -464,11 +472,13 @@ select { appearance: none; -webkit-appearance: none; background-color: var(--pan
 .commit-box input { background: #060b17; border: 1px solid var(--line); border-radius: 10px; color: var(--fg); padding: 10px 14px; font: inherit; }
 .commit-actions { display: flex; gap: 10px; justify-content: flex-end; }
 .btn-danger { background: var(--danger); border-color: var(--danger); color: #fff; }
-.repo-panel { padding: 16px 12px; }
-.repo-panel h2 { font-size: 14px; margin: 0 8px 8px; }
-.repo-panel .file-tree { max-height: 560px; }
-.repo-panel .file-row { display: block; text-decoration: none; }
-@media (max-width: 960px) { .repo-view-panel { grid-template-columns: minmax(0, 1fr); } }
+.repo-panel { padding: 14px 8px; background: #0a0f1d; min-height: 460px; }
+.repo-panel h2 { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg-muted); margin: 0 10px 10px; }
+.repo-panel .file-tree { max-height: calc(100vh - 300px); }
+.repo-panel .file-tree .file-tree { max-height: none; overflow: visible; }
+.repo-panel .file-row { display: flex; align-items: center; gap: 6px; text-decoration: none; }
+.file-folder { color: var(--fg); }
+@media (max-width: 960px) { .workspace-body-panel { grid-template-columns: minmax(0, 1fr); } .workspace-body-panel .editor-card { border-left: 0; border-top: 1px solid var(--line); } .repo-panel { min-height: 0; } .repo-panel .file-tree { max-height: 240px; } }
 .crumbs [aria-hidden='true'] { margin: 0 8px; color: var(--fg-muted); white-space: pre; }
 
 /* Cité home (member page) and profile tabs */
