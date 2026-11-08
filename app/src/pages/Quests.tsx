@@ -3,29 +3,83 @@ import { Link } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
 import { useAuth } from '../auth/AuthContext'
 import { useDebounced } from '../hooks'
-import { listMyQuestProgress, listQuests, type MyQuestProgress, type QuestFilters, type QuestSummary } from '../lib/api'
+import { getDailyQuest, getMyStreak, listMyQuestProgress, listQuests, type DailyQuest, type MyQuestProgress, type QuestFilters, type QuestSummary, type StreakInfo } from '../lib/api'
+import { Companion } from '../components/Companion'
 import { fr, type ClanKey, type MasteryKey } from '../i18n/fr'
 
 const EMPTY: QuestFilters = { clan: '', mastery: '', language: '', query: '' }
 
 function QuestCard({ quest, progress }: { quest: QuestSummary; progress?: MyQuestProgress }) {
+  const solved = progress?.status === 'solved'
+  const going = progress?.status === 'in_progress'
   return (
-    <article className="panel quest-card">
-      <div className="project-tags">
-        <span className="tag">{fr.clans[quest.clan].name}</span>
-        <span className="tag">{fr.masteries[quest.mastery].name}</span>
-        {quest.language ? <span className="tag">{fr.quests.languages[quest.language]}</span> : null}
-        {quest.daily_on ? <span className="tag">{fr.quests.daily}</span> : null}
-        {progress?.status === 'solved' ? <span className="tag">{fr.quests.solved}</span> : null}
-        {progress?.status === 'in_progress' ? <span className="tag">{fr.quests.inProgress(progress.tests_passed, progress.tests_total)}</span> : null}
+    <article className={`panel quest-card${going ? ' quest-card-on' : ''}`}>
+      <div className="quest-top">
+        <Companion clan={quest.clan} />
+        <span className={`quest-status${solved ? ' quest-status-done' : going ? ' quest-status-going' : ''}`}>
+          {solved ? fr.quests.solved : going ? fr.quests.inProgress(progress.tests_passed, progress.tests_total) : fr.quests.available}
+        </span>
       </div>
+      <p className="quest-kind tiny">
+        {fr.clans[quest.clan].name}{quest.language ? ` · ${fr.quests.languages[quest.language]}` : ''}
+        {quest.daily_on ? ` · ${fr.quests.daily}` : ''}
+      </p>
       <h3>{quest.title}</h3>
       {quest.summary ? <p className="muted">{quest.summary}</p> : null}
+      <p className="muted tiny">{fr.masteries[quest.mastery].name} · {fr.quests.minutes(quest.est_minutes)}</p>
       <div className="quest-foot">
-        <span className="mono tiny">{fr.quests.minutes(quest.est_minutes)} · {fr.quests.reward(quest.xp_reward, quest.kopek_reward)}</span>
-        <Link className="btn" to={`/quetes/${quest.slug}`} aria-label={`${fr.quests.open} : ${quest.title}`}>{fr.quests.open}</Link>
+        <span className="mono tiny quest-reward">{fr.quests.reward(quest.xp_reward, quest.kopek_reward)}</span>
+        <Link className={`btn${solved ? '' : going ? ' btn-cta' : ''}`} to={`/quetes/${quest.slug}`} aria-label={`${fr.quests.open} : ${quest.title}`}>
+          {solved ? fr.quests.review : going ? fr.quests.resume : fr.quests.launch}
+        </Link>
       </div>
     </article>
+  )
+}
+
+function Hero() {
+  const [daily, setDaily] = useState<DailyQuest | null>(null)
+  const [streak, setStreak] = useState<StreakInfo | null>(null)
+  useEffect(() => {
+    let alive = true
+    // These two blocks are a bonus: if they cannot load, the list below still works.
+    Promise.resolve().then(() => getDailyQuest()).then((d) => { if (alive) setDaily(d ?? null) }).catch(() => undefined)
+    Promise.resolve().then(() => getMyStreak()).then((s) => { if (alive) setStreak(s ?? null) }).catch(() => undefined)
+    return () => { alive = false }
+  }, [])
+  const t = fr.home.quest
+  const st = fr.home.streak
+  return (
+    <div className="quest-hero">
+      <section className="panel hero-daily" aria-label={t.title}>
+        {daily ? (() => {
+          const hours = Math.floor(daily.seconds_left / 3600)
+          const minutes = Math.floor((daily.seconds_left % 3600) / 60)
+          return (
+            <>
+              <p className="eyebrow">{t.title} · {t.timeLeft(hours, minutes)}</p>
+              <h2>{daily.title}</h2>
+              {daily.summary ? <p className="muted">{daily.summary}</p> : null}
+              <p className="muted tiny">{fr.clans[daily.clan].name} · {fr.masteries[daily.mastery].name} · {fr.quests.minutes(daily.est_minutes)}</p>
+              <p className="mono quest-reward">{fr.quests.reward(daily.xp_reward, daily.kopek_reward)}</p>
+              <p>
+                <Link className={daily.status === 'solved' ? 'btn' : 'btn btn-cta'} to={`/quetes/${daily.slug}`}>
+                  {daily.status === 'solved' ? t.review : daily.status === 'in_progress' ? t.resume : t.start}
+                </Link>
+              </p>
+            </>
+          )
+        })() : <p className="muted">{t.none}</p>}
+      </section>
+      {streak ? (
+        <section className="panel hero-streak" aria-label={st.title}>
+          <h2>{st.days(streak.current_streak)}</h2>
+          {streak.done_today ? <p>{st.doneToday}</p> : streak.at_risk ? <p>{st.atRisk}</p> : <p className="muted">{streak.current_streak === 0 ? st.none : ''}</p>}
+          <p className="muted tiny">{st.longest(streak.longest_streak)}</p>
+          {streak.next_chest_in !== null && streak.chest_kopeks > 0 ? <p className="muted tiny">{st.chest(streak.next_chest_in, streak.chest_kopeks)}</p> : null}
+        </section>
+      ) : null}
+    </div>
   )
 }
 
@@ -63,6 +117,8 @@ export function Quests() {
           <h1 className="page-title">{fr.quests.title}</h1>
           <p className="muted">{fr.quests.subtitle}</p>
         </header>
+
+        <Hero />
 
         <div className="quest-filters">
           <input type="search" role="searchbox" aria-label={fr.quests.search} placeholder={fr.quests.search} value={filters.query} onChange={(e) => set('query', e.target.value)} />

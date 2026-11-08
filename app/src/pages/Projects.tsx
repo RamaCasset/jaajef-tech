@@ -64,11 +64,13 @@ export function Projects() {
   return (
     <AppShell>
       <main className="page">
-        <div>
-          <p className="eyebrow">{fr.projects.eyebrow}</p>
-          <h1 className="page-title">{fr.projects.title}</h1>
-          <p className="muted">{fr.projects.subtitle}</p>
-          <p><Link className="btn btn-cta" to="/projets/ajouter">{fr.importProject.newProject}</Link></p>
+        <div className="page-head-row">
+          <div>
+            <p className="eyebrow">{fr.projects.eyebrow}</p>
+            <h1 className="page-title">{fr.projects.title}</h1>
+            <p className="muted">{fr.projects.subtitle}</p>
+          </div>
+          <Link className="btn btn-cta" to="/projets/ajouter">{fr.importProject.newProject}</Link>
         </div>
 
         <div className="filters">

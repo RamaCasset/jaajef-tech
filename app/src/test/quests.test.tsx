@@ -39,10 +39,11 @@ describe('Quests page', () => {
     mount()
     expect(await screen.findByText('Quête 1')).toBeInTheDocument()
     expect(screen.getByText('3 quêtes')).toBeInTheDocument()
-    expect(screen.getAllByText('10 min · +250 XP · +50 Kopeks').length).toBe(2)
-    expect(screen.getByText('10 min · +250 XP')).toBeInTheDocument()
-    expect(screen.getByText('Quête du jour')).toBeInTheDocument()
-    expect(screen.getAllByText('Griot du Code').filter((el) => el.className === 'tag').length).toBe(3)
+    expect(screen.getAllByText('+250 XP · +50 Kopeks').length).toBe(2)
+    expect(screen.getByText('+250 XP')).toBeInTheDocument()
+    expect(screen.getAllByText(/10 min/).length).toBeGreaterThanOrEqual(3)
+    expect(screen.getByText(/· Quête du jour/)).toBeInTheDocument()
+    expect(screen.getAllByText(/^Griot du Code/).length).toBeGreaterThanOrEqual(3)
   })
 
   it('shows solved and in-progress marks only on the right quests', async () => {
@@ -50,6 +51,8 @@ describe('Quests page', () => {
     await screen.findByText('Quête 1')
     expect(screen.getAllByText('Résolue').length).toBe(1)
     expect(screen.getByText('En cours (1/3)')).toBeInTheDocument()
+    expect(screen.getAllByText('Disponible').length).toBe(1)
+    expect(screen.getAllByRole('link', { name: /^Ouvrir/ }).map((a) => a.textContent).sort()).toEqual(['Lancer la quête', 'Reprendre', 'Revoir'])
   })
 
   it('sends the chosen filters to the database', async () => {
