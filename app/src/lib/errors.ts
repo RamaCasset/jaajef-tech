@@ -59,6 +59,7 @@ export function friendlyError(error: unknown): string {
   if (m.includes('already a collaborator')) return fr.errors.alreadyCollabAdded
   if (m.includes('already invited')) return fr.errors.alreadyInvited
   if (m.includes('too many invitations')) return fr.errors.tooManyInvites
+  if (m.includes('invitation has expired')) return fr.errors.inviteExpired
   if (m.includes('invitation not found')) return fr.errors.inviteGone
   if (m.includes('already the owner')) return fr.errors.alreadyOwner
   if (m.includes('project has too many requests')) return fr.errors.tooManyRequestsOnProject

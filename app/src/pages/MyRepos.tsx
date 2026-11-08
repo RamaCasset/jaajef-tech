@@ -8,6 +8,7 @@ import { SpaceToggle } from '../components/SpaceToggle'
 import { useAuth } from '../auth/AuthContext'
 import { fr } from '../i18n/fr'
 import { friendlyError } from '../lib/errors'
+import { dateLocale } from '../i18n/lang'
 import { answerCollabInvite, editorPresence, listMyInvites, listMyRepos, removeCollaborator, removeProject, setProjectPinned, setProjectVisibility, type MyInvite, type MyRepo } from '../lib/api'
 
 const PAGE_SIZE = 6
@@ -107,7 +108,7 @@ export function MyRepos() {
               <ul>
                 {invites.map((i) => (
                   <li key={i.invite_id}>
-                    <span>{t.inviteText(i.owner_username, i.project_title)}</span>
+                    <span>{t.inviteText(i.owner_username, i.project_title)} <span className="muted tiny">{t.inviteExpires(new Date(i.expires_at).toLocaleDateString(dateLocale(), { day: 'numeric', month: 'long' }))}</span></span>
                     <span className="remove-actions">
                       <button type="button" className="btn" onClick={() => void change(() => answerCollabInvite(i.invite_id, false).then(loadInvites))}>{t.inviteDecline}</button>
                       <button type="button" className="btn btn-cta" onClick={() => void change(() => answerCollabInvite(i.invite_id, true).then(loadInvites))}>{t.inviteAccept}</button>
