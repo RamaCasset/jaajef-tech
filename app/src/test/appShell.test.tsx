@@ -29,12 +29,11 @@ describe('AppShell', () => {
     expect(await screen.findByRole('link', { name: 'Notifications (3)' })).toHaveAttribute('href', '/notifications')
   })
 
-  it('shows my communities, then the other spaces, in the side rail', async () => {
+  it('shows only the main spaces in the side rail', async () => {
     mount()
     const rail = screen.getByRole('navigation', { name: 'Espaces' })
-    expect(await within(rail).findByRole('link', { name: 'GameDev Senegal' })).toHaveAttribute('href', '/communautes/gamedev')
     const hrefs = within(rail).getAllByRole('link').map((a) => a.getAttribute('href'))
-    expect(hrefs).toEqual(['/communautes/gamedev', '/communautes', '/blog', '/quetes', '/souk', '/jobs'])
+    expect(hrefs).toEqual(['/communautes', '/blog', '/quetes', '/souk', '/jobs'])
   })
 
   it('keeps messages and the arena reachable outside the rail', async () => {

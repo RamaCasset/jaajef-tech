@@ -5,16 +5,15 @@ import { Logo } from './Logo'
 import { Icon } from './Icon'
 import { LanguageSwitch } from './LanguageSwitch'
 import { fr } from '../i18n/fr'
-import { getMyStaffAccess, listMyCommunities, unreadNotificationCount } from '../lib/api'
+import { getMyStaffAccess, unreadNotificationCount } from '../lib/api'
 
 const rail = (): { to: string; icon: string; label: string }[] => [
+  { to: '/communautes', icon: 'communities', label: fr.nav.communities },
   { to: '/blog', icon: 'blog', label: fr.nav.blog },
   { to: '/quetes', icon: 'quest', label: fr.nav.quests },
   { to: '/souk', icon: 'souk', label: fr.nav.souk },
   { to: '/jobs', icon: 'jobs', label: fr.nav.jobs },
 ]
-
-const initialsOf = (name: string) => name.split(/[\s-]+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase() || '?'
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { member, signOut } = useAuth()
@@ -24,13 +23,6 @@ export function AppShell({ children }: { children: ReactNode }) {
     let alive = true
     // The staff link is a convenience: if it cannot be checked, the link simply does not show.
     Promise.resolve().then(() => getMyStaffAccess(myId ?? '')).then((a) => { if (alive) setIsStaff(a.role !== null || a.shopManager || a.shopOwner || a.questWriter) }).catch(() => undefined)
-    return () => { alive = false }
-  }, [myId])
-  const [spaces, setSpaces] = useState<{ id: string; slug: string; name: string }[]>([])
-  useEffect(() => {
-    let alive = true
-    // The community shortcuts are a convenience: if they cannot be loaded, the rail simply shows without them.
-    Promise.resolve().then(() => listMyCommunities(myId ?? '')).then((list) => { if (alive) setSpaces(list.slice(0, 6)) }).catch(() => undefined)
     return () => { alive = false }
   }, [myId])
   const [unread, setUnread] = useState(0)
@@ -81,11 +73,6 @@ export function AppShell({ children }: { children: ReactNode }) {
       </header>
       <div className="shell-frame">
         <nav aria-label={fr.nav.railLabel} className="rail">
-          {spaces.map((c, i) => (
-            <NavLink key={c.id} to={`/communautes/${c.slug}`} className={`rail-space rail-space-${i % 3}`} title={c.name} aria-label={c.name}>{initialsOf(c.name)}</NavLink>
-          ))}
-          <NavLink to="/communautes" end className="rail-plus" title={fr.nav.communities} aria-label={fr.nav.communities}><Icon name="plus" size={18} /></NavLink>
-          <hr className="rail-sep" />
           {rail().map((r) => (
             <NavLink key={r.to} to={r.to} className="rail-link" title={r.label}>
               <Icon name={r.icon} />

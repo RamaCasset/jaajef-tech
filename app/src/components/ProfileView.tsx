@@ -8,7 +8,7 @@ import { fr } from '../i18n/fr'
 import { friendlyError } from '../lib/errors'
 import { listMyBlogPosts, startConversation, type MyBlogPost, type ProfileData } from '../lib/api'
 
-type Tab = 'code' | 'blog' | 'badges'
+type Tab = 'code' | 'blog'
 
 /** A member's page: cover, identity, level, numbers, then tabs. Used for profiles and for the Cité home (with `extra` under the numbers). */
 export function ProfileView({ data, viewerId, extra }: { data: ProfileData; viewerId: string; extra?: ReactNode }) {
@@ -39,7 +39,7 @@ export function ProfileView({ data, viewerId, extra }: { data: ProfileData; view
   const level = 1 + Math.floor(p.xp / xpPerLevel)
   const inLevel = p.xp % xpPerLevel
   const since = new Date(p.created_at).toLocaleDateString(dateLocale(), { month: 'long', year: 'numeric' })
-  const tabs: Tab[] = own ? ['code', 'blog', 'badges'] : ['code', 'badges']
+  const tabs: Tab[] = own ? ['code', 'blog'] : ['code']
 
   return (
     <>
@@ -91,7 +91,7 @@ export function ProfileView({ data, viewerId, extra }: { data: ProfileData; view
 
       <div role="tablist" className="profile-tabs" aria-label={t.tabsLabel}>
         {tabs.map((k) => (
-          <button key={k} type="button" role="tab" aria-selected={tab === k} className={`profile-tab ${tab === k ? 'profile-tab-on' : ''}`} onClick={() => setTab(k)}>{t.tabs[k]}</button>
+          <button key={k} type="button" role="tab" aria-selected={tab === k} className={`profile-tab ${tab === k ? 'profile-tab-on' : ''}`} onClick={() => setTab(k)}>{k === 'code' && !own ? t.projectsOther : t.tabs[k]}</button>
         ))}
       </div>
 
@@ -118,12 +118,6 @@ export function ProfileView({ data, viewerId, extra }: { data: ProfileData; view
         </div>
       )}
 
-      {tab === 'badges' && (
-        <section aria-labelledby="pb2">
-          <div className="profile-colhead"><h2 id="pb2">{t.badges}</h2><span className="muted tiny">{t.unlocked(badges.length)}</span></div>
-          <BadgeGrid badges={badges} />
-        </section>
-      )}
 
       {tab === 'blog' && (
         <section aria-labelledby="pbl">
