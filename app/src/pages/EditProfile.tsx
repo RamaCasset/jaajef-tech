@@ -86,7 +86,6 @@ export function EditProfile() {
       <main className="page souk">
         <header className="page-head">
           <h1 className="page-title">{fr.editProfile.title}</h1>
-          <p className="muted">{fr.editProfile.subtitle}</p>
         </header>
         {failed && (
           <div className="alert" role="alert">
