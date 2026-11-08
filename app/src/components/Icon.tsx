@@ -22,6 +22,8 @@ const PATHS: Record<string, string> = {
   panel: 'M4 6h16M4 12h16M4 18h16',
   folder: 'M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6Z',
   file: 'M7 3h7l5 5v13H7V3Zm7 0v5h5',
+  souk: 'M4 9 5.5 4h13L20 9M4 9h16M4 9v1a2.5 2.5 0 0 0 4 2 2.5 2.5 0 0 0 4 0 2.5 2.5 0 0 0 4 0 2.5 2.5 0 0 0 4-2V9M5 13v7h14v-7M10 20v-4h4v4',
+  plus: 'M12 5v14M5 12h14',
   search: 'M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14Zm5-2 4 4',
 }
 

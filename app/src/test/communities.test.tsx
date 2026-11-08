@@ -34,7 +34,7 @@ describe('Communities list', () => {
 
   it('shows mine with my role and link, and only others under "discover"', async () => {
     mount()
-    expect(await screen.findByRole('link', { name: 'Comm 1' })).toHaveAttribute('href', '/communautes/slug-1')
+    expect(await within(screen.getByRole('main')).findByRole('link', { name: 'Comm 1' })).toHaveAttribute('href', '/communautes/slug-1')
     expect(screen.getByText(/Propriétaire/)).toBeInTheDocument()
     expect(screen.getByText('Comm 2')).toBeInTheDocument()
     expect(screen.getAllByText('Comm 1')).toHaveLength(1)
@@ -68,7 +68,7 @@ describe('Communities list', () => {
     api.listMyCommunities.mockRejectedValueOnce(new Error('down'))
     mount()
     await userEvent.click(await screen.findByRole('button', { name: 'Réessayer' }))
-    expect(await screen.findByRole('link', { name: 'Comm 1' })).toBeInTheDocument()
+    expect(await within(screen.getByRole('main')).findByRole('link', { name: 'Comm 1' })).toBeInTheDocument()
   })
 })
 
