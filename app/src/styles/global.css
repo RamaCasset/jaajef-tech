@@ -695,3 +695,6 @@ select { appearance: none; -webkit-appearance: none; background-color: var(--pan
 .file-search .btn, .panel-tools .btn, .panel-form .btn, .rename-form .btn, .file-actions .btn { padding: 7px 12px; font-size: 13px; border-radius: 10px; }
 .file-actions .btn { white-space: nowrap; }
 .file-bar .btn { padding: 7px 12px; font-size: 13px; border-radius: 10px; white-space: nowrap; }
+
+.files-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.files-actions .btn { padding: 7px 14px; font-size: 13px; border-radius: 10px; }

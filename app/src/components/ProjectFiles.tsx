@@ -70,17 +70,19 @@ export function ProjectFiles({ project, dir, canEdit, tree: given, onTree, branc
     <section className="panel files-panel" aria-label={t.filesTitle}>
       <header className="files-head">
         <h2>{t.filesTitle}</h2>
-        <Link className="btn" to={`/projets/${project.id}/historique`}>{t.history}</Link>
-        {canEdit && <Link className="btn" to={`/projets/${project.id}/propositions`}>{t.proposals}</Link>}
-        {canEdit && !adding && <button type="button" className="btn" onClick={() => setAdding(true)}>{t.newFile}</button>}
-        {canEdit && adding && (
-          <form className="files-new" onSubmit={onCreate} noValidate>
-            <input aria-label={fr.editor.newFileName} placeholder={fr.editor.newFileName} value={name} onChange={(e) => { setName(e.target.value); setNameError(null) }} />
-            <button type="submit" className="btn btn-cta">{t.createFile}</button>
-            <button type="button" className="btn" onClick={() => { setAdding(false); setNameError(null) }}>{t.cancel}</button>
-            {nameError && <span role="alert" className="alert">{nameError}</span>}
-          </form>
-        )}
+        <div className="files-actions">
+          <Link className="btn" to={`/projets/${project.id}/historique`}>{t.history}</Link>
+          {canEdit && <Link className="btn" to={`/projets/${project.id}/propositions`}>{t.proposals}</Link>}
+          {canEdit && !adding && <button type="button" className="btn" onClick={() => setAdding(true)}>{t.newFile}</button>}
+          {canEdit && adding && (
+            <form className="files-new" onSubmit={onCreate} noValidate>
+              <input aria-label={fr.editor.newFileName} placeholder={fr.editor.newFileName} value={name} onChange={(e) => { setName(e.target.value); setNameError(null) }} />
+              <button type="submit" className="btn btn-cta">{t.createFile}</button>
+              <button type="button" className="btn" onClick={() => { setAdding(false); setNameError(null) }}>{t.cancel}</button>
+              {nameError && <span role="alert" className="alert">{nameError}</span>}
+            </form>
+          )}
+        </div>
       </header>
       {error && <p role="alert" className="alert files-pad">{error}</p>}
       {!tree && !error && <p className="muted files-pad">{fr.repoViewer.loading}</p>}
