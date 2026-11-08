@@ -22,6 +22,7 @@ const sha = (s) => createHash('sha1').update(s).digest('hex')
 // ---- The pretend GitHub ---------------------------------------------------------------------------------------
 let gh
 let adopted = []
+let presence = []
 let adoptError = null
 function resetGithub(publicKey) {
   gh = {
@@ -178,6 +179,11 @@ async function pretendFetch(input, init = {}) {
       const id = TOKENS[(init.headers?.authorization ?? '').replace('Bearer ', '')]
       return id ? jsonRes(200, { id }) : jsonRes(401, { message: 'bad token' })
     }
+    if (url.pathname === '/rest/v1/rpc/sync_private_presence') {
+      if (init.headers?.apikey !== SERVICE_KEY) return jsonRes(401, {})
+      presence.push(JSON.parse(init.body))
+      return new Response(null, { status: 204 })
+    }
     if (url.pathname === '/rest/v1/rpc/adopt_private_project') {
       if (init.headers?.apikey !== SERVICE_KEY) return jsonRes(401, {})
       const args = JSON.parse(init.body)
@@ -222,6 +228,7 @@ let n = 0
 async function test(name, fn) {
   resetGithub(pkcs1.publicKey)
   adopted = []
+  presence = []
   adoptError = null
   getEnv = envFor(pkcs1.privateKey)
   await fn()
@@ -416,6 +423,20 @@ await test('adopt: refusals', async () => {
   assert.deepEqual((await call('t-awa', { action: 'adopt', repo: 'appli' })).json, { error: 'limit_reached' })
   adoptError = 'boom'
   assert.equal((await call('t-awa', { action: 'adopt', repo: 'appli' })).status, 502)
+})
+
+await test('presence: tells the database which repositories the app can still see, for this member only', async () => {
+  const r = await call('t-awa', { action: 'presence', owner: 'bob', p_owner: 'x', p_present: ['x'] })
+  assert.deepEqual(r.json, { checked: true })
+  assert.deepEqual(presence, [{ p_owner: U.awa, p_present: ['appli', 'vide'] }])
+  assert.ok([...gh.tokens.values()].every((t) => t.permissions.contents === 'read'))
+})
+
+await test('presence: an uninstalled app or a full page of repositories flags nothing', async () => {
+  assert.deepEqual((await call('t-cara', { action: 'presence' })).json, { checked: false })
+  gh.installations[0].repos = Array.from({ length: 100 }, (_, i) => `r${i}`)
+  assert.deepEqual((await call('t-awa', { action: 'presence' })).json, { checked: false })
+  assert.equal(presence.length, 0)
 })
 
 await test('when GitHub is down the member gets a clear error, not a crash', async () => {

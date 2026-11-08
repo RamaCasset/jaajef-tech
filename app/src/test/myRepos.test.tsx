@@ -6,7 +6,7 @@ import type { MyRepo } from '../lib/api'
 
 const api = vi.hoisted(() => ({
   listMyRepos: vi.fn(), setProjectPinned: vi.fn(), setProjectVisibility: vi.fn(), loadProfile: vi.fn(),
-  countMyStars: vi.fn(), getNextBadge: vi.fn(), listMyStarred: vi.fn(),
+  countMyStars: vi.fn(), getNextBadge: vi.fn(), listMyStarred: vi.fn(), removeProject: vi.fn(), editorPresence: vi.fn(),
 }))
 vi.mock('../lib/api', () => api)
 vi.mock('../auth/AuthContext', () => ({
@@ -19,7 +19,7 @@ import { MyStars } from '../pages/MyStars'
 const repo = (n: number, extra: Partial<MyRepo> = {}): MyRepo => ({
   id: `r${n}`, github_owner: 'moussa', github_repo: `depot-${n}`, title: `Depot ${n}`, summary: `Résumé ${n}`, language: 'Python',
   github_stars: n, star_count: 0, github_forks: 2, github_pushed_at: new Date(Date.now() - n * 3600e3).toISOString(),
-  updated_at: new Date().toISOString(), is_public: true, verified_at: '2026-01-01', build_status: null, pinned_at: null, ...extra,
+  updated_at: new Date().toISOString(), is_public: true, verified_at: '2026-01-01', build_status: null, pinned_at: null, repo_private: false, repo_missing_at: null, ...extra,
 })
 
 beforeEach(() => {
@@ -30,6 +30,8 @@ beforeEach(() => {
   ])
   api.setProjectPinned.mockResolvedValue(undefined)
   api.setProjectVisibility.mockResolvedValue(undefined)
+  api.removeProject.mockResolvedValue(undefined)
+  api.editorPresence.mockResolvedValue({ checked: true })
   api.loadProfile.mockResolvedValue({
     profile: { id: 'me', username: 'moussa', display_name: 'Moussa Diop', headline: 'Dev à Dakar', avatar_url: null, banner_url: null, bio: 'Je code.', location: 'Dakar', github_username: 'moussa', clan: null, mastery: 'bagne', xp: 25000, is_verified: false, available_to_collab: true, created_at: '2024-03-01T00:00:00Z' },
     xpPerLevel: 10000, badges: [], projects: [], questsSolved: 3, appreciation: 0,
@@ -151,5 +153,58 @@ describe('My starred projects', () => {
     api.listMyStarred.mockResolvedValue([])
     mount(<MyStars />)
     expect(await screen.findByText("Vous n'avez encore étoilé aucun projet.")).toBeInTheDocument()
+  })
+})
+
+describe('Removing a repository and private repositories that are gone', () => {
+  it('asks before removing, explains what is lost, and removes only when confirmed', async () => {
+    mount()
+    await screen.findByText('7 publics')
+    await userEvent.click(screen.getByRole('button', { name: 'Actions pour depot-2' }))
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Retirer de la plateforme' }))
+    const box = screen.getByRole('alertdialog')
+    expect(within(box).getByText('Retirer depot-2 de la plateforme ?')).toBeInTheDocument()
+    expect(within(box).getByText(/Le dépôt reste sur GitHub/)).toBeInTheDocument()
+    await userEvent.click(within(box).getByRole('button', { name: 'Annuler' }))
+    expect(api.removeProject).not.toHaveBeenCalled()
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Actions pour depot-2' }))
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Retirer de la plateforme' }))
+    await userEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Retirer' }))
+    await waitFor(() => expect(api.removeProject).toHaveBeenCalledWith('r2'))
+    await waitFor(() => expect(api.listMyRepos).toHaveBeenCalledTimes(2))
+  })
+
+  it('offers no public/private switch for a repository that is private on GitHub', async () => {
+    api.listMyRepos.mockResolvedValue([repo(1, { is_public: false, repo_private: true }), repo(2)])
+    mount()
+    await screen.findByText('1 privé')
+    await userEvent.click(screen.getByRole('button', { name: 'Actions pour depot-1' }))
+    expect(screen.queryByRole('menuitem', { name: 'Rendre public' })).toBeNull()
+    expect(screen.getByRole('menuitem', { name: 'Retirer de la plateforme' })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Actions pour depot-1' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Actions pour depot-2' }))
+    expect(screen.getByRole('menuitem', { name: 'Rendre privé' })).toBeInTheDocument()
+  })
+
+  it('checks once per visit that private repositories still exist, and marks the missing one', async () => {
+    api.listMyRepos.mockResolvedValueOnce([repo(1, { is_public: false, repo_private: true })])
+      .mockResolvedValueOnce([repo(1, { is_public: false, repo_private: true, repo_missing_at: '2026-11-08T00:00:00Z' })])
+    mount()
+    expect(await screen.findByText('Introuvable sur GitHub')).toBeInTheDocument()
+    expect(api.editorPresence).toHaveBeenCalledTimes(1)
+    expect(api.listMyRepos).toHaveBeenCalledTimes(2)
+  })
+
+  it('does not ask GitHub when there is no private repository, and ignores a failed check', async () => {
+    mount()
+    await screen.findByText('7 publics')
+    expect(api.editorPresence).not.toHaveBeenCalled()
+    api.listMyRepos.mockResolvedValue([repo(1, { is_public: false, repo_private: true })])
+    api.editorPresence.mockRejectedValue(new Error('not_configured'))
+    mount()
+    await waitFor(() => expect(api.editorPresence).toHaveBeenCalledTimes(1))
+    expect(screen.queryByText('Introuvable sur GitHub')).toBeNull()
   })
 })

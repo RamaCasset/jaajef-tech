@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
 import { Icon } from '../components/Icon'
@@ -8,7 +8,7 @@ import { SpaceToggle } from '../components/SpaceToggle'
 import { useAuth } from '../auth/AuthContext'
 import { fr } from '../i18n/fr'
 import { friendlyError } from '../lib/errors'
-import { listMyRepos, setProjectPinned, setProjectVisibility, type MyRepo } from '../lib/api'
+import { editorPresence, listMyRepos, removeProject, setProjectPinned, setProjectVisibility, type MyRepo } from '../lib/api'
 
 const PAGE_SIZE = 6
 type Sort = 'activity' | 'stars' | 'name'
@@ -30,11 +30,21 @@ export function MyRepos() {
   const [sort, setSort] = useState<Sort>('activity')
   const [page, setPage] = useState(1)
 
+  const [removing, setRemoving] = useState<MyRepo | null>(null)
+  const checkedPresence = useRef(false)
+
   const load = useCallback(() => {
     setFailed(false)
     listMyRepos(me).then(setRepos).catch(() => setFailed(true))
   }, [me])
   useEffect(load, [load])
+
+  // Once per visit: ask GitHub whether the private repositories are still there (silent when it cannot).
+  useEffect(() => {
+    if (checkedPresence.current || !repos || !repos.some((r) => r.repo_private)) return
+    checkedPresence.current = true
+    editorPresence().then((r) => { if (r.checked) load() }).catch(() => { /* nothing to show */ })
+  }, [repos, load])
 
   async function change(work: () => Promise<unknown>) {
     setActionError(null)
@@ -112,6 +122,17 @@ export function MyRepos() {
               </select></div>
           </div>
 
+          {removing ? (
+            <div className="panel remove-confirm" role="alertdialog" aria-labelledby="rm-t">
+              <h2 id="rm-t">{t.removeTitle(removing.github_repo)}</h2>
+              <p className="muted">{t.removeText}</p>
+              <div className="remove-actions">
+                <button type="button" className="btn" onClick={() => setRemoving(null)}>{t.removeCancel}</button>
+                <button type="button" className="btn btn-danger" onClick={() => { const r = removing; setRemoving(null); void change(() => removeProject(r.id)) }}>{t.removeConfirm}</button>
+              </div>
+            </div>
+          ) : null}
+
           {failed && <div className="alert" role="alert">{t.error} <button type="button" className="btn" onClick={load}>{t.retry}</button></div>}
           {actionError && <div className="alert" role="alert">{actionError}</div>}
           {!failed && repos === null && <p className="muted">{fr.common.loading}</p>}
@@ -124,7 +145,8 @@ export function MyRepos() {
                 {pinned.map((r) => (
                   <PinnedCard key={r.id} repo={r}
                     onPin={() => void change(() => setProjectPinned(r.id, false))}
-                    onVisibility={() => void change(() => setProjectVisibility(r.id, !r.is_public))} />
+                    onVisibility={() => void change(() => setProjectVisibility(r.id, !r.is_public))}
+                    onRemove={() => setRemoving(r)} />
                 ))}
               </div>
             </section>
@@ -142,7 +164,8 @@ export function MyRepos() {
                     {shown.map((r) => (
                       <RepoListRow key={r.id} repo={r}
                         onPin={() => void change(() => setProjectPinned(r.id, true))}
-                        onVisibility={() => void change(() => setProjectVisibility(r.id, !r.is_public))} />
+                        onVisibility={() => void change(() => setProjectVisibility(r.id, !r.is_public))}
+                    onRemove={() => setRemoving(r)} />
                     ))}
                   </ul>
                   <div className="repo-pager">

@@ -604,3 +604,9 @@ select { appearance: none; -webkit-appearance: none; background-color: var(--pan
 .import-create input[type="radio"] { width: auto; margin: 0; padding: 0; flex: none; }
 .import-create fieldset label { justify-content: flex-start; font-weight: 400; font-size: 15px; color: var(--fg); }
 .import-page .notice { display: grid; gap: 10px; justify-items: start; }
+.tag-missing { border-color: var(--danger, #e5484d); color: var(--danger, #e5484d); }
+.row-menu-pop .menu-danger { color: var(--danger, #e5484d); }
+.remove-confirm { display: grid; gap: 12px; padding: 20px 24px; border-color: var(--danger, #e5484d); }
+.remove-confirm h2, .remove-confirm p { margin: 0; }
+.remove-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.btn-danger { background: var(--danger, #e5484d); border-color: var(--danger, #e5484d); color: #fff; }

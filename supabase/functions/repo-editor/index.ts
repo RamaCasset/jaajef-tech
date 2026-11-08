@@ -6,6 +6,7 @@
 //   tree     -> the files of one allowed repository (default branch)
 //   file     -> the text of one file
 //   commit   -> save changes to files as ONE commit on a branch
+//   presence -> flag the member's private projects whose repository the app can no longer see
 //   adopt    -> list one PRIVATE repository of the member on the platform (stays private)
 //
 // Safety rules, all enforced here (never in the browser):
@@ -220,6 +221,32 @@ async function doRepos(owner: string, ctx: Ctx): Promise<unknown | Fail> {
   return { repos }
 }
 
+/** Flags the member's private projects whose repository the app can no longer see (deleted, or no longer allowed). */
+async function doPresence(userId: string, owner: string, ctx: Ctx): Promise<unknown | Fail> {
+  const installation = await findInstallation(owner, ctx)
+  if (isFail(installation)) return installation
+  // No app, no answer: never flag anything just because the app was uninstalled.
+  if (installation === null) return { checked: false }
+  const jwt = await appJwt(ctx.env)
+  const minted = await gh(ctx, 'POST', `/app/installations/${installation}/access_tokens`, jwt, { permissions: { contents: 'read' } })
+  if (!minted.ok || typeof minted.body?.token !== 'string') return fail('github_failed', 502)
+  const r = await gh(ctx, 'GET', '/installation/repositories?per_page=100', minted.body.token)
+  if (!r.ok) return fail('github_failed', 502)
+  const list = Array.isArray(r.body?.repositories) ? r.body.repositories : []
+  // A full page may hide the rest: then we cannot be sure a repository is missing, so we flag nothing.
+  if (list.length >= 100) return { checked: false }
+  const present = list
+    .filter((x: any) => String(x?.owner?.login ?? '').toLowerCase() === owner.toLowerCase())
+    .map((x: any) => String(x.name))
+  const response = await ctx.fetchFn(`${ctx.env.supabaseUrl}/rest/v1/rpc/sync_private_presence`, {
+    method: 'POST',
+    headers: { ...dbHeaders(ctx.env), 'content-type': 'application/json' },
+    body: JSON.stringify({ p_owner: userId, p_present: present }),
+  })
+  if (!response.ok) return fail('failed', 502)
+  return { checked: true }
+}
+
 /** List a private repository on the platform. The proof of ownership is that the member installed the app on it. */
 async function doAdopt(userId: string, owner: string, repo: string, title: string | null, summary: string | null, ctx: Ctx): Promise<unknown | Fail> {
   const installation = await findInstallation(owner, ctx)
@@ -377,6 +404,7 @@ export async function handler(request: Request, getEnv: (name: string) => string
         result = repo && path && ref ? await doFile(owner, repo, path, ref, ctx) : fail('bad_request', 400)
         break
       }
+      case 'presence': result = await doPresence(userId, owner, ctx); break
       case 'adopt': {
         const repo = needRepo()
         const title = typeof body.title === 'string' && body.title.trim().length > 0 && body.title.length <= 100 ? body.title.trim() : null
