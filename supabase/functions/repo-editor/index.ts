@@ -17,6 +17,7 @@
 //   pr_open  -> propose a branch to the main code (owner: any branch; collaborator: only their own)
 //   pr_merge -> merge a proposal into the main code (owner only)
 //   pr_close -> close a proposal (owner, or the member who made it)
+//   After a proposal is opened, merged or declined, the owner or the author is told (notify_proposal, best effort).
 //   commit also accepts { project }: the owner may save to any branch; a collaborator only to a branch
 //             that starts with their own username and a slash (never the main code). { create_from }
 //             makes the branch first, from that branch, in the same call.
@@ -419,6 +420,19 @@ function toPull(p: any, repoFull: string): Pull | null {
   }
 }
 
+/** Tells the owner (proposal opened) or the author (merged / declined). A failure here never undoes the action. */
+async function notifyProposal(kind: string, projectId: string, actor: string, author: string, number: number, title: string, ctx: Ctx): Promise<void> {
+  try {
+    await ctx.fetchFn(`${ctx.env.supabaseUrl}/rest/v1/rpc/notify_proposal`, {
+      method: 'POST',
+      headers: { ...dbHeaders(ctx.env), 'content-type': 'application/json' },
+      body: JSON.stringify({ p_kind: kind, p_project: projectId, p_actor: actor, p_author: author, p_number: number, p_title: title }),
+    })
+  } catch {
+    // nothing: the notification is a convenience
+  }
+}
+
 async function doPrs(owner: string, repo: string, ctx: Ctx): Promise<unknown | Fail> {
   const installation = await findInstallation(owner, ctx)
   if (isFail(installation)) return installation
@@ -486,7 +500,7 @@ async function doPrMerge(owner: string, repo: string, number: number, seenSha: s
   if (merged.status === 405) return fail('not_mergeable', 409)
   if (merged.status === 409) return fail('branch_moved', 409)
   if (!merged.ok) return fail('github_failed', 502)
-  return { merged: true, url: String(pull.html_url ?? '') }
+  return { merged: true, url: String(pull.html_url ?? ''), _by: toPull(pull, `${owner}/${repo}`) }
 }
 
 async function doPrClose(owner: string, repo: string, number: number, onlyBy: string | null, ctx: Ctx): Promise<unknown | Fail> {
@@ -501,7 +515,7 @@ async function doPrClose(owner: string, repo: string, number: number, onlyBy: st
   if (onlyBy !== null && toPull(pull, `${owner}/${repo}`)?.author !== onlyBy) return fail('not_yours', 403)
   const closed = await gh(ctx, 'PATCH', `/repos/${owner}/${repo}/pulls/${number}`, token, { state: 'closed' })
   if (!closed.ok) return fail('github_failed', 502)
-  return { closed: true }
+  return { closed: true, _by: toPull(pull, `${owner}/${repo}`) }
 }
 
 async function doCommit(
@@ -652,6 +666,9 @@ export async function handler(request: Request, getEnv: (name: string) => string
         if (!username) { result = fail('bad_request', 400); break }
         if (!isProjectOwner && !isOwnBranch(branch, username)) { result = fail('branch_not_yours', 403); break }
         result = await doPrOpen(owner, repo, branch, title, text, username, ctx)
+        if (!isFail(result) && (result as any).existed === false && !isProjectOwner) {
+          await notifyProposal('proposal_opened', body.project, userId, username, (result as any).number, title, ctx)
+        }
         break
       }
       case 'pr_merge': {
@@ -660,6 +677,11 @@ export async function handler(request: Request, getEnv: (name: string) => string
         const seen = typeof body.sha === 'string' && /^[0-9a-f]{40}$/.test(body.sha) ? body.sha : null
         if (!(repo && projectRepo !== null && number && seen)) { result = fail('bad_request', 400); break }
         result = isProjectOwner ? await doPrMerge(owner, repo, number, seen, ctx) : fail('owner_only', 403)
+        if (!isFail(result)) {
+          const by = (result as any)._by as Pull | null
+          delete (result as any)._by
+          if (by) await notifyProposal('proposal_merged', body.project, userId, by.author, by.number, by.title, ctx)
+        }
         break
       }
       case 'pr_close': {
@@ -669,6 +691,12 @@ export async function handler(request: Request, getEnv: (name: string) => string
         const username = isProjectOwner ? null : await usernameOf(userId, ctx)
         if (!isProjectOwner && !username) { result = fail('not_yours', 403); break }
         result = await doPrClose(owner, repo, number, username, ctx)
+        if (!isFail(result)) {
+          const by = (result as any)._by as Pull | null
+          delete (result as any)._by
+          // Withdrawing your own proposal tells nobody; declining someone else's tells its author.
+          if (by && isProjectOwner) await notifyProposal('proposal_declined', body.project, userId, by.author, by.number, by.title, ctx)
+        }
         break
       }
       case 'commit': {

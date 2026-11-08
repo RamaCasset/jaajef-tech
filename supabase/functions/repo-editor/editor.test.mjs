@@ -29,6 +29,7 @@ let gh
 let adopted = []
 let presence = []
 let adoptError = null
+let notified = []
 function resetGithub(publicKey) {
   gh = {
     publicKey,
@@ -270,6 +271,11 @@ async function pretendFetch(input, init = {}) {
       const ok = project && project.members.includes(args.p_user)
       return jsonRes(200, ok ? [{ github_owner: project.owner, github_repo: project.repo, is_owner: args.p_user === U.awa }] : [])
     }
+    if (url.pathname === '/rest/v1/rpc/notify_proposal') {
+      if (init.headers?.apikey !== SERVICE_KEY) return jsonRes(401, {})
+      notified.push(JSON.parse(init.body))
+      return new Response(null, { status: 204 })
+    }
     if (url.pathname === '/rest/v1/rpc/sync_private_presence') {
       if (init.headers?.apikey !== SERVICE_KEY) return jsonRes(401, {})
       presence.push(JSON.parse(init.body))
@@ -322,6 +328,7 @@ async function test(name, fn) {
   adopted = []
   presence = []
   adoptError = null
+  notified = []
   getEnv = envFor(pkcs1.privateKey)
   await fn()
   n += 1
@@ -795,6 +802,43 @@ await test('a collaborator cannot pose as someone else in a proposal, nor change
   assert.equal(gh.repos['awa/appli'].branches['ndeye_k/ci'], undefined)
   const owner = await call('t-awa', { action: 'commit', project: P_AWA, branch: 'ci', create_from: 'main', base_sha: headOfAwa(), message: 'CI', files: [{ path: '.github/workflows/x.yml', content: 'ok' }] })
   assert.equal(owner.status, 200)
+})
+
+await test('the right person is told: the owner of a proposal, the author of a merge or a refusal, nobody for their own act', async () => {
+  const repo = gh.repos['awa/appli']
+  await collabBranch()
+  await propose('t-nolink', 'ndeye_k/fix', 'Corrige le titre')
+  assert.deepEqual(notified, [{ p_kind: 'proposal_opened', p_project: P_AWA, p_actor: U.nolink, p_author: 'ndeye_k', p_number: 1, p_title: 'Corrige le titre' }])
+  await propose('t-nolink', 'ndeye_k/fix', 'Corrige le titre') // already open: no second message
+  assert.equal(notified.length, 1)
+  repo.branches['awa_dev/work'] = commitSide(repo, { 'main.py': 'w\n' }, repo.head, 'work')
+  await propose('t-awa', 'awa_dev/work', 'Mon travail') // the owner proposing tells nobody
+  assert.equal(notified.length, 1)
+  assert.equal((await call('t-awa', { action: 'pr_close', project: P_AWA, number: 2 })).status, 200)
+  assert.equal(notified.length, 2) // the owner closing their own proposal: the database skips it (author is the actor)
+  assert.deepEqual([notified[1].p_kind, notified[1].p_author, notified[1].p_actor], ['proposal_declined', 'awa_dev', U.awa])
+  const r = await call('t-awa', { action: 'pr_merge', project: P_AWA, number: 1, sha: repo.branches['ndeye_k/fix'] })
+  assert.equal(r.status, 200)
+  assert.equal('_by' in r.json, false) // the bookkeeping never reaches the browser
+  assert.deepEqual(notified[2], { p_kind: 'proposal_merged', p_project: P_AWA, p_actor: U.awa, p_author: 'ndeye_k', p_number: 1, p_title: 'Corrige le titre' })
+})
+
+await test('declining tells the author; withdrawing your own proposal tells nobody; a failed action tells nobody', async () => {
+  await collabBranch()
+  await propose('t-nolink', 'ndeye_k/fix')
+  notified = []
+  assert.equal((await call('t-awa', { action: 'pr_close', project: P_AWA, number: 1 })).status, 200)
+  assert.deepEqual(notified.map((x) => [x.p_kind, x.p_author]), [['proposal_declined', 'ndeye_k']])
+  notified = []
+  const branch2 = await collabBranch('ndeye_k/two')
+  await propose('t-nolink', 'ndeye_k/two', 'Deux')
+  notified = []
+  assert.equal((await call('t-nolink', { action: 'pr_close', project: P_AWA, number: 2 })).status, 200)
+  assert.deepEqual(notified, [])
+  gh.repos['awa/appli'].pulls[1].state = 'open'
+  gh.repos['awa/appli'].pulls[1].conflict = true
+  assert.equal((await call('t-awa', { action: 'pr_merge', project: P_AWA, number: 2, sha: branch2 })).status, 409)
+  assert.deepEqual(notified, [])
 })
 
 console.log(`ALL ${n} REPO EDITOR TESTS PASSED`)

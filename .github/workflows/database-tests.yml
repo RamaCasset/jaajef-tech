@@ -84,6 +84,12 @@ jobs:
       - name: Run the account purge test (pretend database, pretend Storage)
         run: node --experimental-strip-types supabase/functions/account-purge/purge.test.mjs
 
+      - name: Run the code editor test (pretend database, pretend GitHub)
+        run: node --experimental-strip-types supabase/functions/repo-editor/editor.test.mjs
+
+      - name: Run the file info test (pretend database, pretend GitHub)
+        run: node --experimental-strip-types supabase/functions/repo-info/info.test.mjs
+
   app:
     runs-on: ubuntu-latest
     defaults:
