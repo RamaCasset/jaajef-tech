@@ -2,6 +2,7 @@ import { dateLocale } from '../i18n/lang'
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
+import { Icon } from '../components/Icon'
 import { ReportButton } from '../components/ReportButton'
 import { BuildBadge, ClanTag } from '../components/ProjectCard'
 import { useAuth } from '../auth/AuthContext'
@@ -64,30 +65,28 @@ function ProfileView({ data, viewerId }: { data: ProfileData; viewerId: string }
     <>
       <section className="panel profile-card">
         <div className="profile-banner" style={p.banner_url ? { backgroundImage: `url(${p.banner_url})` } : undefined} aria-hidden="true" />
-        <div className="profile-id">
-          <div className="profile-avatar" aria-hidden="true">
-            {p.avatar_url ? <img src={p.avatar_url} alt="" /> : p.display_name.slice(0, 1).toUpperCase()}
+        <div className="profile-head">
+          <div className="profile-side">
+            <div className="profile-avatar" aria-hidden="true">
+              {p.avatar_url ? <img src={p.avatar_url} alt="" /> : p.display_name.slice(0, 1).toUpperCase()}
+            </div>
+            {p.mastery ? <span className="mastery-chip">{fr.masteries[p.mastery].name}</span> : null}
           </div>
-          <div>
+          <div className="profile-main">
             <h1 className="page-title">{p.display_name}{p.is_verified ? <span className="tag" style={{ marginLeft: 8 }}>{fr.profile.verified}</span> : null}</h1>
-            <p className="mono muted">@{p.username}</p>
-            <p>
-              <ClanTag clan={p.clan} />{' '}
-              {p.mastery ? <span className="muted">{fr.masteries[p.mastery].name}</span> : null}
-            </p>
+            <p className="mono profile-handle">@{p.username}</p>
+            <p><ClanTag clan={p.clan} /></p>
             {p.bio ? <p>{p.bio}</p> : null}
             <p className="muted tiny">
               {[p.location, fr.profile.since(since)].filter(Boolean).join(' · ')}
               {p.github_username ? <> · <a href={`https://github.com/${p.github_username}`} target="_blank" rel="noreferrer">github.com/{p.github_username}</a></> : null}
             </p>
-            {p.id === viewerId && <p><Link className="btn" to="/parametres/profil">{fr.editProfile.edit}</Link></p>}
-            {p.id !== viewerId && <p><ReportButton type="member" id={p.id} /></p>}
-            {p.id !== viewerId && (
-              <p>
-                <button type="button" className="btn" onClick={() => void write()}>{fr.messages.write}</button>
-                {writeError && <span role="alert" className="alert" style={{ marginLeft: 8 }}>{writeError}</span>}
-              </p>
-            )}
+          </div>
+          <div className="profile-actions">
+            {p.id === viewerId && <Link className="btn btn-cta" to="/parametres/profil">{fr.editProfile.edit}</Link>}
+            {p.id !== viewerId && <button type="button" className="btn btn-cta" onClick={() => void write()}>{fr.messages.write}</button>}
+            {p.id !== viewerId && <ReportButton type="member" id={p.id} />}
+            {writeError && <span role="alert" className="alert">{writeError}</span>}
             {p.available_to_collab ? <span className="build build-passing">{fr.profile.available}</span> : null}
           </div>
         </div>
@@ -101,8 +100,8 @@ function ProfileView({ data, viewerId }: { data: ProfileData; viewerId: string }
       </section>
 
       <dl className="profile-stats">
-        {questsSolved !== null ? <div className="panel"><dd>{questsSolved}</dd><dt>{fr.profile.stats.quests}</dt></div> : null}
-        <div className="panel"><dd>{projects.length}</dd><dt>{fr.profile.stats.projects}</dt></div>
+        {questsSolved !== null ? <div className="panel"><span className="stat-icon"><Icon name="quest" size={28} /></span><div><dd>{questsSolved}</dd><dt>{fr.profile.stats.quests}</dt></div></div> : null}
+        <div className="panel"><span className="stat-icon"><Icon name="repo" size={28} /></span><div><dd>{projects.length}</dd><dt>{fr.profile.stats.projects}</dt></div></div>
       </dl>
 
       <div className="profile-cols">
@@ -127,6 +126,7 @@ function ProfileView({ data, viewerId }: { data: ProfileData; viewerId: string }
             <ul className="badge-grid">
               {badges.map((b) => (
                 <li key={b.slug} className={`panel badge badge-${b.tier}`}>
+                  <span className="badge-icon" aria-hidden="true"><Icon name="arena" size={26} /></span>
                   <strong>{b.name}</strong>
                   <span className="muted tiny">{b.description}</span>
                 </li>

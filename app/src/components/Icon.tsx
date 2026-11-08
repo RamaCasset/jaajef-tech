@@ -5,6 +5,8 @@ const PATHS: Record<string, string> = {
   arena: 'M7 4h10v4a5 5 0 0 1-10 0V4Zm5 9v4m-4 3h8M4 5h3m10 0h3',
   jobs: 'M4 8h16v11H4V8Zm5 0V5h6v3M4 13h16',
   bell: 'M6 16V11a6 6 0 1 1 12 0v5l2 2H4l2-2Zm4 4h4',
+  quest: 'M14.5 4.5 20 4l-.5 5.5L9 20l-2-2 7.5-7.5ZM5 15l4 4M3 21l3-3',
+  repo: 'M5 5a2 2 0 0 1 2-2h11v15H7a2 2 0 0 0-2 2V5Zm0 14a2 2 0 0 1 2-2h11M9 7h5',
   search: 'M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14Zm5-2 4 4',
 }
 
