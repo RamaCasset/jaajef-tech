@@ -760,6 +760,7 @@ export const frMessages = {
     save: 'Enregistrer',
     delete: 'Supprimer ce fichier',
     noChanges: 'Aucune modification à enregistrer',
+    hidePanel: 'Masquer la liste des fichiers',
     togglePanel: 'Afficher ou masquer la liste des fichiers',
     panelTitle: 'Tous les fichiers',
     commitTitle: 'Décrivez votre modification',

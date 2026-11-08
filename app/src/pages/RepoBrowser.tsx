@@ -230,7 +230,10 @@ export function RepoBrowser() {
                 <div className={`workspace-body ${panelOpen ? 'workspace-body-panel' : ''}`}>
                 {panelOpen && (
                   <aside className="repo-panel" aria-label={t.panelTitle}>
-                    <h2>{t.panelTitle}</h2>
+                    <div className="repo-panel-head">
+                      <h2>{t.panelTitle}</h2>
+                      <button type="button" className="icon-btn icon-btn-small" aria-label={t.hidePanel} title={t.hidePanel} onClick={() => setPanelOpen(false)}><Icon name="chevron-left" size={16} /></button>
+                    </div>
                     <FileTree projectId={project.id} paths={allFiles} current={path} onNavigate={guard} />
                   </aside>
                 )}

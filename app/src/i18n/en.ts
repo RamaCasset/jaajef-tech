@@ -760,6 +760,7 @@ export const en: Messages = {
     save: 'Save',
     delete: 'Delete this file',
     noChanges: 'No changes to save',
+    hidePanel: 'Hide the file list',
     togglePanel: 'Show or hide the file list',
     panelTitle: 'All files',
     commitTitle: 'Describe your change',
