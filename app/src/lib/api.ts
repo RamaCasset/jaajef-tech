@@ -1384,6 +1384,14 @@ export async function getRepoFile(owner: string, repo: string, branch: string, p
 const BINARY = /\.(png|jpe?g|gif|webp|ico|svg|pdf|zip|gz|tar|woff2?|ttf|otf|mp[34]|mov|wasm|exe|bin|so|dll|class|jar|lock)$/i
 export const isViewable = (e: RepoEntry) => e.type === 'blob' && !BINARY.test(e.path) && e.size <= MAX_VIEW_BYTES
 
+export type LastCommit = { message: string; date: string }
+/** The last commit message and date of some files or folders of a project's repository (through the repo-info function). */
+export async function getLastCommits(projectId: string, paths: string[]): Promise<Record<string, LastCommit>> {
+  const { data, error } = await supabase.functions.invoke('repo-info', { body: { project_id: projectId, paths } })
+  if (error) throw new Error('repo-info failed')
+  return ((data as { commits?: Record<string, LastCommit> } | null)?.commits) ?? {}
+}
+
 // ---- Code editor (saves to GitHub through the repo-editor function) ------------------------------------
 export class EditorError extends Error {
   code: string

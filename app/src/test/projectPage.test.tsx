@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -6,7 +6,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const api = vi.hoisted(() => ({
   getProjectFull: vi.fn(), starProject: vi.fn(), unstarProject: vi.fn(), listProjectComments: vi.fn(), postProjectComment: vi.fn(),
   deleteProjectComment: vi.fn(), listCollaborators: vi.fn(), listCollabRequests: vi.fn(), requestCollaboration: vi.fn(),
-  withdrawCollabRequest: vi.fn(), decideCollabRequest: vi.fn(), removeCollaborator: vi.fn(),
+  withdrawCollabRequest: vi.fn(), decideCollabRequest: vi.fn(), removeCollaborator: vi.fn(), getRepoTree: vi.fn(), getLastCommits: vi.fn(),
+  GithubError: class GithubError extends Error { code = 'failed' },
 }))
 vi.mock('../lib/api', () => api)
 vi.mock('../auth/AuthContext', () => ({
@@ -26,7 +27,7 @@ const mount = () => render(
 )
 
 beforeEach(() => {
-  for (const f of Object.values(api)) f.mockReset()
+  for (const f of Object.values(api)) if ('mockReset' in f) f.mockReset()
   api.getProjectFull.mockResolvedValue(project())
   api.listProjectComments.mockResolvedValue([
     { id: 1, author_id: 'me', body: 'Bravo <b>!</b>', created_at: '2026-11-01', author_username: 'moussa' },
@@ -34,10 +35,21 @@ beforeEach(() => {
   ])
   api.listCollaborators.mockResolvedValue([{ user_id: 'u4', username: 'cheikh', display_name: 'Cheikh' }])
   api.listCollabRequests.mockResolvedValue([])
+  api.getRepoTree.mockResolvedValue({ branch: 'main', truncated: false, entries: [{ path: 'src', type: 'tree', size: 0 }, { path: 'app.py', type: 'blob', size: 10 }] })
+  api.getLastCommits.mockResolvedValue({})
   for (const f of [api.starProject, api.unstarProject, api.postProjectComment, api.deleteProjectComment, api.requestCollaboration, api.withdrawCollabRequest, api.decideCollabRequest, api.removeCollaborator]) f.mockResolvedValue(undefined)
 })
 
 describe('Project page', () => {
+  it('lists the files of the repository, and has no separate code or edit links', async () => {
+    mount()
+    const table = await screen.findByRole('table')
+    expect(within(table).getByRole('link', { name: 'src' })).toHaveAttribute('href', '/projets/p1/code?dossier=src')
+    expect(within(table).getByRole('link', { name: 'app.py' })).toHaveAttribute('href', '/projets/p1/code?fichier=app.py')
+    expect(screen.queryByRole('link', { name: 'Voir le code' })).toBeNull()
+    expect(screen.queryByRole('link', { name: 'Modifier le code' })).toBeNull()
+  })
+
   it('shows the project, its owner, the GitHub link and the star count', async () => {
     mount()
     expect(await screen.findByRole('heading', { name: 'Teranga' })).toBeInTheDocument()

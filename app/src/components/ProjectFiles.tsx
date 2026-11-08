@@ -1,0 +1,110 @@
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { Icon } from './Icon'
+import { dateLocale } from '../i18n/lang'
+import { fr } from '../i18n/fr'
+import { getLastCommits, getRepoTree, GithubError, type LastCommit, type ProjectFull, type RepoEntry, type RepoTree } from '../lib/api'
+
+export const dirUrl = (id: string, dir: string) => (dir ? `/projets/${id}/code?dossier=${encodeURIComponent(dir)}` : `/projets/${id}`)
+export const fileUrl = (id: string, path: string) => `/projets/${id}/code?fichier=${encodeURIComponent(path)}`
+export const parentOf = (path: string) => path.split('/').slice(0, -1).join('/')
+export const validName = (p: string) => p.length > 0 && p.length <= 200 && !p.startsWith('/') && !p.endsWith('/') && !p.includes('\\')
+  && p.split('/').every((x) => x !== '' && x !== '.' && x !== '..' && x.toLowerCase() !== '.git')
+
+/** The folders and files directly inside one folder: folders first, then files, each in alphabetical order. */
+export function childrenOf(entries: RepoEntry[], dir: string): RepoEntry[] {
+  const prefix = dir ? `${dir}/` : ''
+  return entries
+    .filter((e) => e.path.startsWith(prefix) && !e.path.slice(prefix.length).includes('/'))
+    .sort((a, b) => (a.type === b.type ? a.path.localeCompare(b.path) : a.type === 'tree' ? -1 : 1))
+}
+
+type Props = { project: ProjectFull; dir: string; canEdit: boolean; tree?: RepoTree | null; onTree?: (t: RepoTree) => void }
+
+/** The list of files of a repository, like GitHub's: name, last commit message, last change. */
+export function ProjectFiles({ project, dir, canEdit, tree: given, onTree }: Props) {
+  const t = fr.repoBrowser
+  const navigate = useNavigate()
+  const [own, setOwn] = useState<RepoTree | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [commits, setCommits] = useState<Record<string, LastCommit>>({})
+  const [adding, setAdding] = useState(false)
+  const [name, setName] = useState('')
+  const [nameError, setNameError] = useState<string | null>(null)
+  const tree = given ?? own
+
+  useEffect(() => {
+    if (given) return
+    let alive = true
+    getRepoTree(project.github_owner, project.github_repo)
+      .then((tr) => { if (alive) { setOwn(tr); onTree?.(tr) } })
+      .catch((e) => { if (alive) setError(e instanceof GithubError ? fr.repoViewer.errors[e.code] : fr.repoViewer.errors.failed) })
+    return () => { alive = false }
+    // The tree is loaded once per project.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [project.id, given])
+
+  const rows = useMemo(() => childrenOf(tree?.entries ?? [], dir), [tree, dir])
+  const wanted = rows.slice(0, 40).map((r) => r.path).join('\n')
+  useEffect(() => {
+    if (!wanted) return
+    let alive = true
+    // The last message and date are a convenience: when they cannot be loaded, the columns stay empty.
+    getLastCommits(project.id, wanted.split('\n')).then((c) => { if (alive) setCommits(c) }).catch(() => undefined)
+    return () => { alive = false }
+  }, [project.id, wanted])
+
+  function onCreate(e: FormEvent) {
+    e.preventDefault()
+    const path = `${dir ? `${dir}/` : ''}${name.trim()}`
+    if (!validName(name.trim())) { setNameError(fr.editor.badName); return }
+    if ((tree?.entries ?? []).some((x) => x.path === path)) { setNameError(fr.editor.exists); return }
+    navigate(`/projets/${project.id}/code?fichier=${encodeURIComponent(path)}&nouveau=1`)
+  }
+
+  return (
+    <section className="panel files-panel" aria-label={t.filesTitle}>
+      <header className="files-head">
+        <h2>{t.filesTitle}</h2>
+        {canEdit && !adding && <button type="button" className="btn" onClick={() => setAdding(true)}>{t.newFile}</button>}
+        {canEdit && adding && (
+          <form className="files-new" onSubmit={onCreate} noValidate>
+            <input aria-label={fr.editor.newFileName} placeholder={fr.editor.newFileName} value={name} onChange={(e) => { setName(e.target.value); setNameError(null) }} />
+            <button type="submit" className="btn btn-cta">{t.createFile}</button>
+            <button type="button" className="btn" onClick={() => { setAdding(false); setNameError(null) }}>{t.cancel}</button>
+            {nameError && <span role="alert" className="alert">{nameError}</span>}
+          </form>
+        )}
+      </header>
+      {error && <p role="alert" className="alert files-pad">{error}</p>}
+      {!tree && !error && <p className="muted files-pad">{fr.repoViewer.loading}</p>}
+      {tree && tree.truncated && <p className="muted files-pad">{fr.repoViewer.truncated}</p>}
+      {tree && (
+        <table className="files-table">
+          <thead>
+            <tr><th scope="col">{t.colName}</th><th scope="col" className="files-msg">{t.colMessage}</th><th scope="col" className="files-date">{t.colDate}</th></tr>
+          </thead>
+          <tbody>
+            {dir !== '' && (
+              <tr>
+                <td colSpan={3}><Link className="files-name" to={dirUrl(project.id, parentOf(dir))} aria-label={t.parentDir}><Icon name="folder" size={18} /> ..</Link></td>
+              </tr>
+            )}
+            {rows.map((r) => {
+              const label = r.path.slice(dir ? dir.length + 1 : 0)
+              const c = commits[r.path]
+              return (
+                <tr key={r.path}>
+                  <td><Link className="files-name" to={r.type === 'tree' ? dirUrl(project.id, r.path) : fileUrl(project.id, r.path)}><Icon name={r.type === 'tree' ? 'folder' : 'file'} size={18} /> {label}</Link></td>
+                  <td className="files-msg muted">{c?.message ?? ''}</td>
+                  <td className="files-date muted">{c ? new Date(c.date).toLocaleDateString(dateLocale()) : ''}</td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      )}
+      {tree && rows.length === 0 && <p className="muted files-pad">{tree.entries.length === 0 ? fr.repoViewer.empty : t.emptyDir}</p>}
+    </section>
+  )
+}
