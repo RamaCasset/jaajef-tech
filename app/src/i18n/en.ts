@@ -1098,6 +1098,10 @@ export const en: Messages = {
     markSolution: 'Choose as the solution',
     unmarkSolution: 'Remove the solution',
     deleteAnswer: 'Delete my answer',
+    edit: 'Edit',
+    save: 'Save',
+    editAnswerLabel: 'Edit my answer',
+    cancelEdit: 'Cancel',
     rewardHint: 'The author of the chosen answer earns Kopeks and experience (once per question).',
   },
   blog: {

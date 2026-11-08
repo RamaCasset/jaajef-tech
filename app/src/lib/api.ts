@@ -1751,6 +1751,8 @@ export async function getQuestion(id: string): Promise<QuestionFull | null> {
 }
 export const listAnswers = (questionId: string) => rpc<AnswerRow[]>('list_answers', { p_question: questionId })
 export const askQuestion = (title: string, body: string, tags: string[]) => rpc<string>('ask_question', { p_title: title, p_body: body, p_tags: tags })
+export const editQuestion = (id: string, title: string, body: string, tags: string[]) => rpc<void>('edit_question', { p_question: id, p_title: title, p_body: body, p_tags: tags })
+export const editAnswer = (id: number, body: string) => rpc<void>('edit_answer', { p_answer: id, p_body: body })
 export const deleteQuestion = (id: string) => rpc<void>('delete_question', { p_question: id })
 export const postAnswer = (questionId: string, body: string) => rpc<number>('post_answer', { p_question: questionId, p_body: body })
 export const deleteAnswer = (id: number) => rpc<void>('delete_answer', { p_answer: id })

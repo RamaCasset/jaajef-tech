@@ -1098,6 +1098,10 @@ export const frMessages = {
     markSolution: 'Choisir comme solution',
     unmarkSolution: 'Retirer la solution',
     deleteAnswer: 'Supprimer ma réponse',
+    edit: 'Modifier',
+    save: 'Enregistrer',
+    editAnswerLabel: 'Modifier ma réponse',
+    cancelEdit: 'Annuler',
     rewardHint: 'La personne dont la réponse est choisie gagne des Kopeks et de l’expérience (une seule fois par question).',
   },
   blog: {

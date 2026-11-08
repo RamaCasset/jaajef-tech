@@ -7,7 +7,7 @@ import { useAuth } from '../auth/AuthContext'
 import { fr } from '../i18n/fr'
 import { friendlyError } from '../lib/errors'
 import {
-  acceptAnswer, deleteAnswer, deleteQuestion, getQuestion, listAnswers, postAnswer, unacceptAnswer, voteAnswer, voteQuestion,
+  acceptAnswer, deleteAnswer, deleteQuestion, editAnswer, editQuestion, getQuestion, listAnswers, postAnswer, unacceptAnswer, voteAnswer, voteQuestion,
   type AnswerRow, type QuestionFull,
 } from '../lib/api'
 
@@ -23,6 +23,8 @@ export function QuestionPage() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [failed, setFailed] = useState(false)
+  const [editingQ, setEditingQ] = useState<{ title: string; body: string; tags: string } | null>(null)
+  const [editingA, setEditingA] = useState<{ id: number; body: string } | null>(null)
 
   const load = useCallback(() => {
     setFailed(false)
@@ -40,6 +42,19 @@ export function QuestionPage() {
     e.preventDefault()
     if (!text.trim()) return
     await run(() => postAnswer(id, text), () => { setText(''); load() })
+  }
+
+  async function saveQuestion(e: FormEvent) {
+    e.preventDefault()
+    if (!editingQ) return
+    const tags = editingQ.tags.split(',').map((x) => x.trim()).filter(Boolean)
+    await run(() => editQuestion(id, editingQ.title, editingQ.body, tags), () => { setEditingQ(null); load() })
+  }
+
+  async function saveAnswer(e: FormEvent) {
+    e.preventDefault()
+    if (!editingA) return
+    await run(() => editAnswer(editingA.id, editingA.body), () => { setEditingA(null); load() })
   }
 
   async function onDeleteQuestion() {
@@ -68,6 +83,26 @@ export function QuestionPage() {
       <main className="page souk">
         <p><Link to="/questions">← {t.back}</Link></p>
         <article className="panel panel-pad stack-gap">
+          {editingQ ? (
+            <form className="stack-gap" onSubmit={(e) => void saveQuestion(e)} noValidate>
+              <div className="field">
+                <label htmlFor="e-title">{t.titleLabel}</label>
+                <input id="e-title" maxLength={150} value={editingQ.title} onChange={(e) => setEditingQ({ ...editingQ, title: e.target.value })} />
+              </div>
+              <div className="field">
+                <label htmlFor="e-body">{t.bodyLabel}</label>
+                <textarea id="e-body" rows={8} maxLength={8000} value={editingQ.body} onChange={(e) => setEditingQ({ ...editingQ, body: e.target.value })} />
+              </div>
+              <div className="field">
+                <label htmlFor="e-tags">{t.tagsLabel}</label>
+                <input id="e-tags" value={editingQ.tags} onChange={(e) => setEditingQ({ ...editingQ, tags: e.target.value })} />
+              </div>
+              <p>
+                <button type="submit" className="btn btn-cta" disabled={busy}>{t.save}</button>{' '}
+                <button type="button" className="btn" onClick={() => setEditingQ(null)}>{t.cancelEdit}</button>
+              </p>
+            </form>
+          ) : (<>
           <h1 className="page-title">{question.title}</h1>
           <p className="tiny muted">
             <Link to={`/profil/${question.author_username}`}>{t.by(name(question.author_username, question.author_display_name))}</Link> · {when(question.created_at)}
@@ -75,6 +110,7 @@ export function QuestionPage() {
           </p>
           <ArticleBody text={question.body} />
           {question.tags.length > 0 && <p className="qa-tags">{question.tags.map((x) => <span key={x} className="tag">{x}</span>)}</p>}
+          </>)}
           <p className="qa-actions">
             {!asker && (
               <button type="button" className="btn" aria-pressed={question.voted_by_me} disabled={busy}
@@ -83,6 +119,7 @@ export function QuestionPage() {
               </button>
             )}
             {asker && <span className="muted tiny">{t.useful(question.vote_count)}</span>}
+            {asker && !editingQ && <button type="button" className="btn" disabled={busy} onClick={() => setEditingQ({ title: question.title, body: question.body, tags: question.tags.join(', ') })}>{t.edit}</button>}
             {asker && <button type="button" className="btn btn-danger" disabled={busy} onClick={() => void onDeleteQuestion()}>{t.deleteQuestion}</button>}
           </p>
         </article>
@@ -95,7 +132,16 @@ export function QuestionPage() {
           {answers.map((a) => (
             <article key={a.id} className={`panel panel-pad stack-gap qa-answer ${a.accepted ? 'qa-answer-solution' : ''}`}>
               {a.accepted && <p><span className="tag qa-solved">{t.solution}</span></p>}
-              <ArticleBody text={a.body} />
+              {editingA?.id === a.id ? (
+                <form className="stack-gap" onSubmit={(e) => void saveAnswer(e)} noValidate>
+                  <label htmlFor={`e-a-${a.id}`} className="sr-only">{t.editAnswerLabel}</label>
+                  <textarea id={`e-a-${a.id}`} rows={6} maxLength={8000} value={editingA.body} onChange={(e) => setEditingA({ id: a.id, body: e.target.value })} />
+                  <p>
+                    <button type="submit" className="btn btn-cta" disabled={busy || !editingA.body.trim()}>{t.save}</button>{' '}
+                    <button type="button" className="btn" onClick={() => setEditingA(null)}>{t.cancelEdit}</button>
+                  </p>
+                </form>
+              ) : <ArticleBody text={a.body} />}
               <p className="tiny muted">
                 <Link to={`/profil/${a.author_username}`}>{t.by(name(a.author_username, a.author_display_name))}</Link> · {when(a.created_at)}
                 {a.edited_at && <> · {t.edited}</>}
@@ -110,6 +156,7 @@ export function QuestionPage() {
                 {a.author_id === me && <span className="muted tiny">{t.useful(a.vote_count)}</span>}
                 {asker && !a.accepted && <button type="button" className="btn btn-cta" disabled={busy} onClick={() => void run(() => acceptAnswer(a.id))}>{t.markSolution}</button>}
                 {asker && a.accepted && <button type="button" className="btn" disabled={busy} onClick={() => void run(() => unacceptAnswer(question.id))}>{t.unmarkSolution}</button>}
+                {a.author_id === me && editingA?.id !== a.id && <button type="button" className="btn" disabled={busy} onClick={() => setEditingA({ id: a.id, body: a.body })}>{t.edit}</button>}
                 {a.author_id === me && <button type="button" className="btn btn-danger" disabled={busy} onClick={() => void run(() => deleteAnswer(a.id))}>{t.deleteAnswer}</button>}
               </p>
             </article>

@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const api = vi.hoisted(() => ({
   listQuestions: vi.fn(), getQuestion: vi.fn(), listAnswers: vi.fn(), askQuestion: vi.fn(), deleteQuestion: vi.fn(), postAnswer: vi.fn(),
-  deleteAnswer: vi.fn(), acceptAnswer: vi.fn(), unacceptAnswer: vi.fn(), voteQuestion: vi.fn(), voteAnswer: vi.fn(),
+  deleteAnswer: vi.fn(), editQuestion: vi.fn(), editAnswer: vi.fn(), acceptAnswer: vi.fn(), unacceptAnswer: vi.fn(), voteQuestion: vi.fn(), voteAnswer: vi.fn(),
   getMyStaffAccess: vi.fn(), unreadNotificationCount: vi.fn(),
 }))
 vi.mock('../lib/api', () => api)
@@ -163,5 +163,35 @@ describe('A question', () => {
     mount('/questions/q1')
     await userEvent.click((await screen.findAllByRole('button', { name: /^Utile/ }))[0])
     expect(await screen.findByRole('alert')).toHaveTextContent('votre propre message')
+  })
+
+  it('the asker edits the question', async () => {
+    auth.id = 'u2'
+    api.editQuestion.mockResolvedValue(undefined)
+    mount('/questions/q1')
+    await userEvent.click((await screen.findAllByRole('button', { name: 'Modifier' }))[0])
+    const title = screen.getByLabelText('Titre de la question')
+    await userEvent.clear(title)
+    await userEvent.type(title, 'Lire un JSON proprement')
+    await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+    await waitFor(() => expect(api.editQuestion).toHaveBeenCalledWith('q1', 'Lire un JSON proprement', 'Je veux lire **data.json**', ['python', 'json']))
+  })
+
+  it('an author edits their own answer, and others see no edit button', async () => {
+    auth.id = 'u3'
+    api.editAnswer.mockResolvedValue(undefined)
+    mount('/questions/q1')
+    await userEvent.click(await screen.findByRole('button', { name: 'Modifier' }))
+    const box = screen.getByRole('textbox', { name: 'Modifier ma réponse' })
+    await userEvent.clear(box)
+    await userEvent.type(box, 'Version corrigée')
+    await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+    await waitFor(() => expect(api.editAnswer).toHaveBeenCalledWith(7, 'Version corrigée'))
+  })
+
+  it('a visitor sees no edit button', async () => {
+    mount('/questions/q1')
+    await screen.findByRole('heading', { name: 'Comment lire du JSON ?' })
+    expect(screen.queryByRole('button', { name: 'Modifier' })).toBeNull()
   })
 })
