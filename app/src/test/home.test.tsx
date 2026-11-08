@@ -1,22 +1,25 @@
 import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { DailyQuest, StreakInfo } from '../lib/api'
 
 const getDailyQuest = vi.fn()
 const getMyStreak = vi.fn()
-const getXpPerLevel = vi.fn()
-const getRecentBadges = vi.fn()
+const loadProfile = vi.fn()
+const listMyBlogPosts = vi.fn()
 
 vi.mock('../lib/api', () => ({
   getDailyQuest: (...a: unknown[]) => getDailyQuest(...a),
   getMyStreak: (...a: unknown[]) => getMyStreak(...a),
-  getXpPerLevel: (...a: unknown[]) => getXpPerLevel(...a),
-  getRecentBadges: (...a: unknown[]) => getRecentBadges(...a),
+  loadProfile: (...a: unknown[]) => loadProfile(...a),
+  listMyBlogPosts: (...a: unknown[]) => listMyBlogPosts(...a),
+  startConversation: vi.fn(),
 }))
 vi.mock('../auth/AuthContext', () => ({
   useAuth: () => ({
     member: { kopeks: 420, profile: { id: 'u1', username: 'moussa_dev', display_name: 'Moussa Diop', clan: 'saltigue', mastery: 'bagne', xp: 25000 } },
+    session: { user: { id: 'u1' } },
     signOut: vi.fn(),
   }),
 }))
@@ -32,29 +35,78 @@ const streak = (extra: Partial<StreakInfo> = {}): StreakInfo => ({
   current_streak: 4, longest_streak: 9, done_today: false, at_risk: true, chest_every: 7, chest_kopeks: 100, next_chest_in: 3,
   last_active_on: '2026-11-05', freezes: 1, freeze_max: 2, protected_by_freeze: false, ...extra,
 })
+const profileData = (extra = {}) => ({
+  profile: { id: 'u1', username: 'moussa_dev', display_name: 'Moussa Diop', bio: 'Je construis des outils.', location: 'Dakar, Sénégal', github_username: 'moussa-diop', avatar_url: null, banner_url: null, clan: 'saltigue', mastery: 'bagne', xp: 25000, is_verified: false, available_to_collab: true, created_at: '2024-03-01T00:00:00Z' },
+  xpPerLevel: 10000,
+  badges: [
+    { slug: 'first-quest', name: 'Première quête', description: 'Résolue', tier: 'common' },
+    { slug: 'maker', name: 'Bâtisseur', description: null, tier: 'rare' },
+  ],
+  projects: [
+    { id: 'p1', github_owner: 'moussa-diop', github_repo: 'teranga-ui', title: 'teranga-ui', summary: 'Composants accessibles', language: 'TypeScript', github_stars: 248, build_status: 'passing' },
+    { id: 'p2', github_owner: 'moussa-diop', github_repo: 'jaajef-cli', title: 'jaajef-cli', summary: null, language: 'TypeScript', github_stars: 126, build_status: null },
+  ],
+  questsSolved: 128,
+  appreciation: 342,
+  ...extra,
+})
 const mount = () => render(<MemoryRouter><Home /></MemoryRouter>)
 
 beforeEach(() => {
-  for (const m of [getDailyQuest, getMyStreak, getXpPerLevel, getRecentBadges]) m.mockReset()
+  for (const m of [getDailyQuest, getMyStreak, loadProfile, listMyBlogPosts]) m.mockReset()
   getDailyQuest.mockResolvedValue(quest())
   getMyStreak.mockResolvedValue(streak())
-  getXpPerLevel.mockResolvedValue(10000)
-  getRecentBadges.mockResolvedValue([
-    { slug: 'first-quest', name: 'Première quête', description: 'Résolue', tier: 'common' },
-    { slug: 'maker', name: 'Bâtisseur', description: null, tier: 'rare' },
+  loadProfile.mockResolvedValue(profileData())
+  listMyBlogPosts.mockResolvedValue([
+    { id: 'b1', slug: 'mon-article', title: 'Mon article', status: 'published', staff_hidden: false, updated_at: '2026-11-01T00:00:00Z' },
+    { id: 'b2', slug: 'brouillon', title: 'Brouillon', status: 'draft', staff_hidden: false, updated_at: '2026-11-02T00:00:00Z' },
   ])
 })
 
 describe('Cité home', () => {
-  it('greets the member and shows the level, the XP bar and the Kopeks', async () => {
+  it('shows an error with a retry when my page cannot be loaded, but still the quest', async () => {
+    loadProfile.mockRejectedValueOnce(new Error('boom'))
     mount()
-    expect(await screen.findByText('Bienvenue dans la Cité, Moussa Diop')).toBeInTheDocument()
-    expect(await screen.findByText('Niveau 3')).toBeInTheDocument()
-    expect(screen.getByText('5000 / 10000 XP')).toBeInTheDocument()
-    expect(screen.getByText('5000 XP avant le niveau 4')).toBeInTheDocument()
+    expect(await screen.findByText('Impossible de charger votre page.')).toBeInTheDocument()
+    loadProfile.mockResolvedValue(profileData())
+    await userEvent.click(screen.getByRole('button', { name: 'Réessayer' }))
+    expect(await screen.findByRole('heading', { name: 'Moussa Diop' })).toBeInTheDocument()
+  })
+
+  it('shows my own page like a profile: identity, level, and four numbers', async () => {
+    mount()
+    expect(await screen.findByRole('heading', { name: 'Moussa Diop' })).toBeInTheDocument()
+    expect(loadProfile).toHaveBeenCalledWith('moussa_dev', 'u1')
+    expect(screen.getByText('@moussa_dev')).toBeInTheDocument()
+    expect(screen.getByText('Niveau 3 (5000 / 10000 XP)')).toBeInTheDocument()
     expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '5000')
-    expect(screen.getByText('420')).toBeInTheDocument()
-    expect(screen.getAllByText('Saltigué').length).toBeGreaterThan(0)
+    expect(screen.getByRole('link', { name: 'Modifier mon profil' })).toHaveAttribute('href', '/parametres/profil')
+    expect(screen.getByRole('link', { name: /Personnaliser la couverture/ })).toBeInTheDocument()
+    const stats = document.querySelector('.profile-stats') as HTMLElement
+    expect(within(stats).getByText('128')).toBeInTheDocument()
+    expect(within(stats).getByText('Quêtes terminées')).toBeInTheDocument()
+    expect(within(stats).getByText('XP total')).toBeInTheDocument()
+    expect(within(stats).getByText('Projets')).toBeInTheDocument()
+    expect(within(stats).getByText('342')).toBeInTheDocument()
+    expect(within(stats).getByText('Étoiles et j’aimes reçus')).toBeInTheDocument()
+  })
+
+  it('shows my projects and badges, and opens the other tabs', async () => {
+    mount()
+    expect(await screen.findByRole('link', { name: 'moussa-diop / teranga-ui' })).toHaveAttribute('href', '/projets/p1')
+    expect(screen.getByText('Première quête')).toBeInTheDocument()
+    expect(screen.getByText('Bâtisseur')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('tab', { name: 'Articles de blog' }))
+    expect(await screen.findByRole('link', { name: 'Mon article' })).toHaveAttribute('href', '/blog/mon-article')
+    expect(screen.queryByText('Brouillon')).toBeNull()
+    await userEvent.click(screen.getByRole('tab', { name: 'Badges et succès' }))
+    expect(screen.getByText('Première quête')).toBeInTheDocument()
+  })
+
+  it('says so when I have no badge yet', async () => {
+    loadProfile.mockResolvedValue(profileData({ badges: [] }))
+    mount()
+    expect(await screen.findByText(/Aucun badge débloqué/)).toBeInTheDocument()
   })
 
   it('shows the quest of the day with rewards and time left, and a link to start it', async () => {
@@ -118,42 +170,13 @@ describe('Cité home', () => {
     expect(screen.queryByText(/Gels de série/)).toBeNull()
   })
 
-  it('lists the latest badges, or says there is none yet', async () => {
-    const a = mount()
-    expect(await screen.findByText('Première quête')).toBeInTheDocument()
-    expect(screen.getByText('Bâtisseur')).toBeInTheDocument()
-    expect(getRecentBadges).toHaveBeenCalledWith('u1')
-    expect(screen.getByRole('link', { name: /Voir tous mes badges/ })).toHaveAttribute('href', '/profil/moussa_dev')
-    a.unmount()
-    getRecentBadges.mockResolvedValue([])
-    mount()
-    expect(await screen.findByText(/Pas encore de badge/)).toBeInTheDocument()
-  })
-
   it('keeps the other blocks when one of them fails', async () => {
     getDailyQuest.mockRejectedValue(new Error('boom'))
     mount()
     expect(await screen.findByText('Impossible de charger la quête du jour.')).toBeInTheDocument()
     expect(await screen.findByText('4 jours')).toBeInTheDocument()
     expect(await screen.findByText('Première quête')).toBeInTheDocument()
-    expect(await screen.findByText('Niveau 3')).toBeInTheDocument()
+    expect(await screen.findByText('Niveau 3 (5000 / 10000 XP)')).toBeInTheDocument()
   })
 
-  it('shows an error instead of a wrong level when the level setting cannot be read', async () => {
-    getXpPerLevel.mockRejectedValue(new Error('boom'))
-    mount()
-    expect(await screen.findByText('Impossible de charger votre niveau.')).toBeInTheDocument()
-    expect(screen.queryByText(/^Niveau \d/)).toBeNull()
-    expect(screen.queryByRole('progressbar')).toBeNull()
-  })
-
-  it('has shortcuts to the other screens', async () => {
-    mount()
-    const nav = await screen.findByRole('region', { name: 'Raccourcis' })
-    expect(within(nav).getByRole('link', { name: 'Quêtes' })).toHaveAttribute('href', '/quetes')
-    expect(within(nav).getByRole('link', { name: 'Projets' })).toHaveAttribute('href', '/projets')
-    expect(within(nav).getByRole('link', { name: 'Le Souk' })).toHaveAttribute('href', '/souk')
-    expect(within(nav).getByRole('link', { name: 'Jobs' })).toHaveAttribute('href', '/jobs')
-    expect(within(nav).getByRole('link', { name: 'Mon profil' })).toHaveAttribute('href', '/profil/moussa_dev')
-  })
 })

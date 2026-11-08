@@ -468,3 +468,23 @@ select { appearance: none; -webkit-appearance: none; background-color: var(--pan
 .repo-panel .file-row { display: block; text-decoration: none; }
 @media (max-width: 960px) { .repo-view-panel { grid-template-columns: minmax(0, 1fr); } }
 .crumbs [aria-hidden='true'] { margin: 0 8px; color: var(--fg-muted); white-space: pre; }
+
+/* Cité home (member page) and profile tabs */
+.cover-btn { position: absolute; top: 14px; right: 16px; display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 999px; background: rgba(8, 14, 28, 0.78); border: 1px solid var(--line); color: var(--fg); font-size: 13px; text-decoration: none; }
+.profile-card { position: relative; }
+.profile-banner { height: 200px; }
+.stat-gold, .profile-stats dd.stat-gold { color: #f0b24a; }
+.profile-stats { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.home-strip { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px; align-items: stretch; }
+.home-strip .home-quest { grid-column: auto; }
+.profile-tabs { display: flex; gap: 28px; border-bottom: 1px solid var(--line); margin-top: 8px; }
+.profile-tab { background: none; border: 0; padding: 14px 0; color: var(--fg-muted); font: 600 15px var(--font-body); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.profile-tab:hover { color: var(--fg); }
+.profile-tab-on { color: var(--accent); border-bottom-color: var(--accent); }
+.profile-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.profile-colhead { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.profile-colhead h2 { margin: 0; }
+.post-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-top: 12px; }
+.post-row h3 { margin: 0; font-size: 16px; }
+.profile-cols .badge-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 900px) { .home-strip { grid-template-columns: 1fr; } .profile-tabs { gap: 18px; overflow-x: auto; } }

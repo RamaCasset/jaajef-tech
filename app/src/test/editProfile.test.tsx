@@ -81,7 +81,7 @@ describe('Edit profile', () => {
 describe('Edit link on a profile', () => {
   const data = (id: string) => ({
     profile: { id, username: 'awa', display_name: 'Awa', avatar_url: null, banner_url: null, bio: null, location: null, github_username: null, clan: null, mastery: null, xp: 0, available_to_collab: false, is_verified: false, created_at: '2026-01-01T00:00:00Z' },
-    xpPerLevel: 100, badges: [], projects: [], questsSolved: null,
+    xpPerLevel: 100, badges: [], projects: [], questsSolved: null, appreciation: 0,
   })
   const show = () => render(<MemoryRouter initialEntries={['/profil/awa']}><Routes><Route path="/profil/:username" element={<Profile />} /></Routes></MemoryRouter>)
 

@@ -166,7 +166,7 @@ do $$
 declare
   by_design text[] := array[
     'activity_calendar', 'blog_post_is_listed', 'community_member_count', 'featured_item', 'job_offer_is_listed',
-    'list_good_first_issues', 'popular_project_tags', 'project_good_first_issues', 'project_is_listed', 'project_languages', 'quest_leaderboard', 'search_everything',
+    'list_good_first_issues', 'popular_project_tags', 'project_good_first_issues', 'project_is_listed', 'project_languages', 'quest_leaderboard', 'received_appreciation', 'search_everything',
     'search_job_offers', 'search_projects',
     'season_leaderboard', 'top_streaks', 'trending_creators'
   ];
