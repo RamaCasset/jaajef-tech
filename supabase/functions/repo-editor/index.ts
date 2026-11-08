@@ -6,6 +6,7 @@
 //   tree     -> the files of one allowed repository (default branch)
 //   file     -> the text of one file
 //   commit   -> save changes to files as ONE commit on a branch
+//   adopt    -> list one PRIVATE repository of the member on the platform (stays private)
 //
 // Safety rules, all enforced here (never in the browser):
 //   * Who the member is comes from their sign-in token. Their GitHub name comes from the database
@@ -219,6 +220,41 @@ async function doRepos(owner: string, ctx: Ctx): Promise<unknown | Fail> {
   return { repos }
 }
 
+/** List a private repository on the platform. The proof of ownership is that the member installed the app on it. */
+async function doAdopt(userId: string, owner: string, repo: string, title: string | null, summary: string | null, ctx: Ctx): Promise<unknown | Fail> {
+  const installation = await findInstallation(owner, ctx)
+  if (isFail(installation)) return installation
+  if (installation === null) return fail('not_installed', 409)
+  const token = await repoToken(installation, repo, false, ctx)
+  if (isFail(token)) return token
+  const info = await gh(ctx, 'GET', `/repos/${owner}/${repo}`, token)
+  if (info.status === 404) return fail('repo_not_found', 404)
+  if (!info.ok) return fail('github_failed', 502)
+  if (String(info.body?.owner?.login ?? '').toLowerCase() !== owner.toLowerCase()) return fail('repo_not_found', 404)
+  // A public repository goes through the normal list (it is confirmed by the public checker).
+  if (info.body?.private !== true) return fail('repo_is_public', 409)
+  const description = typeof info.body?.description === 'string' ? info.body.description : null
+  const response = await ctx.fetchFn(`${ctx.env.supabaseUrl}/rest/v1/rpc/adopt_private_project`, {
+    method: 'POST',
+    headers: { ...dbHeaders(ctx.env), 'content-type': 'application/json' },
+    body: JSON.stringify({
+      p_owner: userId,
+      p_repo: String(info.body?.name ?? repo),
+      p_title: title ?? repo,
+      p_summary: summary ?? description,
+      p_language: typeof info.body?.language === 'string' ? info.body.language : null,
+    }),
+  })
+  if (!response.ok) {
+    let message = ''
+    try { message = String((await response.json())?.message ?? '') } catch { message = '' }
+    if (message.includes('already listed')) return fail('already_listed', 409)
+    if (message.includes('limit')) return fail('limit_reached', 409)
+    return fail('failed', 502)
+  }
+  return { project_id: await response.json() }
+}
+
 async function doTree(owner: string, repo: string, ctx: Ctx): Promise<unknown | Fail> {
   const installation = await findInstallation(owner, ctx)
   if (isFail(installation)) return installation
@@ -339,6 +375,13 @@ export async function handler(request: Request, getEnv: (name: string) => string
         const path = cleanPath(body.path)
         const ref = typeof body.ref === 'string' && body.ref.length > 0 && body.ref.length <= 200 ? body.ref : null
         result = repo && path && ref ? await doFile(owner, repo, path, ref, ctx) : fail('bad_request', 400)
+        break
+      }
+      case 'adopt': {
+        const repo = needRepo()
+        const title = typeof body.title === 'string' && body.title.trim().length > 0 && body.title.length <= 100 ? body.title.trim() : null
+        const summary = typeof body.summary === 'string' && body.summary.length <= 300 ? body.summary : null
+        result = repo ? await doAdopt(userId, owner, repo, title, summary, ctx) : fail('bad_request', 400)
         break
       }
       case 'commit': {

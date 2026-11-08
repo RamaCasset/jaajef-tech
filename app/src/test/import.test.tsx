@@ -10,6 +10,9 @@ const listPublicRepos = vi.fn()
 const listMyProjects = vi.fn()
 const publishProject = vi.fn()
 const refreshMember = vi.fn()
+const editorStatus = vi.fn()
+const editorRepos = vi.fn()
+const editorAdopt = vi.fn()
 let startName: string | null = null
 let nameAfterRefresh: string | null = 'bara-dev'
 
@@ -19,6 +22,13 @@ vi.mock('../lib/api', () => ({
   listPublicRepos: (...a: unknown[]) => listPublicRepos(...a),
   listMyProjects: (...a: unknown[]) => listMyProjects(...a),
   publishProject: (...a: unknown[]) => publishProject(...a),
+  editorStatus: (...a: unknown[]) => editorStatus(...a),
+  editorRepos: (...a: unknown[]) => editorRepos(...a),
+  editorAdopt: (...a: unknown[]) => editorAdopt(...a),
+  EditorError: class EditorError extends Error {
+    code: string
+    constructor(code: string) { super(code); this.code = code }
+  },
   GithubError: class GithubError extends Error {
     code: string
     constructor(code: string) { super(code); this.code = code }
@@ -38,23 +48,26 @@ vi.mock('../auth/AuthContext', async () => {
   }
 })
 
-import { GithubError } from '../lib/api'
+import { EditorError, GithubError } from '../lib/api'
 import { ImportProject } from '../pages/ImportProject'
 
 const repo = (name: string, extra: Partial<GithubRepo> = {}): GithubRepo => ({
   name, description: `Description de ${name}`, fork: false, archived: false, stargazers_count: 3, language: 'Python',
   html_url: `https://github.com/bara-dev/${name}`, ...extra,
 })
-const mine = (name: string, verified: string | null): MyProject => ({ id: `id-${name}`, github_owner: 'bara-dev', github_repo: name, verified_at: verified })
+const mine = (name: string, verified: string | null): MyProject => ({ id: `id-${name}`, github_owner: 'bara-dev', github_repo: name, verified_at: verified, repo_private: false })
 const mount = () => render(<MemoryRouter><ImportProject /></MemoryRouter>)
 
 beforeEach(() => {
-  for (const m of [linkGithubAccount, connectGithub, listPublicRepos, listMyProjects, publishProject, refreshMember]) m.mockReset()
+  for (const m of [linkGithubAccount, connectGithub, listPublicRepos, listMyProjects, publishProject, refreshMember, editorStatus, editorRepos, editorAdopt]) m.mockReset()
   startName = 'bara-dev'
   nameAfterRefresh = 'bara-dev'
   listPublicRepos.mockResolvedValue([repo('mon-depot'), repo('vieux-projet', { fork: true, archived: true, language: null, description: null, stargazers_count: 1 })])
   listMyProjects.mockResolvedValue([])
   publishProject.mockResolvedValue('new-id')
+  editorStatus.mockResolvedValue({ installed: true, install_url: 'https://github.com/apps/jaajef/installations/new', github_name: 'bara-dev' })
+  editorRepos.mockResolvedValue({ repos: [{ name: 'secret-app', private: true, default_branch: 'main' }, { name: 'mon-depot', private: false, default_branch: 'main' }] })
+  editorAdopt.mockResolvedValue({ project_id: 'p-1' })
 })
 
 describe('Import a project', () => {
@@ -67,7 +80,7 @@ describe('Import a project', () => {
     expect(screen.getByText('Fork')).toBeInTheDocument()
     expect(screen.getByText('Archivé')).toBeInTheDocument()
     expect(screen.getByText('1 étoile')).toBeInTheDocument()
-    expect(screen.getByText(/Seuls les dépôts publics/)).toBeInTheDocument()
+    expect(screen.getByText(/Un dépôt public devient visible de tous/)).toBeInTheDocument()
     expect(linkGithubAccount).not.toHaveBeenCalled()
   })
 
@@ -102,7 +115,7 @@ describe('Import a project', () => {
     mount()
     expect(await screen.findByText('Confirmé')).toBeInTheDocument()
     expect(screen.getByText('En attente de confirmation')).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /Ajouter/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: /Ajouter : (Mon-Depot|autre)/ })).toBeNull()
   })
 
   it('explains the database refusal in plain French', async () => {
@@ -159,5 +172,68 @@ describe('Import a project', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Connecter GitHub' }))
     expect(await screen.findByRole('alert')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Connecter GitHub' })).toBeEnabled()
+  })
+
+  it('lists the private repositories the app can see, marked as private, and adds one as private', async () => {
+    listMyProjects.mockResolvedValueOnce([]).mockResolvedValueOnce([{ ...mine('secret-app', '2026-11-01'), repo_private: true }])
+    mount()
+    expect(await screen.findByText('secret-app')).toBeInTheDocument()
+    expect(screen.getByText('Privé')).toBeInTheDocument()
+    // a public repository the app can also see is not repeated in the private list
+    expect(screen.getAllByText('mon-depot')).toHaveLength(1)
+    await userEvent.click(screen.getByRole('button', { name: 'Ajouter : secret-app' }))
+    await waitFor(() => expect(editorAdopt).toHaveBeenCalledWith('secret-app', 'secret-app', null))
+    expect(publishProject).not.toHaveBeenCalled()
+    expect(await screen.findByText(/Ce projet est privé/)).toBeInTheDocument()
+    expect(await screen.findByText('Déjà ajouté')).toBeInTheDocument()
+  })
+
+  it('offers to install the GitHub app when it is not installed, and refreshes on request', async () => {
+    editorStatus.mockResolvedValueOnce({ installed: false, install_url: 'https://github.com/apps/jaajef/installations/new', github_name: 'bara-dev' })
+    mount()
+    const link = await screen.findByRole('link', { name: "Installer l'application GitHub" })
+    expect(link).toHaveAttribute('href', 'https://github.com/apps/jaajef/installations/new')
+    expect(screen.getByText('mon-depot')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Actualiser' }))
+    expect(await screen.findByText('secret-app')).toBeInTheDocument()
+  })
+
+  it('keeps the public list working when the private repositories cannot be read', async () => {
+    editorStatus.mockRejectedValue(new EditorError('not_configured'))
+    mount()
+    expect(await screen.findByText('mon-depot')).toBeInTheDocument()
+    expect(await screen.findByText(/Impossible de lire vos dépôts privés/)).toBeInTheDocument()
+  })
+
+  it('explains why a private repository could not be added', async () => {
+    editorAdopt.mockRejectedValue(new EditorError('already_listed'))
+    mount()
+    await userEvent.click(await screen.findByRole('button', { name: 'Ajouter : secret-app' }))
+    expect(await screen.findByText('Ce dépôt est déjà ajouté.')).toBeInTheDocument()
+  })
+
+  it('creates a project: the name is checked, the GitHub page opens prefilled, then the member comes back to import', async () => {
+    mount()
+    await screen.findByText('mon-depot')
+    await userEvent.click(screen.getByRole('tab', { name: 'Créer un nouveau projet' }))
+    expect(screen.getByRole('button', { name: 'Créer sur GitHub' })).toBeDisabled()
+    await userEvent.type(screen.getByLabelText('Nom du dépôt'), 'mon nom')
+    expect(screen.getByText(/Lettres, chiffres, tirets/)).toBeInTheDocument()
+    await userEvent.clear(screen.getByLabelText('Nom du dépôt'))
+    await userEvent.type(screen.getByLabelText('Nom du dépôt'), 'nouveau-projet')
+    await userEvent.type(screen.getByLabelText('Description (facultatif)'), 'Mon idée')
+    await userEvent.click(screen.getByRole('radio', { name: 'Privé' }))
+    const go = screen.getByRole('link', { name: 'Créer sur GitHub' })
+    const href = go.getAttribute('href') ?? ''
+    expect(href.startsWith('https://github.com/new?')).toBe(true)
+    const q = new URL(href).searchParams
+    expect([q.get('name'), q.get('description'), q.get('visibility')]).toEqual(['nouveau-projet', 'Mon idée', 'private'])
+    expect(go).toHaveAttribute('target', '_blank')
+    await userEvent.click(go)
+    expect(screen.getByText(/installez l'application sur ce dépôt/)).toBeInTheDocument()
+    listPublicRepos.mockClear()
+    await userEvent.click(screen.getByRole('button', { name: "J'ai créé le dépôt" }))
+    await waitFor(() => expect(listPublicRepos).toHaveBeenCalled())
+    expect(await screen.findByText('mon-depot')).toBeInTheDocument()
   })
 })
