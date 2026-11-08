@@ -1,3 +1,4 @@
+import { CornerArt } from '../components/CornerArt'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
@@ -41,6 +42,7 @@ export function ChooseClan() {
 
   return (
     <main className="center-page" style={{ alignContent: 'start' }}>
+      <CornerArt />
       <header style={{ width: 'min(100%, 1100px)', marginBottom: 24 }}><Logo /></header>
       <Stepper steps={[fr.steps.identity, fr.steps.clan, fr.steps.enter]} current={1} />
 

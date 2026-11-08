@@ -1,3 +1,4 @@
+import { CornerArt } from '../components/CornerArt'
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
@@ -31,6 +32,7 @@ export function Login() {
 
   return (
     <main className="center-page">
+      <CornerArt />
       <form className="panel auth-card" onSubmit={onSubmit} noValidate>
         <Logo />
         <p className="eyebrow" style={{ marginTop: 28 }}>{fr.login.eyebrow}</p>
