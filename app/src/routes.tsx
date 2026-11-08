@@ -12,6 +12,8 @@ import { Home } from './pages/Home'
 import { Quests } from './pages/Quests'
 import { Quest } from './pages/Quest'
 import { Projects } from './pages/Projects'
+import { MyRepos } from './pages/MyRepos'
+import { MyStars } from './pages/MyStars'
 import { ProjectPage } from './pages/ProjectPage'
 import { ImportProject } from './pages/ImportProject'
 import { Jobs } from './pages/Jobs'
@@ -92,6 +94,8 @@ export function AppRoutes() {
       <Route path="/projets/:id/modifier" element={<RequireAuth><RequireCharacter><RepoBrowser /></RequireCharacter></RequireAuth>} />
       <Route path="/projets/:id/code" element={<RequireAuth><RequireCharacter><RepoBrowser /></RequireCharacter></RequireAuth>} />
       <Route path="/projets/:id" element={<RequireAuth><RequireCharacter><ProjectPage /></RequireCharacter></RequireAuth>} />
+      <Route path="/depots/etoiles" element={<RequireAuth><RequireCharacter><MyStars /></RequireCharacter></RequireAuth>} />
+      <Route path="/depots" element={<RequireAuth><RequireCharacter><MyRepos /></RequireCharacter></RequireAuth>} />
       <Route path="/projets" element={<RequireAuth><RequireCharacter><Projects /></RequireCharacter></RequireAuth>} />
       <Route path="/equipe" element={<RequireAuth><RequireCharacter><Staff /></RequireCharacter></RequireAuth>} />
       <Route path="/equipe/signalements" element={<RequireAuth><RequireCharacter><StaffReports /></RequireCharacter></RequireAuth>} />

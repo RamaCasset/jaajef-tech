@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
 import { Icon } from '../components/Icon'
+import { SpaceToggle } from '../components/SpaceToggle'
 import { ClanTag, ProjectCard, BuildBadge } from '../components/ProjectCard'
 import { fr, type ClanKey } from '../i18n/fr'
 import {
@@ -81,6 +82,8 @@ export function Projects() {
           </div>
           <Link className="btn btn-cta btn-icon" to="/projets/ajouter"><Icon name="plus" size={16} /> {fr.importProject.newProject}</Link>
         </div>
+
+        <SpaceToggle active="community" />
 
         <div className="filters">
           <input
