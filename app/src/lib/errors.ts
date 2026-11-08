@@ -55,6 +55,12 @@ export function friendlyError(error: unknown): string {
   if (m.includes('collaborate on your own')) return fr.errors.ownCollab
   if (m.includes('not looking for collaborators')) return fr.errors.notLooking
   if (m.includes('most collaborators')) return fr.errors.tooManyCollabs
+  if (m.includes('no member with this username')) return fr.errors.noSuchUsername
+  if (m.includes('already a collaborator')) return fr.errors.alreadyCollabAdded
+  if (m.includes('already invited')) return fr.errors.alreadyInvited
+  if (m.includes('too many invitations')) return fr.errors.tooManyInvites
+  if (m.includes('invitation not found')) return fr.errors.inviteGone
+  if (m.includes('already the owner')) return fr.errors.alreadyOwner
   if (m.includes('project has too many requests')) return fr.errors.tooManyRequestsOnProject
   if (m.includes('short message')) return fr.errors.collabShortMessage
   if (m.includes('already collaborate')) return fr.errors.alreadyCollab

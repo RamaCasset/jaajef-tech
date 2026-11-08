@@ -6,7 +6,7 @@ import type { MyRepo } from '../lib/api'
 
 const api = vi.hoisted(() => ({
   listMyRepos: vi.fn(), setProjectPinned: vi.fn(), setProjectVisibility: vi.fn(), loadProfile: vi.fn(),
-  countMyStars: vi.fn(), getNextBadge: vi.fn(), listMyStarred: vi.fn(), removeProject: vi.fn(), editorPresence: vi.fn(),
+  countMyStars: vi.fn(), getNextBadge: vi.fn(), listMyStarred: vi.fn(), removeProject: vi.fn(), editorPresence: vi.fn(), removeCollaborator: vi.fn(), listMyInvites: vi.fn(), answerCollabInvite: vi.fn(),
 }))
 vi.mock('../lib/api', () => api)
 vi.mock('../auth/AuthContext', () => ({
@@ -19,7 +19,7 @@ import { MyStars } from '../pages/MyStars'
 const repo = (n: number, extra: Partial<MyRepo> = {}): MyRepo => ({
   id: `r${n}`, github_owner: 'moussa', github_repo: `depot-${n}`, title: `Depot ${n}`, summary: `Résumé ${n}`, language: 'Python',
   github_stars: n, star_count: 0, github_forks: 2, github_pushed_at: new Date(Date.now() - n * 3600e3).toISOString(),
-  updated_at: new Date().toISOString(), is_public: true, verified_at: '2026-01-01', build_status: null, pinned_at: null, repo_private: false, repo_missing_at: null, ...extra,
+  updated_at: new Date().toISOString(), is_public: true, verified_at: '2026-01-01', build_status: null, pinned_at: null, repo_private: false, repo_missing_at: null, owner_id: 'me', owner_username: 'moussa', ...extra,
 })
 
 beforeEach(() => {
@@ -31,6 +31,9 @@ beforeEach(() => {
   api.setProjectPinned.mockResolvedValue(undefined)
   api.setProjectVisibility.mockResolvedValue(undefined)
   api.removeProject.mockResolvedValue(undefined)
+  api.removeCollaborator.mockResolvedValue(undefined)
+  api.listMyInvites.mockResolvedValue([])
+  api.answerCollabInvite.mockResolvedValue(undefined)
   api.editorPresence.mockResolvedValue({ checked: true })
   api.loadProfile.mockResolvedValue({
     profile: { id: 'me', username: 'moussa', display_name: 'Moussa Diop', headline: 'Dev à Dakar', avatar_url: null, banner_url: null, bio: 'Je code.', location: 'Dakar', github_username: 'moussa', clan: null, mastery: 'bagne', xp: 25000, is_verified: false, available_to_collab: true, created_at: '2024-03-01T00:00:00Z' },
@@ -206,5 +209,49 @@ describe('Removing a repository and private repositories that are gone', () => {
     mount()
     await waitFor(() => expect(api.editorPresence).toHaveBeenCalledTimes(1))
     expect(screen.queryByText('Introuvable sur GitHub')).toBeNull()
+  })
+
+  it('lists projects the member collaborates on, tagged, with a leave action and none of the owner actions', async () => {
+    api.listMyRepos.mockResolvedValue([
+      repo(1), repo(2, { owner_id: 'u9', owner_username: 'awa', github_owner: 'awa', is_public: false, repo_private: true, pinned_at: '2026-02-01T00:00:00Z' }),
+    ])
+    mount()
+    const others = (await screen.findByRole('heading', { name: /Autres dépôts/ })).closest('section')!
+    // someone else's pin is not shown as the member's own pinned repository
+    expect(screen.queryByRole('heading', { name: /Dépôts épinglés/ })).toBeNull()
+    expect(within(others).getByText('Collaborateur')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Actions pour depot-2' }))
+    expect(screen.queryByRole('menuitem', { name: 'Épingler' })).toBeNull()
+    expect(screen.queryByRole('menuitem', { name: 'Retirer de la plateforme' })).toBeNull()
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Quitter ce dépôt' }))
+    const box = screen.getByRole('alertdialog')
+    expect(within(box).getByText('Quitter depot-2 ?')).toBeInTheDocument()
+    await userEvent.click(within(box).getByRole('button', { name: 'Quitter' }))
+    await waitFor(() => expect(api.removeCollaborator).toHaveBeenCalledWith('r2', 'me'))
+    expect(api.removeProject).not.toHaveBeenCalled()
+  })
+
+  it('shows the invitations to collaborate, and answers them', async () => {
+    api.listMyInvites.mockResolvedValueOnce([{ invite_id: 'i1', project_title: 'Carnet secret', owner_username: 'awa', created_at: '2026-11-08' }]).mockResolvedValue([])
+    mount()
+    const box = (await screen.findByRole('heading', { name: /Invitations à collaborer/ })).closest('section')!
+    expect(within(box).getByText('@awa vous invite à collaborer sur « Carnet secret ».')).toBeInTheDocument()
+    await userEvent.click(within(box).getByRole('button', { name: 'Accepter' }))
+    await waitFor(() => expect(api.answerCollabInvite).toHaveBeenCalledWith('i1', true))
+    await waitFor(() => expect(screen.queryByRole('heading', { name: /Invitations à collaborer/ })).toBeNull())
+    await waitFor(() => expect(api.listMyRepos.mock.calls.length).toBeGreaterThan(1))
+  })
+
+  it('declines an invitation', async () => {
+    api.listMyInvites.mockResolvedValueOnce([{ invite_id: 'i2', project_title: 'Autre', owner_username: 'bass', created_at: '2026-11-08' }]).mockResolvedValue([])
+    mount()
+    await userEvent.click(await screen.findByRole('button', { name: 'Refuser' }))
+    await waitFor(() => expect(api.answerCollabInvite).toHaveBeenCalledWith('i2', false))
+  })
+
+  it('shows no invitations box when there is none', async () => {
+    mount()
+    await screen.findByText('7 publics')
+    expect(screen.queryByRole('heading', { name: /Invitations à collaborer/ })).toBeNull()
   })
 })

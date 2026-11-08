@@ -8,7 +8,7 @@ import { SpaceToggle } from '../components/SpaceToggle'
 import { useAuth } from '../auth/AuthContext'
 import { fr } from '../i18n/fr'
 import { friendlyError } from '../lib/errors'
-import { editorPresence, listMyRepos, removeProject, setProjectPinned, setProjectVisibility, type MyRepo } from '../lib/api'
+import { answerCollabInvite, editorPresence, listMyInvites, listMyRepos, removeCollaborator, removeProject, setProjectPinned, setProjectVisibility, type MyInvite, type MyRepo } from '../lib/api'
 
 const PAGE_SIZE = 6
 type Sort = 'activity' | 'stars' | 'name'
@@ -31,13 +31,16 @@ export function MyRepos() {
   const [page, setPage] = useState(1)
 
   const [removing, setRemoving] = useState<MyRepo | null>(null)
+  const [invites, setInvites] = useState<MyInvite[]>([])
   const checkedPresence = useRef(false)
 
   const load = useCallback(() => {
     setFailed(false)
     listMyRepos(me).then(setRepos).catch(() => setFailed(true))
   }, [me])
+  const loadInvites = useCallback(() => { listMyInvites().then(setInvites).catch(() => undefined) }, [])
   useEffect(load, [load])
+  useEffect(loadInvites, [loadInvites])
 
   // Once per visit: ask GitHub whether the private repositories are still there (silent when it cannot).
   useEffect(() => {
@@ -57,12 +60,12 @@ export function MyRepos() {
   }
 
   const all = repos ?? []
-  const pinned = useMemo(() => all.filter((r) => r.pinned_at).sort((a, b) => Date.parse(a.pinned_at!) - Date.parse(b.pinned_at!)), [all])
+  const pinned = useMemo(() => all.filter((r) => r.pinned_at && r.owner_id === me).sort((a, b) => Date.parse(a.pinned_at!) - Date.parse(b.pinned_at!)), [all])
   const languages = useMemo(() => [...new Set(all.map((r) => r.language).filter((l): l is string => !!l))].sort(), [all])
 
   const others = useMemo(() => {
     const q = query.trim().toLowerCase()
-    const list = all.filter((r) => !r.pinned_at
+    const list = all.filter((r) => !(r.pinned_at && r.owner_id === me)
       && (!q || r.github_repo.toLowerCase().includes(q) || r.title.toLowerCase().includes(q) || (r.summary ?? '').toLowerCase().includes(q))
       && (!language || r.language === language)
       && (visibility === 'all' || (visibility === 'public' ? r.is_public : !r.is_public)))
@@ -71,7 +74,7 @@ export function MyRepos() {
       if (sort === 'name') return a.github_repo.localeCompare(b.github_repo)
       return activityOf(b) - activityOf(a)
     })
-  }, [all, query, language, visibility, sort])
+  }, [all, me, query, language, visibility, sort])
 
   useEffect(() => { setPage(1) }, [query, language, visibility, sort])
   const pages = Math.max(1, Math.ceil(others.length / PAGE_SIZE))
@@ -98,6 +101,23 @@ export function MyRepos() {
               <Link className="btn btn-cta btn-icon" to="/projets/ajouter"><Icon name="plus" size={16} /> {t.newRepo}</Link>
             </div>
           </div>
+          {invites.length > 0 && (
+            <section className="panel invites-box" aria-labelledby="inv-h">
+              <h2 id="inv-h">{t.invitesTitle} <span className="count-pill">{invites.length}</span></h2>
+              <ul>
+                {invites.map((i) => (
+                  <li key={i.invite_id}>
+                    <span>{t.inviteText(i.owner_username, i.project_title)}</span>
+                    <span className="remove-actions">
+                      <button type="button" className="btn" onClick={() => void change(() => answerCollabInvite(i.invite_id, false).then(loadInvites))}>{t.inviteDecline}</button>
+                      <button type="button" className="btn btn-cta" onClick={() => void change(() => answerCollabInvite(i.invite_id, true).then(loadInvites))}>{t.inviteAccept}</button>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
           {repos ? (
             <p className="repo-counts tiny">
               <span>{t.publicCount(publicCount)}</span><span>{t.privateCount(privateCount)}</span><span>{t.pinnedCount(pinned.length)}</span>
@@ -122,16 +142,19 @@ export function MyRepos() {
               </select></div>
           </div>
 
-          {removing ? (
-            <div className="panel remove-confirm" role="alertdialog" aria-labelledby="rm-t">
-              <h2 id="rm-t">{t.removeTitle(removing.github_repo)}</h2>
-              <p className="muted">{t.removeText}</p>
-              <div className="remove-actions">
-                <button type="button" className="btn" onClick={() => setRemoving(null)}>{t.removeCancel}</button>
-                <button type="button" className="btn btn-danger" onClick={() => { const r = removing; setRemoving(null); void change(() => removeProject(r.id)) }}>{t.removeConfirm}</button>
+          {removing ? (() => {
+            const leaving = removing.owner_id !== me
+            return (
+              <div className="panel remove-confirm" role="alertdialog" aria-labelledby="rm-t">
+                <h2 id="rm-t">{leaving ? t.leaveTitle(removing.github_repo) : t.removeTitle(removing.github_repo)}</h2>
+                <p className="muted">{leaving ? t.leaveText : t.removeText}</p>
+                <div className="remove-actions">
+                  <button type="button" className="btn" onClick={() => setRemoving(null)}>{t.removeCancel}</button>
+                  <button type="button" className="btn btn-danger" onClick={() => { const r = removing; setRemoving(null); void change(() => (leaving ? removeCollaborator(r.id, me) : removeProject(r.id))) }}>{leaving ? t.leaveConfirm : t.removeConfirm}</button>
+                </div>
               </div>
-            </div>
-          ) : null}
+            )
+          })() : null}
 
           {failed && <div className="alert" role="alert">{t.error} <button type="button" className="btn" onClick={load}>{t.retry}</button></div>}
           {actionError && <div className="alert" role="alert">{actionError}</div>}
@@ -143,7 +166,7 @@ export function MyRepos() {
               <div className="profile-colhead"><h2 id="pinned-h"><Icon name="pin" size={18} /> {t.pinnedTitle} <span className="count-pill">{pinned.length}</span></h2></div>
               <div className="pinned-grid">
                 {pinned.map((r) => (
-                  <PinnedCard key={r.id} repo={r}
+                  <PinnedCard key={r.id} repo={r} me={me}
                     onPin={() => void change(() => setProjectPinned(r.id, false))}
                     onVisibility={() => void change(() => setProjectVisibility(r.id, !r.is_public))}
                     onRemove={() => setRemoving(r)} />
@@ -162,7 +185,7 @@ export function MyRepos() {
                 <div className="panel repo-list">
                   <ul>
                     {shown.map((r) => (
-                      <RepoListRow key={r.id} repo={r}
+                      <RepoListRow key={r.id} repo={r} me={me}
                         onPin={() => void change(() => setProjectPinned(r.id, true))}
                         onVisibility={() => void change(() => setProjectVisibility(r.id, !r.is_public))}
                     onRemove={() => setRemoving(r)} />
