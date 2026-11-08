@@ -7,7 +7,11 @@ const loadMyProfileFields = vi.fn()
 const updateMyProfile = vi.fn()
 const loadProfile = vi.fn()
 const refreshMember = vi.fn()
+const uploadProfileImage = vi.fn()
+const removeProfileImage = vi.fn()
 vi.mock('../lib/api', () => ({
+  uploadProfileImage: (...a: unknown[]) => uploadProfileImage(...a),
+  removeProfileImage: (...a: unknown[]) => removeProfileImage(...a),
   loadMyProfileFields: (...a: unknown[]) => loadMyProfileFields(...a),
   updateMyProfile: (...a: unknown[]) => updateMyProfile(...a),
   loadProfile: (...a: unknown[]) => loadProfile(...a),
@@ -23,8 +27,8 @@ import { EditProfile } from '../pages/EditProfile'
 import { Profile } from '../pages/Profile'
 
 beforeEach(() => {
-  for (const f of [loadMyProfileFields, updateMyProfile, loadProfile, refreshMember]) f.mockReset()
-  loadMyProfileFields.mockResolvedValue({ display_name: 'Moussa Diop', bio: 'Dev', location: 'Dakar', available_to_collab: false })
+  for (const f of [loadMyProfileFields, updateMyProfile, loadProfile, refreshMember, uploadProfileImage, removeProfileImage]) f.mockReset()
+  loadMyProfileFields.mockResolvedValue({ display_name: 'Moussa Diop', headline: 'Dev web', bio: 'Dev', location: 'Dakar', available_to_collab: false, avatar_url: null, banner_url: null })
   updateMyProfile.mockResolvedValue(undefined)
   refreshMember.mockResolvedValue(undefined)
 })
@@ -35,6 +39,7 @@ describe('Edit profile', () => {
   it('fills the form with what is saved', async () => {
     mount()
     expect(await screen.findByLabelText('Nom affiché')).toHaveValue('Moussa Diop')
+    expect(screen.getByLabelText('Titre')).toHaveValue('Dev web')
     expect(screen.getByLabelText('Présentation')).toHaveValue('Dev')
     expect(screen.getByLabelText('Lieu')).toHaveValue('Dakar')
     expect(screen.getByLabelText('Je suis disponible pour collaborer')).not.toBeChecked()
@@ -48,9 +53,37 @@ describe('Edit profile', () => {
     await userEvent.click(screen.getByLabelText('Je suis disponible pour collaborer'))
     await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
     expect(await screen.findByRole('status')).toHaveTextContent('Profil enregistré')
-    expect(updateMyProfile).toHaveBeenCalledWith('me', { display_name: 'Moussa D.', bio: 'Dev', location: 'Dakar', available_to_collab: true })
+    expect(updateMyProfile).toHaveBeenCalledWith('me', { display_name: 'Moussa D.', headline: 'Dev web', bio: 'Dev', location: 'Dakar', available_to_collab: true })
     expect(refreshMember).toHaveBeenCalledTimes(1)
     expect(screen.getByRole('link', { name: 'Voir mon profil' })).toHaveAttribute('href', '/profil/moussa')
+  })
+
+  it('uploads a new profile picture and refreshes the top bar', async () => {
+    uploadProfileImage.mockResolvedValue('https://x.supabase.co/storage/v1/object/public/profile-images/me/avatar-1.png')
+    mount()
+    const file = new File(['x'], 'moi.png', { type: 'image/png' })
+    await userEvent.upload(await screen.findByLabelText('Photo de profil'), file)
+    expect(await screen.findByRole('status')).toHaveTextContent('Image enregistrée')
+    expect(uploadProfileImage).toHaveBeenCalledWith('me', 'avatar', file, null)
+    expect(refreshMember).toHaveBeenCalledTimes(1)
+    expect(screen.getByRole('button', { name: 'Retirer' })).toBeInTheDocument()
+  })
+
+  it('says why a picture was refused', async () => {
+    uploadProfileImage.mockRejectedValue(new Error('image-size'))
+    mount()
+    await userEvent.upload(await screen.findByLabelText('Image de couverture'), new File(['x'], 'grosse.png', { type: 'image/png' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('trop lourde')
+    expect(refreshMember).not.toHaveBeenCalled()
+  })
+
+  it('removes my picture', async () => {
+    loadMyProfileFields.mockResolvedValue({ display_name: 'Moussa Diop', headline: '', bio: '', location: '', available_to_collab: false, avatar_url: 'https://x/profile-images/me/avatar-1.png', banner_url: null })
+    removeProfileImage.mockResolvedValue(undefined)
+    mount()
+    await userEvent.click(await screen.findByRole('button', { name: 'Retirer' }))
+    await waitFor(() => expect(removeProfileImage).toHaveBeenCalledWith('me', 'avatar', 'https://x/profile-images/me/avatar-1.png'))
+    expect(await screen.findByRole('status')).toHaveTextContent('Image enregistrée')
   })
 
   it('cannot save with an empty name', async () => {

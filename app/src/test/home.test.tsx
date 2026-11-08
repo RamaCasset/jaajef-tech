@@ -18,7 +18,7 @@ vi.mock('../lib/api', () => ({
 }))
 vi.mock('../auth/AuthContext', () => ({
   useAuth: () => ({
-    member: { kopeks: 420, profile: { id: 'u1', username: 'moussa_dev', display_name: 'Moussa Diop', clan: 'saltigue', mastery: 'bagne', xp: 25000 } },
+    member: { kopeks: 420, profile: { id: 'u1', username: 'moussa_dev', display_name: 'Moussa Diop', headline: 'Développeur web à Dakar', clan: 'saltigue', mastery: 'bagne', xp: 25000 } },
     session: { user: { id: 'u1' } },
     signOut: vi.fn(),
   }),
@@ -36,7 +36,7 @@ const streak = (extra: Partial<StreakInfo> = {}): StreakInfo => ({
   last_active_on: '2026-11-05', freezes: 1, freeze_max: 2, protected_by_freeze: false, ...extra,
 })
 const profileData = (extra = {}) => ({
-  profile: { id: 'u1', username: 'moussa_dev', display_name: 'Moussa Diop', bio: 'Je construis des outils.', location: 'Dakar, Sénégal', github_username: 'moussa-diop', avatar_url: null, banner_url: null, clan: 'saltigue', mastery: 'bagne', xp: 25000, is_verified: false, available_to_collab: true, created_at: '2024-03-01T00:00:00Z' },
+  profile: { id: 'u1', username: 'moussa_dev', display_name: 'Moussa Diop', headline: 'Développeur web à Dakar', bio: 'Je construis des outils.', location: 'Dakar, Sénégal', github_username: 'moussa-diop', avatar_url: null, banner_url: null, clan: 'saltigue', mastery: 'bagne', xp: 25000, is_verified: false, available_to_collab: true, created_at: '2024-03-01T00:00:00Z' },
   xpPerLevel: 10000,
   badges: [
     { slug: 'first-quest', name: 'Première quête', description: 'Résolue', tier: 'common' },
@@ -85,6 +85,7 @@ describe('Cité home', () => {
     const stats = document.querySelector('.profile-stats') as HTMLElement
     expect(within(stats).getByText('128')).toBeInTheDocument()
     expect(within(stats).getByText('Quêtes terminées')).toBeInTheDocument()
+    expect(screen.getByText('Développeur web à Dakar')).toBeInTheDocument()
     expect(within(stats).getByText('XP total')).toBeInTheDocument()
     expect(within(stats).getByText('Projets')).toBeInTheDocument()
     expect(within(stats).getByText('342')).toBeInTheDocument()

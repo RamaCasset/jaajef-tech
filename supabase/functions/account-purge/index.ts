@@ -24,7 +24,7 @@ const MAX_ACCOUNTS_PER_RUN = 20
 const MAX_CONSECUTIVE_FAILURES = 3
 const FILE_CHUNK = 100
 const TIME_BUDGET_MS = 100_000
-const ALLOWED_BUCKETS = new Set(['dm-files', 'cv-files', 'souk-images'])
+const ALLOWED_BUCKETS = new Set(['dm-files', 'cv-files', 'souk-images', 'profile-images'])
 
 const CORS_HEADERS = {
   'access-control-allow-origin': '*',

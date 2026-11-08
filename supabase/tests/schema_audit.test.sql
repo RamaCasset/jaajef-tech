@@ -113,7 +113,7 @@ begin
     from pg_attribute a
    where a.attrelid = 'public.profiles'::regclass and a.attnum > 0 and not a.attisdropped
      and has_column_privilege('authenticated', 'public.profiles', a.attname, 'UPDATE')
-     and a.attname not in ('display_name', 'username', 'avatar_url', 'banner_url', 'bio', 'location', 'available_to_collab');
+     and a.attname not in ('display_name', 'username', 'avatar_url', 'banner_url', 'bio', 'location', 'available_to_collab', 'headline');
   if bad is not null then
     raise exception 'FAIL: members can edit these profile columns: %. Points, streaks, character and verification must stay server-only.', bad;
   end if;
