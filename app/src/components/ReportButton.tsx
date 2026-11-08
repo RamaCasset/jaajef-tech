@@ -35,7 +35,7 @@ export function ReportButton({ type, id }: { type: ReportTarget; id: string | nu
   if (!open) return <button type="button" className="btn btn-link tiny" onClick={() => setOpen(true)}>{t.button}</button>
 
   return (
-    <form onSubmit={(e) => void submit(e)} className="panel" aria-label={t.title} style={{ marginTop: 8 }}>
+    <form onSubmit={(e) => void submit(e)} className="panel panel-pad" aria-label={t.title} style={{ marginTop: 8 }}>
       <p><strong>{t.title}</strong></p>
       <p className="tiny muted">{t.intro}</p>
       {error && <div className="alert" role="alert">{error}</div>}

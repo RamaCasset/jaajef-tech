@@ -50,7 +50,7 @@ function ReportCard({ report, onDone }: { report: ReportRow; onDone: () => void 
   }
 
   return (
-    <article className="panel" style={{ marginBottom: 16 }}>
+    <article className="panel panel-pad" style={{ marginBottom: 16 }}>
       <h3 style={{ marginTop: 0 }}>
         {t.types[report.target_type]} · <span className="tag">{t.reasons[report.reason]}</span>
       </h3>

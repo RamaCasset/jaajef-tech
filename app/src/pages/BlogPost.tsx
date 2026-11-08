@@ -82,7 +82,7 @@ export function BlogPost() {
             </header>
             {post.cover_url && <img src={post.cover_url} alt="" style={{ maxWidth: '100%', borderRadius: 8 }} />}
             {/* Plain text only: nothing the author writes is ever treated as markup. */}
-            <article className="panel" style={{ marginBottom: 16 }}><ArticleBody text={post.body} /></article>
+            <article className="panel panel-pad" style={{ marginBottom: 16 }}><ArticleBody text={post.body} /></article>
             {!isDraft && (
               <p>
                 <button type="button" className="btn" disabled={busy} aria-pressed={post.liked_by_me} onClick={() => void toggleLike()}>
@@ -94,7 +94,7 @@ export function BlogPost() {
             {error && <div className="alert" role="alert">{error}</div>}
 
             {!isDraft && (
-              <section className="panel">
+              <section className="panel panel-pad">
                 <h2>{fr.blog.commentsTitle}</h2>
                 {comments.length === 0 && <p className="muted">{fr.blog.commentsEmpty}</p>}
                 <ul style={{ listStyle: 'none', padding: 0 }}>

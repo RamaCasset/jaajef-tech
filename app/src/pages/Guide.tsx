@@ -14,7 +14,7 @@ export function Guide() {
         <ol style={{ listStyle: 'none', padding: 0 }}>
           {t.sections.map((s, i) => (
             <li key={s.id}>
-              <section className="panel" style={{ marginBottom: 12 }} aria-labelledby={`g-${s.id}`}>
+              <section className="panel panel-pad" style={{ marginBottom: 12 }} aria-labelledby={`g-${s.id}`}>
                 <h2 id={`g-${s.id}`}>{i + 1}. {s.title}</h2>
                 <p>{s.text}</p>
                 {'to' in s && s.to ? <p><Link className="btn" to={s.to}>{s.cta}</Link></p> : null}

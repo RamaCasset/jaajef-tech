@@ -133,7 +133,7 @@ export function CvPortfolio() {
 
         {items && cv && (
           <>
-            <section className="panel" style={{ marginBottom: 16 }}>
+            <section className="panel panel-pad" style={{ marginBottom: 16 }}>
               <h2>{t.cvTitle}</h2>
               {cv.cv_name ? (
                 <>
@@ -161,7 +161,7 @@ export function CvPortfolio() {
               />
             </section>
 
-            <section className="panel" style={{ marginBottom: 16 }}>
+            <section className="panel panel-pad" style={{ marginBottom: 16 }}>
               <h2>{t.portfolioTitle}</h2>
               <p className="tiny muted">{t.portfolioHint(items.length, MAX_ITEMS)}</p>
               {items.length === 0 && <p className="muted">{t.portfolioEmpty}</p>}

@@ -176,7 +176,7 @@ export function Community() {
             </div>
 
             {canModerate && (
-              <section className="panel" style={{ marginBottom: 24 }}>
+              <section className="panel panel-pad" style={{ marginBottom: 24 }}>
                 <h2>{fr.community.requestsTitle}</h2>
                 {requests.length === 0 && <p className="muted">{fr.community.requestsEmpty}</p>}
                 {requests.map((r) => (
@@ -189,7 +189,7 @@ export function Community() {
               </section>
             )}
 
-            <section className="panel" style={{ marginBottom: 24 }}>
+            <section className="panel panel-pad" style={{ marginBottom: 24 }}>
               <h2>{fr.community.membersTitle}</h2>
               {members.map((m) => (
                 <div key={m.user_id} style={{ padding: '6px 0' }}>
@@ -221,7 +221,7 @@ export function Community() {
             )}
 
             {isOwner && (
-              <section className="panel">
+              <section className="panel panel-pad">
                 <h2>{fr.community.dangerTitle}</h2>
                 <p className="muted">{fr.community.dangerText} <strong>{community.slug}</strong></p>
                 <div className="field">

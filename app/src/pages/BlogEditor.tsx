@@ -67,7 +67,7 @@ export function BlogEditor() {
         {missing && <p className="muted">{fr.errors.postNotFound}</p>}
         {failed && <div className="alert" role="alert">{fr.blog.loadFailed}</div>}
         {loaded && !missing && (
-          <form className="panel" onSubmit={onSubmit} noValidate>
+          <form className="panel panel-pad" onSubmit={onSubmit} noValidate>
             {error && <div className="alert" role="alert">{error}</div>}
             {saved && <div className="notice" role="status">{fr.blog.saved}</div>}
             <div className="field">

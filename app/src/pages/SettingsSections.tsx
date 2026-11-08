@@ -37,7 +37,7 @@ export function PasswordSection() {
   }
 
   return (
-    <section className="panel" style={{ marginBottom: 24 }}>
+    <section className="panel panel-pad" style={{ marginBottom: 24 }}>
       <h2>{t.passwordTitle}</h2>
       <form onSubmit={(e) => void submit(e)}>
         {error && <div className="alert" role="alert">{error}</div>}
@@ -84,7 +84,7 @@ export function BlockedSection() {
   }
 
   return (
-    <section className="panel" style={{ marginBottom: 24 }}>
+    <section className="panel panel-pad" style={{ marginBottom: 24 }}>
       <h2>{t.blockedTitle}</h2>
       {failed && <p className="muted">{t.loadFailed} <button type="button" className="btn" onClick={load}>{t.retry}</button></p>}
       {!failed && !list && <p className="muted">{fr.common.loading}</p>}
@@ -133,7 +133,7 @@ export function EmailSection() {
   }
 
   return (
-    <section className="panel" style={{ marginBottom: 24 }}>
+    <section className="panel panel-pad" style={{ marginBottom: 24 }}>
       <h2>{t.emailTitle}</h2>
       {failed && <p className="muted">{t.loadFailed} <button type="button" className="btn" onClick={load}>{t.retry}</button></p>}
       {notice && <div className="notice" role="status">{notice}</div>}
@@ -152,7 +152,7 @@ export function SignInSection() {
   useEffect(() => { getSignInMethods().then(setInfo).catch(() => setInfo(null)) }, [])
   if (!info) return null
   return (
-    <section className="panel" style={{ marginBottom: 24 }}>
+    <section className="panel panel-pad" style={{ marginBottom: 24 }}>
       <h2>{t.signInTitle}</h2>
       {info.email && <p>{t.signInEmail(info.email)}</p>}
       <p>{info.github ? t.signInGithub : t.signInNoGithub}</p>

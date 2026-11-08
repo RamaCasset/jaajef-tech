@@ -28,7 +28,7 @@ function ReviewCard({ item, onDone }: { item: ReviewItem; onDone: () => void }) 
   }
 
   return (
-    <article className="panel" style={{ marginBottom: 16 }}>
+    <article className="panel panel-pad" style={{ marginBottom: 16 }}>
       <h3 style={{ marginTop: 0 }}><span className="tag">{t.kinds[item.kind]}</span> {item.title}</h3>
       <p className="tiny muted">
         <Link to={`/profil/${item.owner_username}`}>{t.by(item.owner_username)}</Link> · {new Date(item.created_at).toLocaleDateString(dateLocale())}

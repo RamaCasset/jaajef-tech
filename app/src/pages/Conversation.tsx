@@ -84,7 +84,7 @@ export function Conversation() {
         {other === null && <p className="muted">{fr.messages.notFound}</p>}
 
         {other && (
-          <section className="panel">
+          <section className="panel panel-pad">
             <h1 className="page-title">{fr.messages.thread(name)}</h1>
             <p className="tiny"><Link to={`/profil/${other.other_username}`}>@{other.other_username}</Link></p>
             {error && <div className="alert" role="alert">{error}</div>}
