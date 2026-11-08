@@ -89,9 +89,12 @@ export function ProjectPage() {
               {!isOwner && <ReportButton type="project" id={project.id} />}
               <p className="muted tiny">
                 <Link to={`/profil/${project.owner_username}`}>{fr.projectPage.by(project.owner_display_name || project.owner_username)}</Link>
-                {' · '}
-                <a href={`https://github.com/${project.github_owner}/${project.github_repo}`} target="_blank" rel="noreferrer">{fr.projectPage.github}</a> · <Link to={`/projets/${project.id}/code`}>{fr.repoViewer.link}</Link>{isOwner && <>{' · '}<Link to={`/projets/${project.id}/modifier`}>{fr.editor.link}</Link></>}
               </p>
+              <div className="project-actions">
+                <a className="chip-link" href={`https://github.com/${project.github_owner}/${project.github_repo}`} target="_blank" rel="noreferrer">{fr.projectPage.github}</a>
+                <Link className="chip-link" to={`/projets/${project.id}/code`}>{fr.repoViewer.link}</Link>
+                {isOwner && <Link className="chip-link chip-link-main" to={`/projets/${project.id}/modifier`}>{fr.editor.link}</Link>}
+              </div>
               {project.summary && <p>{project.summary}</p>}
               <div className="project-tags">
                 {project.language && <span className="tag">{project.language}</span>}
@@ -111,7 +114,7 @@ export function ProjectPage() {
             {error && <div className="alert" role="alert">{error}</div>}
             {notice && <div className="notice" role="status">{notice}</div>}
 
-            <section className="panel" style={{ marginBottom: 24 }}>
+            <section className="panel panel-pad stack-gap">
               <h2>{fr.projectPage.collabTitle}</h2>
               <h3>{fr.projectPage.collaborators}</h3>
               {collabs.length === 0 && <p className="muted">{fr.projectPage.collabNone}</p>}
@@ -155,7 +158,7 @@ export function ProjectPage() {
               )}
             </section>
 
-            <section className="panel">
+            <section className="panel panel-pad">
               <h2>{fr.projectPage.commentsTitle}</h2>
               {comments.length === 0 && <p className="muted">{fr.projectPage.commentsEmpty}</p>}
               <ul style={{ listStyle: 'none', padding: 0 }}>
