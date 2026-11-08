@@ -601,3 +601,6 @@ select { appearance: none; -webkit-appearance: none; background-color: var(--pan
 .import-create fieldset label { display: flex; align-items: center; gap: 8px; }
 .import-connect, .import-page section.panel { padding: 20px 24px; }
 .import-page .alert, .import-page .notice { padding: 12px 16px; }
+.import-create input[type="radio"] { width: auto; margin: 0; padding: 0; flex: none; }
+.import-create fieldset label { justify-content: flex-start; font-weight: 400; font-size: 15px; color: var(--fg); }
+.import-page .notice { display: grid; gap: 10px; justify-items: start; }
