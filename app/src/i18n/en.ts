@@ -1027,7 +1027,6 @@ export const en: Messages = {
     community: 'Community',
     personal: 'Personal space',
     root: 'Personal space',
-    back: 'Back to profile',
     title: 'My repositories',
     subtitle: 'Your ideas, your code. Build from Dakar, share with the world.',
     publicCount: (n: number) => `${n} public`,

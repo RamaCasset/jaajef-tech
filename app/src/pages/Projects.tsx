@@ -80,10 +80,11 @@ export function Projects() {
             <h1 className="page-title">{fr.projects.title}</h1>
             <p className="muted">{fr.projects.subtitle}</p>
           </div>
-          <Link className="btn btn-cta btn-icon" to="/projets/ajouter"><Icon name="plus" size={16} /> {fr.importProject.newProject}</Link>
+          <div className="head-actions">
+            <SpaceToggle active="community" />
+            <Link className="btn btn-cta btn-icon" to="/projets/ajouter"><Icon name="plus" size={16} /> {fr.importProject.newProject}</Link>
+          </div>
         </div>
-
-        <SpaceToggle active="community" />
 
         <div className="filters">
           <input

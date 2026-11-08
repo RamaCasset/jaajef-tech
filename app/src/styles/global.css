@@ -319,6 +319,7 @@ select { appearance: none; -webkit-appearance: none; background-color: var(--pan
 
 .page-head-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
 .page-head-row .btn { white-space: nowrap; }
+.head-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: flex-end; margin-left: auto; }
 
 .hero-mascot { position: absolute; right: 28px; top: 50%; transform: translateY(-50%); width: 180px; display: grid; justify-items: center; }
 .hero-mascot::before { content: ''; position: absolute; inset: 8% 4% 12%; border-radius: 50%; background: rgba(63, 184, 240, 0.12); }

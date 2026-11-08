@@ -1027,7 +1027,6 @@ export const frMessages = {
     community: 'Communauté',
     personal: 'Espace personnel',
     root: 'Espace personnel',
-    back: 'Retour au profil',
     title: 'Mes dépôts',
     subtitle: 'Vos idées, votre code. Construire depuis Dakar, partager avec le monde.',
     publicCount: (n: number) => (n === 1 ? '1 public' : `${n} publics`),

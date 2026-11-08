@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, NavLink } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
 import { Icon } from './Icon'
 import { useAuth } from '../auth/AuthContext'
 import { dateLocale } from '../i18n/lang'
@@ -31,7 +31,6 @@ export function RepoSide({ repoCount }: { repoCount: number | null }) {
 
   return (
     <aside className="repo-side">
-      <Link className="repo-back" to={username ? `/profil/${username}` : '/cite'}><Icon name="back" size={16} /> {t.back}</Link>
       {p ? (
         <section className="panel repo-card" aria-label={p.display_name}>
           <div className="repo-cover" style={p.banner_url ? { backgroundImage: `url(${p.banner_url})` } : undefined} aria-hidden="true" />
