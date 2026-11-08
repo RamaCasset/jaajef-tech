@@ -22,6 +22,7 @@ const PATHS: Record<string, string> = {
   panel: 'M4 6h16M4 12h16M4 18h16',
   sidebar: 'M4 5h16v14H4V5Zm5 0v14',
   'chevron-down': 'm6 9 6 6 6-6',
+  'chevron-left': 'm15 6-6 6 6 6',
   'chevron-right': 'm9 6 6 6-6 6',
   folder: 'M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6Z',
   file: 'M7 3h7l5 5v13H7V3Zm7 0v5h5',

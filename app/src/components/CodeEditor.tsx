@@ -10,6 +10,25 @@ const LANGUAGES: Record<string, string> = {
 }
 export const languageOf = (path: string) => LANGUAGES[path.split('.').pop()?.toLowerCase() ?? ''] ?? 'plaintext'
 
+// Same dark blue as the rest of the app instead of the default grey of the editor.
+const THEME = 'jaajef'
+const defineTheme = (monaco: { editor: { defineTheme: (name: string, theme: unknown) => void } }) => monaco.editor.defineTheme(THEME, {
+  base: 'vs-dark',
+  inherit: true,
+  rules: [],
+  colors: {
+    'editor.background': '#0b1120',
+    'editorGutter.background': '#0b1120',
+    'editor.lineHighlightBackground': '#111a30',
+    'editor.lineHighlightBorder': '#00000000',
+    'editorLineNumber.foreground': '#4b5a78',
+    'editorLineNumber.activeForeground': '#9fb0cf',
+    'editorWidget.background': '#0e1526',
+    'scrollbarSlider.background': '#ffffff18',
+    'scrollbarSlider.hoverBackground': '#ffffff28',
+  },
+})
+
 export function CodeEditor({ path, value, onChange, readOnly = false }: { path: string; value: string; onChange: (value: string) => void; readOnly?: boolean }) {
   return (
     <Suspense fallback={<p className="muted">…</p>}>
@@ -18,7 +37,8 @@ export function CodeEditor({ path, value, onChange, readOnly = false }: { path: 
         path={path}
         language={languageOf(path)}
         value={value}
-        theme="vs-dark"
+        theme={THEME}
+        beforeMount={defineTheme}
         onChange={(v) => onChange(v ?? '')}
         options={{ readOnly, minimap: { enabled: false }, fontSize: 14, tabSize: 2, scrollBeyondLastLine: false, automaticLayout: true }}
       />

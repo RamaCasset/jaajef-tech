@@ -133,6 +133,12 @@ describe('Repository: viewing a file', () => {
     expect(within(panel).getByRole('link', { name: 'util.py' })).toHaveAttribute('href', '/projets/p1/code?fichier=src%2Futil.py')
   })
 
+  it('hides the file list with the button in its own header', async () => {
+    mount('/projets/p1/code?fichier=main.py')
+    await userEvent.click(await screen.findByRole('button', { name: 'Masquer la liste des fichiers' }))
+    expect(screen.queryByRole('complementary', { name: 'Tous les fichiers' })).toBeNull()
+  })
+
   it('opens the folder of the current file in the file list', async () => {
     mount('/projets/p1/code?fichier=src%2Futil.py')
     const panel = await screen.findByRole('complementary', { name: 'Tous les fichiers' })

@@ -473,7 +473,9 @@ select { appearance: none; -webkit-appearance: none; background-color: var(--pan
 .commit-actions { display: flex; gap: 10px; justify-content: flex-end; }
 .btn-danger { background: var(--danger); border-color: var(--danger); color: #fff; }
 .repo-panel { padding: 14px 8px; background: #0a0f1d; min-height: 460px; }
-.repo-panel h2 { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg-muted); margin: 0 10px 10px; }
+.repo-panel-head { display: flex; align-items: center; justify-content: space-between; margin: 0 4px 10px 10px; }
+.repo-panel h2 { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg-muted); margin: 0; }
+.icon-btn-small { width: 28px; height: 28px; border-color: transparent; background: none; }
 .repo-panel .file-tree { max-height: calc(100vh - 300px); }
 .repo-panel .file-tree .file-tree { max-height: none; overflow: visible; }
 .repo-panel .file-row { display: flex; align-items: center; gap: 6px; text-decoration: none; }
