@@ -90,13 +90,13 @@ describe('Notifications page', () => {
     expect(screen.queryByRole('button', { name: 'Accepter' })).toBeNull()
   })
 
-  it('shows a French message when the invitation is no longer valid', async () => {
+  it('replaces the buttons by a message when the invitation is no longer valid', async () => {
     answerCollabInvite.mockRejectedValue(new Error('This invitation has expired'))
     listNotifications.mockResolvedValue([note(32, 'collab_invite', { actor_username: 'awa', project_title: 'P', invite_id: 'inv3' })])
     mount()
     await userEvent.click(await screen.findByRole('button', { name: 'Accepter' }))
-    expect(await screen.findByRole('alert')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Accepter' })).toBeInTheDocument()
+    expect(await screen.findByText('Invitation expirée ou déjà traitée.')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Accepter' })).not.toBeInTheDocument()
   })
 
   it('opening an unread notice marks it read once; an already read one does nothing', async () => {

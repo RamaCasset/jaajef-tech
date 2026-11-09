@@ -101,7 +101,6 @@ export function ProjectPage() {
           <>
             <header className="page-head">
               <h1 className="page-title">{project.title}{!listed ? <> <span className="tag tag-private">{fr.projectPage.private}</span></> : null}</h1>
-              {!isOwner && <ReportButton type="project" id={project.id} />}
               <p className="muted tiny">
                 <Link to={`/profil/${project.owner_username}`}>{fr.projectPage.by(project.owner_display_name || project.owner_username)}</Link>
               </p>
@@ -115,18 +114,14 @@ export function ProjectPage() {
                 {project.tags.map((t) => <span key={t} className="tag">{t}</span>)}
               </div>
               {listed ? (
-                <p>
-                  {isOwner ? (
-                    <span className="muted">{fr.projectPage.ownProject}</span>
-                  ) : iCollaborate ? (
-                    <span className="muted">{fr.projectPage.youCollaborate}</span>
-                  ) : (
+                !isOwner && !iCollaborate && (
+                  <p>
                     <button type="button" className="btn" disabled={busy} aria-pressed={project.starred_by_me} onClick={() => void toggleStar()}>
                       {project.starred_by_me ? '★ ' + fr.projectPage.unstar : '☆ ' + fr.projectPage.star}
-                    </button>
-                  )}{' '}
-                  {fr.projectPage.stars(project.star_count)}
-                </p>
+                    </button>{' '}
+                    {fr.projectPage.stars(project.star_count)}
+                  </p>
+                )
               ) : (
                 <p className="muted">{isOwner ? fr.projectPage.privateOwner : fr.projectPage.privateMember}</p>
               )}
@@ -229,6 +224,8 @@ export function ProjectPage() {
                 <button className="btn btn-cta" type="submit" disabled={busy || !text.trim()}>{fr.projectPage.commentSend}</button>
               </form>
             </section>}
+
+            {!isOwner && <div className="report-foot"><ReportButton type="project" id={project.id} /></div>}
           </>
         )}
       </main>

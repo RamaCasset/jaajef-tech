@@ -43,14 +43,17 @@ export function NotificationBell() {
         <div className="bell-pop" role="region" aria-label={fr.notifications.title}>
           <div className="bell-pop-head">
             <strong>{fr.notifications.title}</strong>
-            {feed.unread > 0 && <button type="button" className="linklike tiny" onClick={() => void feed.readAll()}>{fr.notifications.markAll}</button>}
+            <span className="bell-pop-tools">
+              {feed.unread > 0 && <button type="button" className="linklike tiny" onClick={() => void feed.readAll()}>{fr.notifications.markAll}</button>}
+              {feed.items && feed.items.length > 0 && <button type="button" className="linklike tiny" onClick={() => void feed.clearAll()}>{fr.notifications.clearAll}</button>}
+            </span>
           </div>
           {feed.error && <div className="alert" role="alert">{feed.error}</div>}
           {feed.failed && <p className="muted tiny">{fr.notifications.loadFailed} <button type="button" className="linklike" onClick={feed.load}>{fr.notifications.retry}</button></p>}
           {!feed.failed && !feed.items && <p className="muted tiny">{fr.common.loading}</p>}
           {feed.items && feed.items.length === 0 && <p className="muted tiny">{fr.notifications.empty}</p>}
           {feed.items && feed.items.length > 0 && (
-            <NotificationItems items={feed.items} answered={feed.answered} onOpen={(n) => void feed.open(n)} onAnswer={(n, i, a) => void feed.answer(n, i, a)} onNavigate={() => setOpen(false)} />
+            <NotificationItems items={feed.items} answered={feed.answered} onOpen={(n) => void feed.open(n)} onAnswer={(n, i, a) => void feed.answer(n, i, a)} onRemove={(n) => void feed.remove(n)} onNavigate={() => setOpen(false)} />
           )}
           <p className="bell-pop-foot"><Link to="/notifications" onClick={() => setOpen(false)}>{fr.notifications.viewAll}</Link></p>
         </div>

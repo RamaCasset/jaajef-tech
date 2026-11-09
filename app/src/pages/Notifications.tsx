@@ -6,7 +6,7 @@ import { useNotifications } from '../lib/useNotifications'
 
 /** The inbox: every notice, like a mailbox. Choosing what to receive is in the settings. */
 export function Notifications() {
-  const { items, failed, error, answered, unread, load, open, readAll, answer } = useNotifications(50)
+  const { items, failed, error, answered, unread, load, open, readAll, remove, clearAll, answer } = useNotifications(50)
 
   return (
     <AppShell>
@@ -29,11 +29,14 @@ export function Notifications() {
 
         {items && (
           <section className="panel panel-pad">
-            {unread > 0 && (
-              <button className="btn" type="button" onClick={() => void readAll()} style={{ marginBottom: 12 }}>{fr.notifications.markAll}</button>
+            {items.length > 0 && (
+              <div className="inbox-tools">
+                {unread > 0 && <button className="btn btn-small" type="button" onClick={() => void readAll()}>{fr.notifications.markAll}</button>}
+                <button className="btn btn-small" type="button" onClick={() => void clearAll()}>{fr.notifications.clearAll}</button>
+              </div>
             )}
             {items.length === 0 && <p className="muted">{fr.notifications.empty}</p>}
-            <NotificationItems items={items} answered={answered} onOpen={(n) => void open(n)} onAnswer={(n, i, a) => void answer(n, i, a)} />
+            <NotificationItems items={items} answered={answered} onOpen={(n) => void open(n)} onAnswer={(n, i, a) => void answer(n, i, a)} onRemove={(n) => void remove(n)} />
           </section>
         )}
       </main>
