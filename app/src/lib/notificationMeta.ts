@@ -8,6 +8,7 @@ type Category = 'mentions' | 'projects' | 'quests' | 'other'
 const CATEGORY: Record<NotificationKind, Category> = {
   mention: 'mentions', project_comment: 'mentions', blog_comment: 'mentions', blog_like: 'mentions',
   quest_completed: 'quests',
+  question_answered: 'mentions', answer_accepted: 'mentions',
   new_application: 'other', application_seen: 'other', application_shortlisted: 'other', application_declined: 'other', job_alert: 'other', job_offer_hidden: 'other',
   blog_hidden: 'other', souk_submission_approved: 'other', souk_submission_rejected: 'other', souk_sale: 'other', souk_item_removed: 'other',
   project_starred: 'projects', project_confirmed: 'projects', project_hidden: 'projects',
@@ -21,7 +22,7 @@ const CATEGORY: Record<NotificationKind, Category> = {
 
 /** The three switches of "À votre rythme": each one turns a group of kinds on or off. */
 export const RHYTHM_GROUPS: { key: 'mentions' | 'projects' | 'quests'; kinds: NotificationKind[] }[] = [
-  { key: 'mentions', kinds: ['mention', 'project_comment', 'blog_comment', 'blog_like'] },
+  { key: 'mentions', kinds: ['mention', 'project_comment', 'blog_comment', 'blog_like', 'question_answered', 'answer_accepted'] },
   { key: 'projects', kinds: ['project_starred', 'project_confirmed', 'collab_request', 'collab_accepted', 'collab_declined', 'collab_invite', 'collab_invite_accepted', 'collab_invite_declined', 'proposal_opened', 'proposal_merged', 'proposal_declined', 'join_request', 'join_approved', 'join_declined'] },
   { key: 'quests', kinds: ['badge_unlocked', 'quest_completed'] },
 ]
@@ -38,6 +39,8 @@ export function tileOf(kind: NotificationKind): ToneIcon {
     case 'mention': return { text: '@', tone: 'blue' }
     case 'project_comment': case 'blog_comment': return { icon: 'messages', tone: 'blue' }
     case 'blog_like': return { icon: 'star', tone: 'blue' }
+    case 'question_answered': return { icon: 'messages', tone: 'blue' }
+    case 'answer_accepted': return { text: '✓', tone: 'gold' }
     case 'new_application': case 'application_seen': case 'application_shortlisted': case 'application_declined': case 'job_alert': return { icon: 'jobs', tone: 'blue' }
     case 'souk_submission_approved': case 'souk_submission_rejected': case 'souk_sale': return { icon: 'souk', tone: 'blue' }
     case 'proposal_opened': case 'proposal_merged': case 'proposal_declined': return { icon: 'fork', tone: 'blue' }
@@ -107,6 +110,7 @@ export function noticeLink(n: NotificationRow): string | null {
     case 'project_comment': case 'project_starred': case 'project_confirmed': case 'collab_request': case 'collab_accepted': case 'collab_declined':
       return str('project_id') ? `/projets/${str('project_id')}` : null
     case 'blog_comment': case 'blog_like': return str('post_slug') ? `/blog/${str('post_slug')}` : null
+    case 'question_answered': case 'answer_accepted': return str('question_id') ? `/questions/${str('question_id')}` : null
     case 'quest_completed': return str('quest_slug') ? `/quetes/${str('quest_slug')}` : '/quetes'
     case 'new_application': case 'job_alert': return str('offer_id') ? `/jobs/${str('offer_id')}` : null
     case 'souk_submission_approved': case 'souk_submission_rejected': case 'souk_sale': case 'souk_item_removed': return '/souk'

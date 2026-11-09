@@ -99,6 +99,19 @@ describe('Notifications page', () => {
     expect(screen.queryByRole('button', { name: 'Accepter' })).not.toBeInTheDocument()
   })
 
+  it('tells the asker about an answer and the author when their answer is chosen, with a link to the question', async () => {
+    listNotifications.mockResolvedValue([
+      note(20, 'question_answered', { actor_username: 'sira', question_title: 'Centrer une div', question_id: 'q1' }),
+      note(21, 'answer_accepted', { question_title: 'Centrer une div', question_id: 'q1' }),
+    ])
+    mount()
+    expect(await screen.findByText('sira a répondu à votre question « Centrer une div ».')).toBeInTheDocument()
+    expect(screen.getByText(/Votre réponse à « Centrer une div » a été choisie comme solution/)).toBeInTheDocument()
+    const links = screen.getAllByRole('link', { name: 'Voir' })
+    expect(links).toHaveLength(2)
+    expect(links[0]).toHaveAttribute('href', '/questions/q1')
+  })
+
   it('opening an unread notice marks it read once; an already read one does nothing', async () => {
     mount()
     await userEvent.click(await screen.findByText(/a mis une étoile/))

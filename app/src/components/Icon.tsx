@@ -1,4 +1,5 @@
 const PATHS: Record<string, string> = {
+  question: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-5v.01M9.7 9.6a2.4 2.4 0 1 1 3.4 2.2c-.7.4-1.1.9-1.1 1.7',
   blog: 'M5 4h11a2 2 0 0 1 2 2v13H7a2 2 0 0 1-2-2V4Zm3 4h7M8 12h7M8 16h4',
   messages: 'M4 5h16v11H9l-5 4V5Z',
   communities: 'M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm7 1a2.5 2.5 0 1 0 0-5M3 19c0-3 3-5 6-5s6 2 6 5M16 14c3 0 5 1.6 5 4',
