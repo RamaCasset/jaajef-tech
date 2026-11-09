@@ -1157,6 +1157,13 @@ export const frMessages = {
   },
   qa: {
     nav: 'Questions',
+    room: 'Questions',
+    roomHint: 'Posez vos questions, les autres membres vous répondent.',
+    roomEmpty: 'Aucune question dans cette communauté pour le moment. Posez la première.',
+    whereLabel: 'Où publier la question ?',
+    whereCity: 'Toute la Cité (visible par tous)',
+    inCommunity: (name: string): string => `Dans ${name}`,
+    backTo: (name: string): string => `Retour à ${name}`,
     eyebrow: 'La Cité / Entraide',
     searchPlaceholder: 'Rechercher par étiquette…',
     answerWord: (n: number): string => (n === 1 ? 'réponse' : 'réponses'),

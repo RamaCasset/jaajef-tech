@@ -870,6 +870,9 @@ div.alert[data-dismissed], p.alert[data-dismissed], div.notice[data-dismissed], 
 .qa-tags { display: flex; gap: 8px; flex-wrap: wrap; margin: 0; }
 .qa-tag { cursor: pointer; }
 .qa-solved { border-color: #2fa86b; color: #5fd69a; }
+.qa-community { color: var(--accent); text-decoration: none; font-weight: 600; }
+.qa-community:hover { text-decoration: underline; }
+.chat-messages .qa-list { margin-top: 12px; }
 .qa-steps { margin: 0 0 16px; padding-left: 18px; display: grid; gap: 10px; color: var(--fg-muted); font-size: 14px; }
 .qa-body { line-height: 1.6; }
 .qa-body pre { background: #060b17; border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; overflow-x: auto; }

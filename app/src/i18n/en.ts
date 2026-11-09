@@ -1157,6 +1157,13 @@ export const en: Messages = {
   },
   qa: {
     nav: 'Questions',
+    room: 'Questions',
+    roomHint: 'Ask your questions, the other members answer.',
+    roomEmpty: 'No question in this community yet. Ask the first one.',
+    whereLabel: 'Where to publish the question?',
+    whereCity: 'The whole City (visible to everyone)',
+    inCommunity: (name: string): string => `In ${name}`,
+    backTo: (name: string): string => `Back to ${name}`,
     eyebrow: 'The City / Help',
     searchPlaceholder: 'Search by tag…',
     answerWord: (n: number) => (n === 1 ? 'answer' : 'answers'),

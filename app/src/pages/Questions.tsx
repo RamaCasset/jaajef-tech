@@ -1,8 +1,8 @@
-import { dateLocale } from '../i18n/lang'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
 import { Icon } from '../components/Icon'
+import { QuestionRows } from '../components/QuestionRows'
 import { useDebounced } from '../hooks'
 import { fr } from '../i18n/fr'
 import { listQuestions, type QuestionCard, type QuestionFilter, type QuestionSort } from '../lib/api'
@@ -76,28 +76,7 @@ export function Questions() {
             {!failed && !items && <p className="muted">{fr.common.loading}</p>}
             {items && items.length === 0 && <section className="panel panel-pad"><p className="muted">{t.empty}</p></section>}
 
-            {items && items.length > 0 && (
-              <ul className="panel qa-list">
-                {items.map((q) => (
-                  <li key={q.id} className="qa-item">
-                    <div className={`qa-count ${q.solved ? 'qa-count-solved' : ''}`} aria-label={t.answers(q.answer_count)}>
-                      <strong>{q.answer_count}</strong>
-                      <span>{t.answerWord(q.answer_count)}</span>
-                    </div>
-                    <div className="qa-main">
-                      <h2 className="qa-title"><Link to={`/questions/${q.id}`}>{q.title}</Link></h2>
-                      {q.tags.length > 0 && <p className="qa-tags">{q.tags.map((x) => <button key={x} type="button" className="chip qa-tag" onClick={() => setTag(x)}>{x}</button>)}</p>}
-                      <p className="qa-meta tiny muted">
-                        {q.solved && <span className="tag qa-solved">{t.solved}</span>}
-                        <span>{t.useful(q.vote_count)}</span>
-                        <span>{t.by(`@${q.author_username}`)}</span>
-                        <span>{new Date(q.created_at).toLocaleDateString(dateLocale())}</span>
-                      </p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
+            {items && items.length > 0 && <QuestionRows items={items} onTag={setTag} />}
             {more && <p><button type="button" className="btn" onClick={() => void loadMore()}>{t.more}</button></p>}
           </div>
 

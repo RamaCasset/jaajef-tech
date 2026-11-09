@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
 import { ChatBody } from '../components/ChatBody'
+import { CommunityQuestions } from '../components/CommunityQuestions'
 import { Icon } from '../components/Icon'
 import { ReportButton } from '../components/ReportButton'
 import { useAuth } from '../auth/AuthContext'
@@ -15,6 +16,7 @@ import {
 } from '../lib/api'
 
 const REFRESH_MS = 15000
+const QUESTIONS_ROOM = 'questions'
 
 export function Community() {
   const { slug = '' } = useParams()
@@ -40,6 +42,7 @@ export function Community() {
   const isOwner = myRole === 'owner'
   const canModerate = myRole === 'owner' || myRole === 'moderator'
   const channel = channels.find((c) => c.id === channelId) ?? null
+  const showQuestions = channelId === QUESTIONS_ROOM
   const canWrite = !!channel && (channel.kind !== 'announcement' || canModerate)
 
   const loadAll = useCallback(() => {
@@ -63,7 +66,7 @@ export function Community() {
   useEffect(loadAll, [loadAll])
 
   const loadMessages = useCallback(() => {
-    if (!channelId) return
+    if (!channelId || channelId === QUESTIONS_ROOM) return
     listChannelMessages(channelId).then(setMessages).catch(() => undefined)
   }, [channelId])
   useEffect(() => {
@@ -133,8 +136,17 @@ export function Community() {
                       <span className="chat-hash">#</span> {c.name}
                     </button>
                   ))}
+                  <button type="button" role="tab" aria-selected={showQuestions} className={`chat-channel ${showQuestions ? 'chat-channel-on' : ''}`} onClick={() => setChannelId(QUESTIONS_ROOM)}>
+                    <span className="chat-hash"><Icon name="question" size={14} /></span> {fr.qa.room}
+                  </button>
                 </div>
               </aside>
+
+              {showQuestions ? (
+                <section className="chat-main" aria-label={fr.qa.room}>
+                  <CommunityQuestions communityId={community.id} communitySlug={community.slug} />
+                </section>
+              ) : (
 
               <section className="chat-main" aria-label={channel ? `# ${channel.name}` : fr.community.channels}>
                 <header className="chat-head">
@@ -188,6 +200,7 @@ export function Community() {
                   channel && <p className="muted chat-compose">{fr.community.announcementOnly}</p>
                 )}
               </section>
+              )}
             </div>
 
             {canModerate && (

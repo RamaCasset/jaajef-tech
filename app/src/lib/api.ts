@@ -1738,10 +1738,11 @@ export async function loadHistory(project: RepoRef, opts: { path?: string; page?
 }
 
 // ---- Questions and answers
-export type QuestionCard = { id: string; title: string; tags: string[]; author_id: string; author_username: string; answer_count: number; vote_count: number; solved: boolean; created_at: string }
+export type QuestionCard = { id: string; title: string; tags: string[]; author_id: string; author_username: string; answer_count: number; vote_count: number; solved: boolean; created_at: string; community_id: string | null; community_slug: string | null; community_name: string | null }
 export type QuestionFull = {
   id: string; title: string; body: string; tags: string[]; author_id: string; author_username: string; author_display_name: string | null
   accepted_answer_id: number | null; answer_count: number; vote_count: number; voted_by_me: boolean; created_at: string; edited_at: string | null
+  community_id: string | null; community_slug: string | null; community_name: string | null
 }
 export type AnswerRow = {
   id: number; body: string; author_id: string; author_username: string; author_display_name: string | null
@@ -1749,14 +1750,14 @@ export type AnswerRow = {
 }
 export type QuestionFilter = 'all' | 'open' | 'solved'
 export type QuestionSort = 'recent' | 'useful'
-export const listQuestions = (o: { tag?: string; filter?: QuestionFilter; sort?: QuestionSort; limit?: number; offset?: number } = {}) =>
-  rpc<QuestionCard[]>('list_questions', { p_tag: o.tag?.trim() || null, p_filter: o.filter ?? 'all', p_sort: o.sort ?? 'recent', p_limit: o.limit ?? 20, p_offset: o.offset ?? 0 })
+export const listQuestions = (o: { tag?: string; filter?: QuestionFilter; sort?: QuestionSort; limit?: number; offset?: number; community?: string } = {}) =>
+  rpc<QuestionCard[]>('list_questions', { p_tag: o.tag?.trim() || null, p_filter: o.filter ?? 'all', p_sort: o.sort ?? 'recent', p_limit: o.limit ?? 20, p_offset: o.offset ?? 0, p_community: o.community ?? null })
 export async function getQuestion(id: string): Promise<QuestionFull | null> {
   const rows = await rpc<QuestionFull[]>('get_question', { p_question: id })
   return rows[0] ?? null
 }
 export const listAnswers = (questionId: string) => rpc<AnswerRow[]>('list_answers', { p_question: questionId })
-export const askQuestion = (title: string, body: string, tags: string[]) => rpc<string>('ask_question', { p_title: title, p_body: body, p_tags: tags })
+export const askQuestion = (title: string, body: string, tags: string[], communityId: string | null = null) => rpc<string>('ask_question', { p_title: title, p_body: body, p_tags: tags, p_community: communityId })
 export const editQuestion = (id: string, title: string, body: string, tags: string[]) => rpc<void>('edit_question', { p_question: id, p_title: title, p_body: body, p_tags: tags })
 export const editAnswer = (id: number, body: string) => rpc<void>('edit_answer', { p_answer: id, p_body: body })
 export const deleteQuestion = (id: string) => rpc<void>('delete_question', { p_question: id })
