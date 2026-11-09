@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { AddMenu } from './AddMenu'
 import { Icon } from './Icon'
 import { dateLocale } from '../i18n/lang'
 import { fr } from '../i18n/fr'
@@ -31,9 +32,7 @@ export function ProjectFiles({ project, dir, canEdit, tree: given, onTree, branc
   const [own, setOwn] = useState<RepoTree | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [commits, setCommits] = useState<Record<string, LastCommit>>({})
-  const [adding, setAdding] = useState(false)
-  const [name, setName] = useState('')
-  const [nameError, setNameError] = useState<string | null>(null)
+  const picker = useRef<HTMLInputElement>(null)
   const tree = given ?? own
 
   useEffect(() => {
@@ -58,12 +57,14 @@ export function ProjectFiles({ project, dir, canEdit, tree: given, onTree, branc
     return () => { alive = false }
   }, [project.id, project.repo_private, wanted, branch])
 
-  function onCreate(e: FormEvent) {
-    e.preventDefault()
-    const path = `${dir ? `${dir}/` : ''}${name.trim()}`
-    if (!validName(name.trim())) { setNameError(fr.editor.badName); return }
-    if ((tree?.entries ?? []).some((x) => x.path === path)) { setNameError(fr.editor.exists); return }
-    navigate(`${fileUrl(project.id, path, branch)}&nouveau=1`)
+  const inDir = (n: string) => `${dir ? `${dir}/` : ''}${n}`
+
+  // An upload is done in the editor, on the first file of this folder: the file travels with the navigation.
+  function sendUpload(file: File | undefined) {
+    if (!file) return
+    const first = rows.find((r) => r.type === 'blob') ?? (tree?.entries ?? []).find((r) => r.type === 'blob')
+    if (!first) return
+    navigate(fileUrl(project.id, first.path, branch), { state: { upload: file } })
   }
 
   return (
@@ -71,14 +72,18 @@ export function ProjectFiles({ project, dir, canEdit, tree: given, onTree, branc
     <div className="files-toolbar">
       <Link className="btn btn-small" to={`/projets/${project.id}/historique`}>{t.history}</Link>
       {canEdit && <Link className="btn btn-small" to={`/projets/${project.id}/propositions`}>{t.proposals}</Link>}
-      {canEdit && !adding && <button type="button" className="btn btn-small" onClick={() => setAdding(true)}>{t.newFile}</button>}
-      {canEdit && adding && (
-        <form className="files-new" onSubmit={onCreate} noValidate>
-          <input aria-label={fr.editor.newFileName} placeholder={fr.editor.newFileName} value={name} onChange={(e) => { setName(e.target.value); setNameError(null) }} />
-          <button type="submit" className="btn btn-cta btn-small">{t.createFile}</button>
-          <button type="button" className="btn btn-small" onClick={() => { setAdding(false); setNameError(null) }}>{t.cancel}</button>
-          {nameError && <span role="alert" className="alert">{nameError}</span>}
-        </form>
+      {canEdit && (
+        <>
+          <AddMenu
+            busy={false}
+            folderName
+            exists={(n) => (tree?.entries ?? []).some((x) => x.path === inDir(n))}
+            onNewFile={(n) => navigate(`${fileUrl(project.id, inDir(n), branch)}&nouveau=1`)}
+            onNewFolder={(n) => { if (n) navigate(`${fileUrl(project.id, inDir(`${n.replace(/\/+$/, '')}/.gitkeep`), branch)}&nouveau=1`) }}
+            onUpload={() => picker.current?.click()}
+          />
+          <input ref={picker} type="file" hidden aria-label={fr.editor.upload} onChange={(e) => { sendUpload(e.target.files?.[0]); e.target.value = '' }} />
+        </>
       )}
     </div>
     <section className="panel files-panel" aria-label={t.filesTitle}>

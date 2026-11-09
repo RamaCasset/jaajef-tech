@@ -3,16 +3,19 @@ import { fr } from '../i18n/fr'
 import { validName } from './ProjectFiles'
 
 /** The "+" button of the editor: a small list with new file, new folder and upload. */
-export function AddMenu({ busy, onNewFile, onNewFolder, onUpload, exists }: {
+export function AddMenu({ busy, onNewFile, onNewFolder, onUpload, exists, folderName = false }: {
   busy: boolean
   onNewFile: (name: string) => void
-  onNewFolder: () => void
+  /** With `folderName`, the menu asks for the folder name itself and passes it; otherwise the caller asks. */
+  onNewFolder: (name?: string) => void
   onUpload: () => void
   exists: (name: string) => boolean
+  folderName?: boolean
 }) {
   const t = fr.editor
   const [open, setOpen] = useState(false)
   const [naming, setNaming] = useState<string | null>(null)
+  const [kind, setKind] = useState<'file' | 'folder'>('file')
   const [error, setError] = useState<string | null>(null)
   const box = useRef<HTMLDivElement>(null)
 
@@ -33,7 +36,8 @@ export function AddMenu({ busy, onNewFile, onNewFolder, onUpload, exists }: {
     if (!validName(name)) { setError(t.badName); return }
     if (exists(name)) { setError(t.exists); return }
     close()
-    onNewFile(name)
+    if (kind === 'folder') onNewFolder(name)
+    else onNewFile(name)
   }
 
   return (
@@ -43,14 +47,14 @@ export function AddMenu({ busy, onNewFile, onNewFolder, onUpload, exists }: {
         <div className="add-pop" role="menu" aria-label={t.addMenu}>
           {naming === null ? (
             <>
-              <button type="button" role="menuitem" onClick={() => setNaming('')}>{t.newFile}</button>
-              <button type="button" role="menuitem" onClick={() => { close(); onNewFolder() }}>{t.newFolder}</button>
+              <button type="button" role="menuitem" onClick={() => { setKind('file'); setNaming('') }}>{t.newFile}</button>
+              <button type="button" role="menuitem" onClick={() => { if (folderName) { setKind('folder'); setNaming('') } else { close(); onNewFolder() } }}>{t.newFolder}</button>
               <button type="button" role="menuitem" onClick={() => { close(); onUpload() }}>{t.upload}</button>
             </>
           ) : (
             <form onSubmit={submit} noValidate>
-              <label htmlFor="add-file-name" className="sr-only">{t.newFileName}</label>
-              <input id="add-file-name" placeholder={t.newFileName} value={naming} onChange={(e) => { setNaming(e.target.value); setError(null) }} autoFocus />
+              <label htmlFor="add-file-name" className="sr-only">{kind === 'folder' ? t.folderLabel : t.newFileName}</label>
+              <input id="add-file-name" placeholder={kind === 'folder' ? t.folderLabel : t.newFileName} value={naming} onChange={(e) => { setNaming(e.target.value); setError(null) }} autoFocus />
               {error && <p className="tiny add-error" role="alert">{error}</p>}
               <div className="panel-form-actions">
                 <button type="button" className="btn btn-small" onClick={close}>{t.cancelShort}</button>
