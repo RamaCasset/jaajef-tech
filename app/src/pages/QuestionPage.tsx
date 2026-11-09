@@ -83,7 +83,9 @@ export function QuestionPage() {
   return (
     <AppShell>
       <main className="page">
-        <p><Link to="/questions">← {t.back}</Link></p>
+        <p>{question.community_slug
+          ? <Link to={`/communautes/${question.community_slug}`}>← {t.backTo(question.community_name ?? '')}</Link>
+          : <Link to="/questions">← {t.back}</Link>}</p>
         <article className="panel panel-pad stack-gap">
           {editingQ ? (
             <form className="stack-gap" onSubmit={(e) => void saveQuestion(e)} noValidate>
@@ -105,7 +107,7 @@ export function QuestionPage() {
               </p>
             </form>
           ) : (<>
-          <p className="eyebrow">{t.eyebrow}</p>
+          <p className="eyebrow">{question.community_name ? t.inCommunity(question.community_name) : t.eyebrow}</p>
           <h1 className="page-title">{question.title}</h1>
           <p className="tiny muted">
             <Link to={`/profil/${question.author_username}`}>{t.by(name(question.author_username, question.author_display_name))}</Link> · {when(question.created_at)}

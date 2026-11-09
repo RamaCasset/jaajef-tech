@@ -9,7 +9,7 @@ const api = vi.hoisted(() => ({
   joinCommunity: vi.fn(), requestToJoin: vi.fn(), leaveCommunity: vi.fn(), getCommunityBySlug: vi.fn(), listChannels: vi.fn(),
   listChannelMessages: vi.fn(), sendMessage: vi.fn(), deleteMessage: vi.fn(), listCommunityMembers: vi.fn(),
   listPendingJoinRequests: vi.fn(), decideJoinRequest: vi.fn(), removeCommunityMember: vi.fn(), setMemberRole: vi.fn(),
-  transferCommunity: vi.fn(), deleteCommunity: vi.fn(),
+  transferCommunity: vi.fn(), deleteCommunity: vi.fn(), listQuestions: vi.fn(),
 }))
 vi.mock('../lib/api', () => api)
 vi.mock('../auth/AuthContext', () => ({
@@ -147,6 +147,16 @@ describe('One community', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Quitter la communauté' }))
     expect(api.leaveCommunity).toHaveBeenCalledWith('1')
     expect(await screen.findByText('list page')).toBeInTheDocument()
+  })
+
+  it('has a Questions room that lists the questions asked in this community and offers to ask one here', async () => {
+    setup('member')
+    api.listQuestions.mockResolvedValue([{ id: 'q1', title: 'Comment centrer une div ?', tags: ['css'], author_id: 'u2', author_username: 'awa', answer_count: 1, vote_count: 0, solved: false, created_at: '2026-11-05T10:00:00Z', community_id: '1', community_slug: 'slug-1', community_name: 'Communauté 1' }])
+    await userEvent.click(await screen.findByRole('tab', { name: /Questions/ }))
+    expect(await screen.findByRole('link', { name: 'Comment centrer une div ?' })).toHaveAttribute('href', '/questions/q1')
+    expect(api.listQuestions).toHaveBeenCalledWith(expect.objectContaining({ community: '1' }))
+    expect(screen.getByRole('link', { name: /Poser une question/ })).toHaveAttribute('href', '/questions/poser?communaute=slug-1')
+    expect(screen.queryByLabelText('Votre message')).not.toBeInTheDocument()
   })
 
   it('a non-member is told so and sees no chat', async () => {

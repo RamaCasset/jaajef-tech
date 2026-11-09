@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const api = vi.hoisted(() => ({
   listQuestions: vi.fn(), getQuestion: vi.fn(), listAnswers: vi.fn(), askQuestion: vi.fn(), deleteQuestion: vi.fn(), postAnswer: vi.fn(),
   deleteAnswer: vi.fn(), editQuestion: vi.fn(), editAnswer: vi.fn(), acceptAnswer: vi.fn(), unacceptAnswer: vi.fn(), voteQuestion: vi.fn(), voteAnswer: vi.fn(),
-  getMyStaffAccess: vi.fn(), unreadNotificationCount: vi.fn(),
+  getMyStaffAccess: vi.fn(), unreadNotificationCount: vi.fn(), listMyCommunities: vi.fn(),
 }))
 vi.mock('../lib/api', () => api)
 const auth = vi.hoisted(() => ({ id: 'me' }))
@@ -29,13 +29,14 @@ const mount = (url: string) => render(
   </MemoryRouter>,
 )
 
-const card = (extra = {}) => ({ id: 'q1', title: 'Comment lire du JSON ?', tags: ['python', 'json'], author_id: 'u2', author_username: 'awa', answer_count: 2, vote_count: 3, solved: false, created_at: '2026-11-08T10:00:00Z', ...extra })
+const card = (extra = {}) => ({ id: 'q1', title: 'Comment lire du JSON ?', tags: ['python', 'json'], author_id: 'u2', author_username: 'awa', answer_count: 2, vote_count: 3, solved: false, created_at: '2026-11-08T10:00:00Z', community_id: null, community_slug: null, community_name: null, ...extra })
 const full = (extra = {}) => ({ ...card(), body: 'Je veux lire **data.json**', author_display_name: 'Awa', accepted_answer_id: null, voted_by_me: false, edited_at: null, ...extra })
 const answer = (extra = {}) => ({ id: 7, body: 'Utilise `json.load`', author_id: 'u3', author_username: 'bass', author_display_name: 'Bass', vote_count: 1, voted_by_me: false, accepted: false, created_at: '2026-11-08T11:00:00Z', edited_at: null, ...extra })
 
 beforeEach(() => {
   for (const f of Object.values(api)) f.mockReset()
   auth.id = 'me'
+  api.listMyCommunities.mockResolvedValue([{ id: 'c1', slug: 'gamedev', name: 'GameDev Senegal', role: 'member' }, { id: 'c2', slug: 'ai-lab', name: 'AI Lab', role: 'member' }])
   api.getMyStaffAccess.mockResolvedValue({ role: null, shopManager: false, shopOwner: false, questWriter: false })
   api.unreadNotificationCount.mockResolvedValue(0)
   api.listQuestions.mockResolvedValue([card(), card({ id: 'q2', title: 'Pourquoi ce bug apparaît ?', solved: true })])
@@ -90,8 +91,21 @@ describe('Ask a question', () => {
     await userEvent.type(screen.getByLabelText('Détails'), 'Je veux lire un fichier.')
     await userEvent.type(screen.getByLabelText(/Étiquettes/), 'python, json , ')
     await userEvent.click(screen.getByRole('button', { name: 'Publier la question' }))
-    await waitFor(() => expect(api.askQuestion).toHaveBeenCalledWith('Comment lire du JSON ?', 'Je veux lire un fichier.', ['python', 'json']))
+    await waitFor(() => expect(api.askQuestion).toHaveBeenCalledWith('Comment lire du JSON ?', 'Je veux lire un fichier.', ['python', 'json'], null))
     expect(await screen.findByTestId('where')).toHaveTextContent('/questions/q9')
+  })
+
+  it('offers the whole City or one of my communities, and starts on the community it was opened from', async () => {
+    api.askQuestion.mockResolvedValue('q9')
+    mount('/questions/poser?communaute=gamedev')
+    const where = screen.getByLabelText('Où publier la question ?') as HTMLSelectElement
+    await waitFor(() => expect(where).toHaveValue('c1'))
+    expect(screen.getByRole('option', { name: 'Toute la Cité (visible par tous)' })).toBeInTheDocument()
+    await userEvent.selectOptions(where, 'c2')
+    await userEvent.type(screen.getByLabelText('Titre de la question'), 'Comment lire du JSON ?')
+    await userEvent.type(screen.getByLabelText('Détails'), 'Je veux lire un fichier.')
+    await userEvent.click(screen.getByRole('button', { name: 'Publier la question' }))
+    await waitFor(() => expect(api.askQuestion).toHaveBeenCalledWith('Comment lire du JSON ?', 'Je veux lire un fichier.', [], 'c2'))
   })
 
   it('cannot be sent empty, and shows a refusal in French', async () => {
@@ -193,5 +207,20 @@ describe('A question', () => {
     mount('/questions/q1')
     await screen.findByRole('heading', { name: 'Comment lire du JSON ?' })
     expect(screen.queryByRole('button', { name: 'Modifier' })).toBeNull()
+  })
+})
+
+describe('A question of a community', () => {
+  it('says which community it is in and goes back there', async () => {
+    api.getQuestion.mockResolvedValue(full({ community_id: 'c1', community_slug: 'gamedev', community_name: 'GameDev Senegal' }))
+    mount('/questions/q1')
+    expect(await screen.findByText('Dans GameDev Senegal')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Retour à GameDev Senegal/ })).toHaveAttribute('href', '/communautes/gamedev')
+  })
+
+  it('on the big list, shows the community name as a link', async () => {
+    api.listQuestions.mockResolvedValue([card({ community_id: 'c1', community_slug: 'gamedev', community_name: 'GameDev Senegal' })])
+    mount('/questions')
+    expect(await screen.findByRole('link', { name: 'GameDev Senegal' })).toHaveAttribute('href', '/communautes/gamedev')
   })
 })

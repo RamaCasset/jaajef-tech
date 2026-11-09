@@ -1077,6 +1077,7 @@ export const en: Messages = {
     channels: 'Channels',
     noMessages: 'No message yet. Start the discussion.',
     messageLabel: 'Your message',
+    messageIn: (name: string): string => `Send a message in #${name}`,
     send: 'Send',
     deleted: 'Message deleted',
     deleteMessage: 'Delete',
