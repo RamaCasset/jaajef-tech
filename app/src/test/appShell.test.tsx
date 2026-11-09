@@ -36,11 +36,11 @@ describe('AppShell', () => {
     expect(hrefs).toEqual(['/communautes', '/blog', '/quetes', '/souk', '/jobs'])
   })
 
-  it('keeps messages and the arena reachable outside the rail', async () => {
+  it('keeps messages reachable outside the rail and has no arena entry', async () => {
     mount()
     expect(screen.getByRole('link', { name: 'Messages' })).toHaveAttribute('href', '/messages')
     await userEvent.click(screen.getByLabelText('Menu du compte'))
-    expect(screen.getByRole('link', { name: 'Arène' })).toHaveAttribute('href', '/arene')
+    expect(screen.queryByRole('link', { name: 'Arène' })).toBeNull()
   })
 
   it('shows the Kopeks balance and the search entry', () => {

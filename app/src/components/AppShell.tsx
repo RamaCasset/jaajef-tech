@@ -69,7 +69,6 @@ export function AppShell({ children }: { children: ReactNode }) {
             <summary className="avatar-btn" aria-label={fr.nav.account}>{member?.profile.avatar_url ? <img src={member.profile.avatar_url} alt="" /> : initial}</summary>
             <div className="account-pop">
               {username && <NavLink to="/cite">{fr.nav.profile}</NavLink>}
-              <NavLink to="/arene">{fr.nav.arena}</NavLink>
               <NavLink to="/parametres">{fr.nav.settings}</NavLink>
               <NavLink to="/guide">{fr.nav.guide}</NavLink>
               {isStaff && <NavLink to="/equipe">{fr.staff.navLink}</NavLink>}

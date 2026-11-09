@@ -106,7 +106,6 @@ export function Projects() {
           <header className="creators-head">
             <h2 className="side-title">{fr.projects.trending}</h2>
             <span className="muted tiny">{fr.projects.trendingSub}</span>
-            <Link className="side-link" to="/arene">{fr.projects.fullRanking} →</Link>
           </header>
           {creators && creators.length === 0 && <p className="muted tiny">{fr.projects.trendingEmpty}</p>}
           <ol className="creators-list">
