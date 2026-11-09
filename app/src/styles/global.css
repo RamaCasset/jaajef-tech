@@ -704,3 +704,6 @@ select { appearance: none; -webkit-appearance: none; background-color: var(--pan
 .member-suggest-list li.is-active, .member-suggest-list li:hover { background: rgba(60, 140, 255, 0.16); }
 .member-suggest-list img { border-radius: 50%; object-fit: cover; }
 .member-suggest-dot { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: #17305a; font-size: 12px; font-weight: 700; }
+
+.notice-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
+.notice-actions .btn { padding: 7px 14px; font-size: 13px; border-radius: 10px; }

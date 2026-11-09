@@ -10,6 +10,7 @@ const markNotificationRead = vi.fn()
 const markAllNotificationsRead = vi.fn()
 const setNotificationMute = vi.fn()
 const unreadNotificationCount = vi.fn()
+const answerCollabInvite = vi.fn()
 
 vi.mock('../lib/api', () => ({
   listNotifications: (...a: unknown[]) => listNotifications(...a),
@@ -18,6 +19,7 @@ vi.mock('../lib/api', () => ({
   markAllNotificationsRead: (...a: unknown[]) => markAllNotificationsRead(...a),
   setNotificationMute: (...a: unknown[]) => setNotificationMute(...a),
   unreadNotificationCount: (...a: unknown[]) => unreadNotificationCount(...a),
+  answerCollabInvite: (...a: unknown[]) => answerCollabInvite(...a),
 }))
 vi.mock('../auth/AuthContext', () => ({
   useAuth: () => ({ member: { kopeks: 100, profile: { display_name: 'Moussa Diop' } }, signOut: vi.fn() }),
@@ -70,6 +72,32 @@ describe('Notifications page', () => {
     expect(links).toHaveLength(3)
     expect(links[0]).toHaveAttribute('href', '/projets/p1/propositions')
     expect(screen.getByLabelText('Proposition de changements reçue')).toBeInTheDocument()
+  })
+
+  it('an invitation to collaborate can be accepted or declined from the notice itself', async () => {
+    answerCollabInvite.mockResolvedValue(undefined)
+    listNotifications.mockResolvedValue([
+      note(30, 'collab_invite', { actor_username: 'rama_bara', project_title: 'Depot de test', invite_id: 'inv1' }),
+      note(31, 'collab_invite', { actor_username: 'awa', project_title: 'Autre', invite_id: 'inv2' }),
+    ])
+    mount()
+    const buttons = await screen.findAllByRole('button', { name: 'Accepter' })
+    await userEvent.click(buttons[0])
+    await waitFor(() => expect(answerCollabInvite).toHaveBeenCalledWith('inv1', true))
+    expect(await screen.findByText('Invitation acceptée : vous collaborez maintenant sur ce projet.')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Refuser' }))
+    await waitFor(() => expect(answerCollabInvite).toHaveBeenCalledWith('inv2', false))
+    expect(await screen.findByText('Invitation refusée.')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Accepter' })).toBeNull()
+  })
+
+  it('shows a French message when the invitation is no longer valid', async () => {
+    answerCollabInvite.mockRejectedValue(new Error('This invitation has expired'))
+    listNotifications.mockResolvedValue([note(32, 'collab_invite', { actor_username: 'awa', project_title: 'P', invite_id: 'inv3' })])
+    mount()
+    await userEvent.click(await screen.findByRole('button', { name: 'Accepter' }))
+    expect(await screen.findByRole('alert')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Accepter' })).toBeInTheDocument()
   })
 
   it('opening an unread notice marks it read once; an already read one does nothing', async () => {

@@ -3,8 +3,9 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
 import { fr } from '../i18n/fr'
+import { friendlyError } from '../lib/errors'
 import {
-  listMutedKinds, listNotifications, markAllNotificationsRead, markNotificationRead, setNotificationMute,
+  answerCollabInvite, listMutedKinds, listNotifications, markAllNotificationsRead, markNotificationRead, setNotificationMute,
   type NotificationKind, type NotificationRow,
 } from '../lib/api'
 
@@ -21,6 +22,7 @@ export function Notifications() {
   const [muted, setMuted] = useState<NotificationKind[]>([])
   const [failed, setFailed] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [answered, setAnswered] = useState<Record<string, boolean>>({})
 
   const load = useCallback(() => {
     setFailed(false)
@@ -38,6 +40,17 @@ export function Notifications() {
   async function readAll() {
     setItems((cur) => cur && cur.map((x) => ({ ...x, read_at: x.read_at ?? new Date().toISOString() })))
     try { await markAllNotificationsRead() } catch { load() }
+  }
+
+  async function answer(n: NotificationRow, invite: string, accept: boolean) {
+    setError(null)
+    try {
+      await answerCollabInvite(invite, accept)
+      setAnswered((a) => ({ ...a, [invite]: accept }))
+      void open(n)
+    } catch (err) {
+      setError(friendlyError(err))
+    }
   }
 
   async function toggle(kind: NotificationKind, receive: boolean) {
@@ -87,6 +100,18 @@ export function Notifications() {
                       {!n.read_at && <span className="tag">{fr.notifications.unread}</span>}{' '}
                       <span>{sentence(n)}</span>
                     </button>
+                    {n.kind === 'collab_invite' && typeof n.data.invite_id === 'string' && (
+                      <div className="notice-actions">
+                        {n.data.invite_id in answered ? (
+                          <span className="muted tiny">{answered[n.data.invite_id] ? fr.notifications.inviteAccepted : fr.notifications.inviteDeclined}</span>
+                        ) : (
+                          <>
+                            <button type="button" className="btn btn-cta" onClick={() => void answer(n, String(n.data.invite_id), true)}>{fr.notifications.inviteAccept}</button>
+                            <button type="button" className="btn" onClick={() => void answer(n, String(n.data.invite_id), false)}>{fr.notifications.inviteDecline}</button>
+                          </>
+                        )}
+                      </div>
+                    )}
                     {n.kind.startsWith('proposal_') && typeof n.data.project_id === 'string' && <div className="tiny"><Link to={`/projets/${n.data.project_id}/propositions`}>{fr.notifications.seeProposals}</Link></div>}
                     {who && <div className="tiny"><Link to={`/profil/${who}`}>@{who}</Link></div>}
                     <div className="muted tiny">{new Date(n.created_at).toLocaleString(dateLocale(), { dateStyle: 'medium', timeStyle: 'short' })}</div>
