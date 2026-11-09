@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
 import { ArticleBody } from '../components/ArticleBody'
+import { PostEditor } from '../components/PostEditor'
 import { useAuth } from '../auth/AuthContext'
 import { fr } from '../i18n/fr'
 import { friendlyError } from '../lib/errors'
@@ -20,6 +21,7 @@ export function QuestionPage() {
   const [question, setQuestion] = useState<QuestionFull | null | undefined>(undefined)
   const [answers, setAnswers] = useState<AnswerRow[]>([])
   const [text, setText] = useState('')
+  const [answerBox, setAnswerBox] = useState(0)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [failed, setFailed] = useState(false)
@@ -41,7 +43,7 @@ export function QuestionPage() {
   async function onAnswer(e: FormEvent) {
     e.preventDefault()
     if (!text.trim()) return
-    await run(() => postAnswer(id, text), () => { setText(''); load() })
+    await run(() => postAnswer(id, text), () => { setText(''); setAnswerBox((n) => n + 1); load() })
   }
 
   async function saveQuestion(e: FormEvent) {
@@ -91,14 +93,14 @@ export function QuestionPage() {
               </div>
               <div className="field">
                 <label htmlFor="e-body">{t.bodyLabel}</label>
-                <textarea id="e-body" rows={8} maxLength={8000} value={editingQ.body} onChange={(e) => setEditingQ({ ...editingQ, body: e.target.value })} />
+                <PostEditor id="e-body" rows={8} initial={editingQ.body} onChange={(body) => setEditingQ((q) => (q ? { ...q, body } : q))} />
               </div>
               <div className="field">
                 <label htmlFor="e-tags">{t.tagsLabel}</label>
                 <input id="e-tags" value={editingQ.tags} onChange={(e) => setEditingQ({ ...editingQ, tags: e.target.value })} />
               </div>
               <p>
-                <button type="submit" className="btn btn-cta" disabled={busy}>{t.save}</button>{' '}
+                <button type="submit" className="btn btn-cta" disabled={busy || editingQ.body.length > 8000}>{t.save}</button>{' '}
                 <button type="button" className="btn" onClick={() => setEditingQ(null)}>{t.cancelEdit}</button>
               </p>
             </form>
@@ -135,9 +137,9 @@ export function QuestionPage() {
               {editingA?.id === a.id ? (
                 <form className="stack-gap" onSubmit={(e) => void saveAnswer(e)} noValidate>
                   <label htmlFor={`e-a-${a.id}`} className="sr-only">{t.editAnswerLabel}</label>
-                  <textarea id={`e-a-${a.id}`} rows={6} maxLength={8000} value={editingA.body} onChange={(e) => setEditingA({ id: a.id, body: e.target.value })} />
+                  <PostEditor id={`e-a-${a.id}`} rows={6} initial={editingA.body} onChange={(body) => setEditingA({ id: a.id, body })} />
                   <p>
-                    <button type="submit" className="btn btn-cta" disabled={busy || !editingA.body.trim()}>{t.save}</button>{' '}
+                    <button type="submit" className="btn btn-cta" disabled={busy || !editingA.body.trim() || editingA.body.length > 8000}>{t.save}</button>{' '}
                     <button type="button" className="btn" onClick={() => setEditingA(null)}>{t.cancelEdit}</button>
                   </p>
                 </form>
@@ -166,9 +168,9 @@ export function QuestionPage() {
         <form className="panel panel-pad stack-gap" onSubmit={(e) => void onAnswer(e)} noValidate>
           <div className="field">
             <label htmlFor="a-text">{t.yourAnswer}</label>
-            <textarea id="a-text" rows={6} maxLength={8000} placeholder={t.answerPlaceholder} value={text} onChange={(e) => setText(e.target.value)} />
+            <PostEditor key={answerBox} id="a-text" rows={6} placeholder={t.answerPlaceholder} onChange={setText} />
           </div>
-          <p><button type="submit" className="btn btn-cta" disabled={busy || !text.trim()}>{busy ? t.sending : t.send}</button></p>
+          <p><button type="submit" className="btn btn-cta" disabled={busy || !text.trim() || text.length > 8000}>{busy ? t.sending : t.send}</button></p>
         </form>
       </main>
     </AppShell>

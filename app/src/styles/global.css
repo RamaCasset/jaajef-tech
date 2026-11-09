@@ -848,3 +848,17 @@ div.alert[data-dismissed], p.alert[data-dismissed], div.notice[data-dismissed], 
 .qa-answer-solution { border-color: #2fa86b; }
 .qa-actions { margin-top: 12px; }
 .qa-answers > h2 { margin: 8px 0 12px; }
+
+/* Writing box for questions and answers */
+.post-editor { display: grid; gap: 10px; }
+.post-toolbar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.post-toolbar .btn { padding: 6px 12px; min-width: 38px; }
+.post-toolbar-gap { flex: 1; }
+.post-preview { min-height: 120px; border: 1px solid var(--line); border-radius: 12px; background: #060b17; }
+.post-snippet { border: 1px solid var(--line-strong); border-radius: 12px; overflow: hidden; background: #0b1120; }
+.post-snippet-head { display: flex; gap: 10px; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--line); }
+.post-snippet-head strong { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.post-snippet .monaco-editor, .post-snippet > div:last-child { min-height: 200px; }
+.post-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.post-actions .tiny { margin-left: auto; }
+.post-over { color: #ff8a6b; }

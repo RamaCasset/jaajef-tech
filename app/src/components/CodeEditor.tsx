@@ -30,11 +30,11 @@ const defineTheme = (monaco: { editor: { defineTheme: (name: string, theme: unkn
   },
 })
 
-export function CodeEditor({ path, value, onChange, readOnly = false }: { path: string; value: string; onChange: (value: string) => void; readOnly?: boolean }) {
+export function CodeEditor({ path, value, onChange, readOnly = false, height = 'max(460px, calc(100vh - 320px))' }: { path: string; value: string; onChange: (value: string) => void; readOnly?: boolean; height?: string }) {
   return (
     <Suspense fallback={<p className="muted">…</p>}>
       <Monaco
-        height="max(460px, calc(100vh - 320px))"
+        height={height}
         path={path}
         language={languageOf(path)}
         value={value}

@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
+import { PostEditor } from '../components/PostEditor'
 import { fr } from '../i18n/fr'
 import { friendlyError } from '../lib/errors'
 import { askQuestion } from '../lib/api'
@@ -44,14 +45,14 @@ export function AskQuestion() {
           </div>
           <div className="field">
             <label htmlFor="q-body">{t.bodyLabel}</label>
-            <textarea id="q-body" rows={10} maxLength={8000} value={body} onChange={(e) => setBody(e.target.value)} />
+            <PostEditor id="q-body" rows={10} onChange={setBody} />
           </div>
           <div className="field">
             <label htmlFor="q-tags">{t.tagsLabel}</label>
             <input id="q-tags" placeholder={t.tagsPlaceholder} value={tags} onChange={(e) => setTags(e.target.value)} />
           </div>
           <p>
-            <button type="submit" className="btn btn-cta" disabled={busy || !title.trim() || !body.trim()}>{busy ? t.publishing : t.publish}</button>{' '}
+            <button type="submit" className="btn btn-cta" disabled={busy || !title.trim() || !body.trim() || body.length > 8000}>{busy ? t.publishing : t.publish}</button>{' '}
             <Link className="btn" to="/questions">{t.cancel}</Link>
           </p>
         </form>
