@@ -76,7 +76,7 @@ function RequireCharacter({ children }: { children: ReactNode }) {
 function PublicOnly({ children }: { children: ReactNode }) {
   const { loading, session } = useAuth()
   if (loading) return <Loading />
-  if (session) return <Navigate to="/cite" replace />
+  if (session) return <Navigate to="/communautes" replace />
   return <>{children}</>
 }
 
@@ -89,7 +89,8 @@ export function AppRoutes() {
       <Route path="/nouveau-mot-de-passe" element={<ResetPassword />} />
       <Route path="/inscription" element={<PublicOnly><Signup /></PublicOnly>} />
       <Route path="/inscription/clan" element={<RequireAuth><ChooseClan /></RequireAuth>} />
-      <Route path="/cite" element={<RequireAuth><RequireCharacter><Home /></RequireCharacter></RequireAuth>} />
+      <Route path="/cite" element={<RequireAuth><RequireCharacter><Profile own /></RequireCharacter></RequireAuth>} />
+      <Route path="/accueil" element={<RequireAuth><RequireCharacter><Home /></RequireCharacter></RequireAuth>} />
       <Route path="/quetes" element={<RequireAuth><RequireCharacter><Quests /></RequireCharacter></RequireAuth>} />
       <Route path="/quetes/:slug" element={<RequireAuth><RequireCharacter><Quest /></RequireCharacter></RequireAuth>} />
       <Route path="/projets/ajouter" element={<RequireAuth><RequireCharacter><ImportProject /></RequireCharacter></RequireAuth>} />
@@ -134,7 +135,7 @@ export function AppRoutes() {
       <Route path="/souk" element={<RequireAuth><RequireCharacter><Souk /></RequireCharacter></RequireAuth>} />
       <Route path="/profil/:username" element={<RequireAuth><RequireCharacter><Profile /></RequireCharacter></RequireAuth>} />
       <Route path="/jobs" element={<RequireAuth><RequireCharacter><Jobs /></RequireCharacter></RequireAuth>} />
-      <Route path="*" element={<Navigate to="/cite" replace />} />
+      <Route path="*" element={<Navigate to="/communautes" replace />} />
     </Routes>
   )
 }

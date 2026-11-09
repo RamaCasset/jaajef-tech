@@ -61,7 +61,7 @@ export function ResetPassword() {
         {done ? (
           <>
             <div className="notice" role="status">{fr.resetPassword.done}</div>
-            <button className="btn btn-cta" type="button" onClick={() => navigate('/cite', { replace: true })} style={{ width: '100%' }}>
+            <button className="btn btn-cta" type="button" onClick={() => navigate('/communautes', { replace: true })} style={{ width: '100%' }}>
               {fr.resetPassword.continue} →
             </button>
           </>

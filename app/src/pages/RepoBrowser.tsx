@@ -1,5 +1,5 @@
 import { useCallback, useRef, useEffect, useMemo, useState, type FormEvent, type MouseEvent } from 'react'
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
 import { CodeEditor } from '../components/CodeEditor'
 import { ChangeDiff } from '../components/ChangeDiff'
@@ -34,6 +34,7 @@ export function RepoBrowser() {
   const { id = '' } = useParams()
   const [params] = useSearchParams()
   const navigate = useNavigate()
+  const location = useLocation()
   const { member } = useAuth()
   const me = member?.profile.id ?? ''
   const username = member?.profile.username ?? ''
@@ -205,6 +206,15 @@ export function RepoBrowser() {
     return () => { alive = false }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [wantsNew, isMember, path, tree])
+
+  // A file chosen on the project page is added here, in the folder of the file that was opened.
+  useEffect(() => {
+    const file = (location.state as { upload?: File } | null)?.upload
+    if (!file || !isMember || !path || !tree) return
+    navigate(`${location.pathname}${location.search}`, { replace: true, state: null })
+    void onUpload(file)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state, isMember, path, tree])
 
   async function startEdit() {
     await ensureBase()

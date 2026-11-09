@@ -688,9 +688,9 @@ export const en: Messages = {
     sections: [
       {
         id: 'cite',
-        title: 'The City: your starting point',
-        text: 'This is the home page. You see your level, your XP, your Kopeks, your day streak, the quest of the day and your latest badges.',
-        to: '/cite',
+        title: 'The City: community life',
+        text: 'This is the home page: the communities of the platform. Your level, XP, day streak, quest of the day and badges are on your profile.',
+        to: '/communautes',
         cta: 'Go to the City',
       },
       {

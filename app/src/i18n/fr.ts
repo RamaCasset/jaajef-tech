@@ -688,9 +688,9 @@ export const frMessages = {
     sections: [
       {
         id: 'cite',
-        title: 'La Cité : votre point de départ',
-        text: "C'est la page d'accueil. Vous y voyez votre niveau, votre XP, vos Kopeks, votre série de jours, la quête du jour et vos derniers badges.",
-        to: '/cite',
+        title: 'La Cité : la vie de la communauté',
+        text: "C'est la page d'accueil : les communautés de la plateforme. Votre niveau, votre XP, votre série de jours, la quête du jour et vos badges sont sur votre profil.",
+        to: '/communautes',
         cta: 'Aller à la Cité',
       },
       {

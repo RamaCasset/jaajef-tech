@@ -105,7 +105,8 @@ describe('Repository: the list of files', () => {
 
   it('refuses bad or existing names for a new file, and opens a valid one', async () => {
     mount('/projets/p1/code?dossier=src')
-    await userEvent.click(await screen.findByRole('button', { name: 'Nouveau fichier' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Ajouter' }))
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Nouveau fichier' }))
     const input = screen.getByLabelText(/Chemin du fichier/)
     await userEvent.type(input, '../x.py')
     await userEvent.click(screen.getByRole('button', { name: 'Créer' }))
@@ -114,6 +115,18 @@ describe('Repository: the list of files', () => {
     await userEvent.type(input, 'util.py')
     await userEvent.click(screen.getByRole('button', { name: 'Créer' }))
     expect(await screen.findByRole('alert')).toHaveTextContent('existe déjà')
+  })
+})
+
+describe('Repository: the + menu on the project page', () => {
+  it('lists the three actions, and a new folder opens a .gitkeep file to add', async () => {
+    mount('/projets/p1/code?dossier=src')
+    await userEvent.click(await screen.findByRole('button', { name: 'Ajouter' }))
+    expect(screen.getAllByRole('menuitem').map((x) => x.textContent)).toEqual(['Nouveau fichier', 'Nouveau dossier', 'Téléverser un fichier'])
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Nouveau dossier' }))
+    await userEvent.type(screen.getByLabelText(/Chemin du dossier/), 'docs')
+    await userEvent.click(screen.getByRole('button', { name: 'Créer' }))
+    expect(await screen.findByLabelText('code src/docs/.gitkeep')).toBeInTheDocument()
   })
 })
 
