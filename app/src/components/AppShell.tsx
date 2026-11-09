@@ -4,8 +4,9 @@ import { useAuth } from '../auth/AuthContext'
 import { Logo } from './Logo'
 import { Icon } from './Icon'
 import { LanguageSwitch } from './LanguageSwitch'
+import { NotificationBell } from './NotificationBell'
 import { fr } from '../i18n/fr'
-import { getMyStaffAccess, unreadNotificationCount } from '../lib/api'
+import { getMyStaffAccess } from '../lib/api'
 
 const rail = (): { to: string; icon: string; label: string }[] => [
   { to: '/communautes', icon: 'communities', label: fr.nav.communities },
@@ -25,13 +26,6 @@ export function AppShell({ children }: { children: ReactNode }) {
     Promise.resolve().then(() => getMyStaffAccess(myId ?? '')).then((a) => { if (alive) setIsStaff(a.role !== null || a.shopManager || a.shopOwner || a.questWriter) }).catch(() => undefined)
     return () => { alive = false }
   }, [myId])
-  const [unread, setUnread] = useState(0)
-  useEffect(() => {
-    let alive = true
-    // The little number is a convenience: if it cannot be loaded, the link simply shows without it.
-    Promise.resolve().then(() => unreadNotificationCount()).then((n) => { if (alive) setUnread(Number(n) || 0) }).catch(() => undefined)
-    return () => { alive = false }
-  }, [])
   const initial = (member?.profile.display_name ?? '?').slice(0, 1).toUpperCase()
   const username = member?.profile.username
   return (
@@ -52,10 +46,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <NavLink to="/messages" className="bell" aria-label={fr.nav.messages}>
             <Icon name="messages" />
           </NavLink>
-          <NavLink to="/notifications" className="bell" aria-label={unread > 0 ? `${fr.nav.notifications} (${unread})` : fr.nav.notifications}>
-            <Icon name="bell" />
-            {unread > 0 && <span className="bell-count">{unread}</span>}
-          </NavLink>
+          <NotificationBell />
           <span className="kopeks-pill" aria-label={fr.nav.kopeks}>{member?.kopeks ?? 0} {fr.nav.kopeks}</span>
           <details className="account-menu">
             <summary className="avatar-btn" aria-label={fr.nav.account}>{member?.profile.avatar_url ? <img src={member.profile.avatar_url} alt="" /> : initial}</summary>

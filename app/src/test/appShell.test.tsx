@@ -26,7 +26,7 @@ describe('AppShell', () => {
     expect(within(nav).getByRole('link', { name: 'Projets' })).toHaveAttribute('href', '/projets')
     expect(within(nav).getByRole('link', { name: 'Quêtes' })).toHaveAttribute('href', '/quetes')
     expect(within(nav).getByRole('link', { name: 'Le Souk' })).toHaveAttribute('href', '/souk')
-    expect(await screen.findByRole('link', { name: 'Notifications (3)' })).toHaveAttribute('href', '/notifications')
+    expect(await screen.findByRole('button', { name: 'Notifications (3)' })).toBeInTheDocument()
   })
 
   it('shows only the main spaces in the side rail', async () => {

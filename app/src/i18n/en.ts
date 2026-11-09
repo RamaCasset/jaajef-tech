@@ -62,6 +62,8 @@ export const en: Messages = {
     inviteDecline: 'Decline',
     inviteAccepted: 'Invitation accepted: you now collaborate on this project.',
     inviteDeclined: 'Invitation declined.',
+    chooseInSettings: 'Choose what I receive (in settings)',
+    viewAll: 'See all my notifications',
     seeProposals: 'See the proposals',
     markAll: 'Mark all as read',
     unread: 'Unread',

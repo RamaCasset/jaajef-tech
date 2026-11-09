@@ -97,14 +97,16 @@ export function BlogPost() {
               <section className="panel panel-pad">
                 <h2>{fr.blog.commentsTitle}</h2>
                 {comments.length === 0 && <p className="muted">{fr.blog.commentsEmpty}</p>}
-                <ul style={{ listStyle: 'none', padding: 0 }}>
+                <ul className="comment-list">
                   {comments.map((c) => (
-                    <li key={c.id} style={{ padding: '8px 0', borderTop: '1px solid var(--line)' }}>
-                      <div className="tiny muted"><Link to={`/profil/${c.author_username}`}>@{c.author_username}</Link> · {new Date(c.created_at).toLocaleDateString(dateLocale())}</div>
-                      <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{c.body}</p>
-                      {(c.author_id === me || post.author_id === me) && (
-                        <button type="button" className="btn" disabled={busy} onClick={() => void run(() => deleteBlogComment(c.id), reloadComments)}>{fr.blog.commentDelete}</button>
+                    <li key={c.id} className="comment-item">
+                      <div className="comment-head">
+                        <span className="tiny muted"><Link to={`/profil/${c.author_username}`}>@{c.author_username}</Link> · {new Date(c.created_at).toLocaleDateString(dateLocale())}</span>
+                        {(c.author_id === me || post.author_id === me) && (
+                        <button type="button" className="btn btn-small" disabled={busy} onClick={() => void run(() => deleteBlogComment(c.id), reloadComments)}>{fr.blog.commentDelete}</button>
                       )}
+                      </div>
+                      <p className="comment-body">{c.body}</p>
                     </li>
                   ))}
                 </ul>

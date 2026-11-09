@@ -71,7 +71,6 @@ describe('Notifications page', () => {
     const links = screen.getAllByRole('link', { name: 'Voir les propositions' })
     expect(links).toHaveLength(3)
     expect(links[0]).toHaveAttribute('href', '/projets/p1/propositions')
-    expect(screen.getByLabelText('Proposition de changements reçue')).toBeInTheDocument()
   })
 
   it('an invitation to collaborate can be accepted or declined from the notice itself', async () => {
@@ -118,31 +117,6 @@ describe('Notifications page', () => {
     expect(screen.queryByRole('button', { name: 'Tout marquer comme lu' })).not.toBeInTheDocument()
   })
 
-  it('shows the preferences: muted kinds unchecked, the three locked kinds checked and disabled', async () => {
-    mount()
-    await screen.findByText(/a mis une étoile/)
-    expect(screen.getByLabelText('Commentaire sur un de mes projets')).not.toBeChecked()
-    expect(screen.getByLabelText('Étoile sur un de mes projets')).toBeChecked()
-    for (const l of [/^Avertissement/, /^Suspension/, /^Projet masqué/]) {
-      const box = screen.getByLabelText(l)
-      expect(box).toBeChecked()
-      expect(box).toBeDisabled()
-    }
-  })
-
-  it('switching a kind off or on calls the database; a failure puts the box back and says so', async () => {
-    mount()
-    await userEvent.click(await screen.findByLabelText('Étoile sur un de mes projets'))
-    expect(setNotificationMute).toHaveBeenCalledWith('project_starred', true)
-    expect(screen.getByLabelText('Étoile sur un de mes projets')).not.toBeChecked()
-    await userEvent.click(screen.getByLabelText('Commentaire sur un de mes projets'))
-    expect(setNotificationMute).toHaveBeenCalledWith('project_comment', false)
-    setNotificationMute.mockRejectedValueOnce(new Error('boom'))
-    await userEvent.click(screen.getByLabelText('Étoile sur un de mes projets'))
-    expect(await screen.findByRole('alert')).toHaveTextContent("n'a pas été enregistré")
-    expect(screen.getByLabelText('Étoile sur un de mes projets')).not.toBeChecked()
-  })
-
   it('says when there is nothing, and offers a retry when loading fails', async () => {
     listNotifications.mockResolvedValueOnce([])
     const first = mount()
@@ -155,16 +129,60 @@ describe('Notifications page', () => {
   })
 })
 
-describe('Notification link in the top bar', () => {
-  it('shows the unread number next to the link, and nothing when there are none', async () => {
+describe('The bell in the top bar', () => {
+  const shell = () => render(<MemoryRouter><AppShell><p>x</p></AppShell></MemoryRouter>)
+
+  it('shows the unread number on the bell, and nothing when there are none', async () => {
     unreadNotificationCount.mockResolvedValue(3)
-    const first = render(<MemoryRouter><AppShell><p>x</p></AppShell></MemoryRouter>)
-    expect(await screen.findByRole('link', { name: 'Notifications (3)' })).toHaveAttribute('href', '/notifications')
+    const first = shell()
+    expect(await screen.findByRole('button', { name: 'Notifications (3)' })).toBeInTheDocument()
     first.unmount()
     unreadNotificationCount.mockResolvedValue(0)
-    render(<MemoryRouter><AppShell><p>x</p></AppShell></MemoryRouter>)
+    shell()
     await waitFor(() => expect(unreadNotificationCount).toHaveBeenCalledTimes(2))
-    const link = screen.getByRole('link', { name: 'Notifications' })
-    expect(within(link).queryByText('0')).not.toBeInTheDocument()
+    const bell = screen.getByRole('button', { name: 'Notifications' })
+    expect(within(bell).queryByText('0')).not.toBeInTheDocument()
+  })
+
+  it('a click opens the latest notices right under the bell, and a second click closes them', async () => {
+    shell()
+    expect(listNotifications).not.toHaveBeenCalled()
+    await userEvent.click(screen.getByRole('button', { name: 'Notifications' }))
+    const panel = await screen.findByRole('region', { name: 'Notifications' })
+    expect(await within(panel).findByText(/awa a mis une étoile/)).toBeInTheDocument()
+    expect(listNotifications).toHaveBeenCalledWith(8)
+    expect(within(panel).getByRole('link', { name: 'Voir toutes mes notifications' })).toHaveAttribute('href', '/notifications')
+    await userEvent.click(screen.getByRole('button', { name: 'Notifications' }))
+    expect(screen.queryByRole('region', { name: 'Notifications' })).toBeNull()
+  })
+
+  it('Escape and a click elsewhere close it', async () => {
+    render(<MemoryRouter><AppShell><p>autre</p></AppShell></MemoryRouter>)
+    await userEvent.click(screen.getByRole('button', { name: 'Notifications' }))
+    await screen.findByRole('region', { name: 'Notifications' })
+    await userEvent.keyboard('{Escape}')
+    expect(screen.queryByRole('region', { name: 'Notifications' })).toBeNull()
+    await userEvent.click(screen.getByRole('button', { name: 'Notifications' }))
+    await screen.findByRole('region', { name: 'Notifications' })
+    await userEvent.click(screen.getByText('autre'))
+    expect(screen.queryByRole('region', { name: 'Notifications' })).toBeNull()
+  })
+
+  it('opening a notice in the dropdown marks it read, and mark all works there too', async () => {
+    shell()
+    await userEvent.click(screen.getByRole('button', { name: 'Notifications' }))
+    await userEvent.click(await screen.findByText(/a mis une étoile/))
+    await waitFor(() => expect(markNotificationRead).toHaveBeenCalledWith(1))
+    await userEvent.click(screen.getByRole('button', { name: 'Tout marquer comme lu' }))
+    await waitFor(() => expect(markAllNotificationsRead).toHaveBeenCalled())
+  })
+
+  it('an invitation can be accepted from the dropdown', async () => {
+    answerCollabInvite.mockResolvedValue(undefined)
+    listNotifications.mockResolvedValue([note(40, 'collab_invite', { actor_username: 'rama_bara', project_title: 'Depot de test', invite_id: 'inv9' })])
+    shell()
+    await userEvent.click(screen.getByRole('button', { name: 'Notifications' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Accepter' }))
+    await waitFor(() => expect(answerCollabInvite).toHaveBeenCalledWith('inv9', true))
   })
 })

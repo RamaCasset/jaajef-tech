@@ -13,6 +13,8 @@ const getJobEmailSetting = vi.fn()
 const setJobEmailSetting = vi.fn()
 const getSignInMethods = vi.fn()
 const updatePassword = vi.fn()
+const listMutedKinds = vi.fn()
+const setNotificationMute = vi.fn()
 
 vi.mock('../lib/api', () => ({
   myAccountDeletion: (...a: unknown[]) => myAccountDeletion(...a),
@@ -24,6 +26,8 @@ vi.mock('../lib/api', () => ({
   getJobEmailSetting: (...a: unknown[]) => getJobEmailSetting(...a),
   setJobEmailSetting: (...a: unknown[]) => setJobEmailSetting(...a),
   getSignInMethods: (...a: unknown[]) => getSignInMethods(...a),
+  listMutedKinds: (...a: unknown[]) => listMutedKinds(...a),
+  setNotificationMute: (...a: unknown[]) => setNotificationMute(...a),
 }))
 vi.mock('../auth/AuthContext', () => ({
   useAuth: () => ({ member: { kopeks: 100, profile: { id: 'me', display_name: 'Moussa Diop' } }, signOut: vi.fn(), updatePassword: (...a: unknown[]) => updatePassword(...a) }),
@@ -35,7 +39,7 @@ const free = { requested_at: null, delete_on: null, blockers: [] }
 const mount = () => render(<MemoryRouter><Settings /></MemoryRouter>)
 
 beforeEach(() => {
-  for (const m of [myAccountDeletion, requestAccountDeletion, cancelAccountDeletion, exportMyData, listBlockedMembers, unblockUser, getJobEmailSetting, setJobEmailSetting, getSignInMethods, updatePassword]) m.mockReset()
+  for (const m of [myAccountDeletion, requestAccountDeletion, cancelAccountDeletion, exportMyData, listBlockedMembers, unblockUser, getJobEmailSetting, setJobEmailSetting, getSignInMethods, updatePassword, listMutedKinds, setNotificationMute]) m.mockReset()
   myAccountDeletion.mockResolvedValue(free)
   listBlockedMembers.mockResolvedValue([])
   getJobEmailSetting.mockResolvedValue(true)
@@ -43,6 +47,8 @@ beforeEach(() => {
   unblockUser.mockResolvedValue(undefined)
   setJobEmailSetting.mockResolvedValue(undefined)
   updatePassword.mockResolvedValue(undefined)
+  listMutedKinds.mockResolvedValue(['project_comment'])
+  setNotificationMute.mockResolvedValue(undefined)
   URL.createObjectURL = vi.fn(() => 'blob:x')
   URL.revokeObjectURL = vi.fn()
 })
@@ -182,5 +188,32 @@ describe('Settings: more sections', () => {
     await userEvent.click(box)
     await waitFor(() => expect(box).toBeChecked())
     expect(await screen.findAllByRole('alert')).not.toHaveLength(0)
+  })
+})
+
+describe('Settings: choosing what I receive', () => {
+  it('shows the preferences: muted kinds unchecked, the three locked kinds checked and disabled', async () => {
+    mount()
+    expect(await screen.findByRole('heading', { name: 'Choisir ce que je reçois' })).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByLabelText('Commentaire sur un de mes projets')).not.toBeChecked())
+    expect(screen.getByLabelText('Étoile sur un de mes projets')).toBeChecked()
+    for (const l of [/^Avertissement/, /^Suspension/, /^Projet masqué/]) {
+      const box = screen.getByLabelText(l)
+      expect(box).toBeChecked()
+      expect(box).toBeDisabled()
+    }
+  })
+
+  it('switching a kind off or on calls the database; a failure puts the box back and says so', async () => {
+    mount()
+    await userEvent.click(await screen.findByLabelText('Étoile sur un de mes projets'))
+    expect(setNotificationMute).toHaveBeenCalledWith('project_starred', true)
+    expect(screen.getByLabelText('Étoile sur un de mes projets')).not.toBeChecked()
+    await userEvent.click(screen.getByLabelText('Commentaire sur un de mes projets'))
+    expect(setNotificationMute).toHaveBeenCalledWith('project_comment', false)
+    setNotificationMute.mockRejectedValueOnce(new Error('boom'))
+    await userEvent.click(screen.getByLabelText('Étoile sur un de mes projets'))
+    expect(await screen.findByRole('alert')).toHaveTextContent("n'a pas été enregistré")
+    expect(screen.getByLabelText('Étoile sur un de mes projets')).not.toBeChecked()
   })
 })
