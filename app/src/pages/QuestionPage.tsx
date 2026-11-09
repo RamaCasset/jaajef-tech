@@ -64,11 +64,11 @@ export function QuestionPage() {
     await run(() => deleteQuestion(id), () => navigate('/questions'))
   }
 
-  if (question === undefined) return <AppShell><main className="page souk"><p className="muted">{fr.common.loading}</p></main></AppShell>
+  if (question === undefined) return <AppShell><main className="page"><p className="muted">{fr.common.loading}</p></main></AppShell>
   if (question === null) {
     return (
       <AppShell>
-        <main className="page souk">
+        <main className="page">
           <p><Link to="/questions">← {t.back}</Link></p>
           <p className="alert" role="alert">{failed ? t.loadFailed : t.notFound}</p>
         </main>
@@ -82,7 +82,7 @@ export function QuestionPage() {
 
   return (
     <AppShell>
-      <main className="page souk">
+      <main className="page">
         <p><Link to="/questions">← {t.back}</Link></p>
         <article className="panel panel-pad stack-gap">
           {editingQ ? (
@@ -105,12 +105,13 @@ export function QuestionPage() {
               </p>
             </form>
           ) : (<>
+          <p className="eyebrow">{t.eyebrow}</p>
           <h1 className="page-title">{question.title}</h1>
           <p className="tiny muted">
             <Link to={`/profil/${question.author_username}`}>{t.by(name(question.author_username, question.author_display_name))}</Link> · {when(question.created_at)}
             {question.edited_at && <> · {t.edited}</>}
           </p>
-          <ArticleBody text={question.body} />
+          <div className="qa-body"><ArticleBody text={question.body} /></div>
           {question.tags.length > 0 && <p className="qa-tags">{question.tags.map((x) => <span key={x} className="tag">{x}</span>)}</p>}
           </>)}
           <p className="qa-actions">
@@ -143,7 +144,7 @@ export function QuestionPage() {
                     <button type="button" className="btn" onClick={() => setEditingA(null)}>{t.cancelEdit}</button>
                   </p>
                 </form>
-              ) : <ArticleBody text={a.body} />}
+              ) : <div className="qa-body"><ArticleBody text={a.body} /></div>}
               <p className="tiny muted">
                 <Link to={`/profil/${a.author_username}`}>{t.by(name(a.author_username, a.author_display_name))}</Link> · {when(a.created_at)}
                 {a.edited_at && <> · {t.edited}</>}

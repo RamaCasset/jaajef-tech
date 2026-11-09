@@ -31,9 +31,10 @@ export function AskQuestion() {
 
   return (
     <AppShell>
-      <main className="page souk">
+      <main className="page">
         <p><Link to="/questions">← {t.back}</Link></p>
         <header className="page-head">
+          <p className="eyebrow">{t.eyebrow}</p>
           <h1 className="page-title">{t.askTitle}</h1>
           <p className="muted">{t.askHelp}</p>
         </header>

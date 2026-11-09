@@ -1156,6 +1156,13 @@ export const en: Messages = {
   },
   qa: {
     nav: 'Questions',
+    eyebrow: 'The City / Help',
+    searchPlaceholder: 'Search by tag…',
+    answerWord: (n: number) => (n === 1 ? 'answer' : 'answers'),
+    howTitle: 'How it works',
+    how1: 'You ask your question to the community.',
+    how2: 'People who know the answer reply.',
+    how3: 'You choose the solution: its author earns Kopeks.',
     title: 'Questions',
     subtitle: 'Ask your question to the community: people who know the answer will reply.',
     ask: 'Ask a question',

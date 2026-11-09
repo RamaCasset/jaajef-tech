@@ -1156,6 +1156,13 @@ export const frMessages = {
   },
   qa: {
     nav: 'Questions',
+    eyebrow: 'La Cité / Entraide',
+    searchPlaceholder: 'Rechercher par étiquette…',
+    answerWord: (n: number): string => (n === 1 ? 'réponse' : 'réponses'),
+    howTitle: 'Comment ça marche',
+    how1: 'Vous posez votre question à la communauté.',
+    how2: 'Ceux qui connaissent la réponse vous répondent.',
+    how3: 'Vous choisissez la solution : son auteur gagne des Kopeks.',
     title: 'Questions',
     subtitle: 'Posez votre question à la communauté : ceux qui connaissent la réponse vous répondront.',
     ask: 'Poser une question',
