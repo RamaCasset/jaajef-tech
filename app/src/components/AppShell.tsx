@@ -86,7 +86,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               {c.name.split(/\s+/).slice(0, 2).map((w) => w.slice(0, 1)).join('').toUpperCase()}
             </NavLink>
           ))}
-          <NavLink to="/communautes" end className="rail-plus" title={fr.nav.communities} aria-label={fr.nav.communities}><Icon name="plus" size={18} /></NavLink>
+          <NavLink to="/communautes" end className="rail-explore" title={fr.nav.communities} aria-label={fr.nav.communities}><Icon name="compass" size={26} /></NavLink>
           <hr className="rail-sep" />
           {rail().map((r) => (
             <NavLink key={r.to} to={r.to} className="rail-link" title={r.label}>
