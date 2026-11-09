@@ -143,21 +143,21 @@ export function ProjectPage() {
               <h3>{fr.projectPage.collaborators}</h3>
               {collabs.length === 0 && <p className="muted">{fr.projectPage.collabNone}</p>}
               {collabs.map((c) => (
-                <div key={c.user_id} style={{ padding: '4px 0' }}>
+                <div key={c.user_id} className="collab-row">
                   <Link to={`/profil/${c.username}`}>{c.display_name || c.username}</Link>
                   {(isOwner || c.user_id === me) && c.user_id !== project.owner_id && (
-                    <> <button type="button" className="btn" disabled={busy} aria-label={`${fr.projectPage.collabRemove} : ${c.username}`} onClick={() => void run(() => removeCollaborator(project.id, c.user_id), loadSide)}>{fr.projectPage.collabRemove}</button></>
+                    <><button type="button" className="btn btn-small" disabled={busy} aria-label={`${fr.projectPage.collabRemove} : ${c.username}`} onClick={() => void run(() => removeCollaborator(project.id, c.user_id), loadSide)}>{fr.projectPage.collabRemove}</button></>
                   )}
                 </div>
               ))}
 
               {isOwner && (
-                <form onSubmit={onAddCollab} noValidate>
+                <form onSubmit={onAddCollab} noValidate className="collab-add">
                   <div className="field">
                     <label htmlFor="add-collab">{fr.projectPage.collabAddLabel}</label>
                     <MemberSuggest id="add-collab" value={newCollab} onChange={setNewCollab} exclude={[...collabs.map((c) => c.username), ...invites.map((i) => i.invitee_username), member?.profile.username ?? '']} placeholder={fr.projectPage.collabAddPlaceholder} />
                   </div>
-                  <button className="btn btn-cta" type="submit" disabled={busy || !newCollab.trim()}>{fr.projectPage.collabInvite}</button>
+                  <button className="btn btn-cta btn-small" type="submit" disabled={busy || !newCollab.trim()}>{fr.projectPage.collabInvite}</button>
                 </form>
               )}
 
@@ -168,7 +168,7 @@ export function ProjectPage() {
                     <div key={i.id} className="invite-line">
                       <Link to={`/profil/${i.invitee_username}`}>@{i.invitee_username}</Link>
                       <span className="muted tiny">{fr.projectPage.inviteExpires(new Date(i.expires_at).toLocaleDateString(dateLocale(), { day: 'numeric', month: 'long' }))}</span>
-                      <button type="button" className="btn" disabled={busy} aria-label={`${fr.projectPage.inviteCancel} : ${i.invitee_username}`} onClick={() => void run(() => cancelCollabInvite(i.id), loadSide)}>{fr.projectPage.inviteCancel}</button>
+                      <button type="button" className="btn btn-small" disabled={busy} aria-label={`${fr.projectPage.inviteCancel} : ${i.invitee_username}`} onClick={() => void run(() => cancelCollabInvite(i.id), loadSide)}>{fr.projectPage.inviteCancel}</button>
                     </div>
                   ))}
                 </>
@@ -208,14 +208,16 @@ export function ProjectPage() {
             {listed && <section className="panel panel-pad">
               <h2>{fr.projectPage.commentsTitle}</h2>
               {comments.length === 0 && <p className="muted">{fr.projectPage.commentsEmpty}</p>}
-              <ul style={{ listStyle: 'none', padding: 0 }}>
+              <ul className="comment-list">
                 {comments.map((c) => (
-                  <li key={c.id} style={{ padding: '8px 0', borderTop: '1px solid var(--line)' }}>
-                    <div className="tiny muted"><Link to={`/profil/${c.author_username}`}>@{c.author_username}</Link> · {new Date(c.created_at).toLocaleDateString(dateLocale())}</div>
-                    <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{c.body}</p>
-                    {(c.author_id === me || isOwner) && (
-                      <button type="button" className="btn" disabled={busy} onClick={() => void run(() => deleteProjectComment(c.id), loadSide)}>{fr.projectPage.commentDelete}</button>
-                    )}
+                  <li key={c.id} className="comment-item">
+                    <div className="comment-head">
+                      <span className="tiny muted"><Link to={`/profil/${c.author_username}`}>@{c.author_username}</Link> · {new Date(c.created_at).toLocaleDateString(dateLocale())}</span>
+                      {(c.author_id === me || isOwner) && (
+                      <button type="button" className="btn btn-small" disabled={busy} onClick={() => void run(() => deleteProjectComment(c.id), loadSide)}>{fr.projectPage.commentDelete}</button>
+                      )}
+                    </div>
+                    <p className="comment-body">{c.body}</p>
                   </li>
                 ))}
               </ul>

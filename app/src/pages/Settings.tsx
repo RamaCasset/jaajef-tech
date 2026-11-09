@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { AppShell } from '../components/AppShell'
 import { fr } from '../i18n/fr'
 import { friendlyError } from '../lib/errors'
+import { NotificationPrefs } from '../components/NotificationPrefs'
 import { BlockedSection, EmailSection, PasswordSection, SignInSection } from './SettingsSections'
 import {
   cancelAccountDeletion, exportMyData, myAccountDeletion, requestAccountDeletion,
@@ -28,6 +29,8 @@ export function Settings() {
     myAccountDeletion().then(setState).catch(() => setLoadFailed(true))
   }, [])
   useEffect(load, [load])
+  // A link such as /parametres#notifications jumps to that section.
+  useEffect(() => { if (window.location.hash === '#notifications') document.getElementById('notifications')?.scrollIntoView() }, [])
 
   async function download() {
     setError(null)
@@ -94,6 +97,7 @@ export function Settings() {
         <PasswordSection />
         <EmailSection />
         <BlockedSection />
+        <div id="notifications"><NotificationPrefs /></div>
 
         <section className="panel panel-pad" style={{ marginBottom: 24 }}>
           <h2>{fr.settings.exportTitle}</h2>
