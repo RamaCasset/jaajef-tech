@@ -1043,6 +1043,8 @@ export const en: Messages = {
   },
   communities: {
     title: 'Communities',
+    eyebrow: 'The City / Communities',
+    searchPlaceholder: 'Search a community…',
     subtitle: 'Talk, help each other and build together.',
     mine: 'My communities',
     mineEmpty: 'You have not joined any community yet.',

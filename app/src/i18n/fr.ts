@@ -1043,6 +1043,8 @@ export const frMessages = {
   },
   communities: {
     title: 'Communautés',
+    eyebrow: 'La Cité / Communautés',
+    searchPlaceholder: 'Rechercher une communauté…',
     subtitle: 'Discutez, entraidez-vous et construisez ensemble.',
     mine: 'Mes communautés',
     mineEmpty: "Vous n'avez rejoint aucune communauté pour l'instant.",
