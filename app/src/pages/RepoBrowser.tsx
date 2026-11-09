@@ -6,6 +6,7 @@ import { ChangeDiff } from '../components/ChangeDiff'
 import { FileSearch } from '../components/FileSearch'
 import { ImagePreview } from '../components/ImagePreview'
 import { ArticleBody } from '../components/ArticleBody'
+import { AddMenu } from '../components/AddMenu'
 import { EditorTabs } from '../components/EditorTabs'
 import { FileTree } from '../components/FileTree'
 import { Icon } from '../components/Icon'
@@ -236,6 +237,8 @@ export function RepoBrowser() {
       setActionError(pendingText(err))
     }
   }
+
+  const folderOf = (name: string) => `${dir || parentOf(path) ? `${dir || parentOf(path)}/` : ''}${name}`
 
   async function startFolder() {
     const ctx = await ensureBase()
@@ -486,13 +489,7 @@ export function RepoBrowser() {
                       <button type="button" className="icon-btn icon-btn-small" aria-label={t.hidePanel} title={t.hidePanel} onClick={() => setPanelOpen(false)}><Icon name="chevron-left" size={16} /></button>
                     </div>
                     <FileSearch ref={searchBox} projectId={project.id} paths={marked.paths} branch={shownBranch} canSearchText={isMember} />
-                    {isMember && (
-                      <div className="panel-tools">
-                        <button type="button" className="btn" disabled={busy} onClick={() => void startFolder()}>{fr.editor.newFolder}</button>
-                        <button type="button" className="btn" disabled={busy} onClick={() => fileInput.current?.click()}>{fr.editor.upload}</button>
-                        <input ref={fileInput} type="file" hidden aria-label={fr.editor.upload} onChange={(e) => { void onUpload(e.target.files?.[0]); e.target.value = '' }} />
-                      </div>
-                    )}
+                    {isMember && <input ref={fileInput} type="file" hidden aria-label={fr.editor.upload} onChange={(e) => { void onUpload(e.target.files?.[0]); e.target.value = '' }} />}
                     {folderName !== null && (
                       <form className="panel-form" onSubmit={doFolder} noValidate>
                         <label htmlFor="folder-name" className="sr-only">{fr.editor.folderLabel}</label>
@@ -507,7 +504,7 @@ export function RepoBrowser() {
                   </aside>
                 )}
                 <section className="editor-card" aria-label={path}>
-                  <EditorTabs tabs={tabs} active={path} changed={changedPaths} removed={removedPaths} hrefFor={(p) => fileUrl(project.id, p, shownBranch)} onClose={closeTab} />
+                  <EditorTabs trailing={isMember ? <AddMenu busy={busy} exists={(n) => treePaths.has(folderOf(n))} onNewFile={(n) => navigate(`${fileUrl(project.id, folderOf(n), shownBranch)}&nouveau=1`)} onNewFolder={() => { setPanelOpen(true); void startFolder() }} onUpload={() => { if (!panelOpen) setPanelOpen(true); setTimeout(() => fileInput.current?.click(), 0) }} /> : undefined} tabs={tabs} active={path} changed={changedPaths} removed={removedPaths} hrefFor={(p) => fileUrl(project.id, p, shownBranch)} onClose={closeTab} />
                   <div className="file-bar">
                     <Link className="muted tiny" to={`/projets/${project.id}/historique?fichier=${encodeURIComponent(path)}`} onClick={guard}>{t.fileHistory}</Link>
                     {shownContent !== null && <span className="muted tiny">{fr.repoViewer.lines(lineCount)}</span>}

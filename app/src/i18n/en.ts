@@ -914,6 +914,7 @@ export const en: Messages = {
     renameTitle: 'Rename or move',
     renameLabel: 'New path of the file',
     renameDo: 'Rename',
+    addMenu: 'Add',
     newFolder: 'New folder',
     folderLabel: 'Folder path',
     folderCreate: 'Create',

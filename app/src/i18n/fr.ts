@@ -914,6 +914,7 @@ export const frMessages = {
     renameTitle: 'Renommer ou déplacer',
     renameLabel: 'Nouveau chemin du fichier',
     renameDo: 'Renommer',
+    addMenu: 'Ajouter',
     newFolder: 'Nouveau dossier',
     folderLabel: 'Chemin du dossier',
     folderCreate: 'Créer',

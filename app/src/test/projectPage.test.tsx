@@ -74,7 +74,7 @@ describe('Project page', () => {
   it('no star button on my own project', async () => {
     api.getProjectFull.mockResolvedValue(project({ owner_id: 'me' }))
     mount()
-    expect(await screen.findByText('Votre projet')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Teranga' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /étoile/ })).not.toBeInTheDocument()
   })
 
@@ -174,7 +174,7 @@ describe('Project page', () => {
     view.unmount()
     api.getProjectFull.mockResolvedValue(project({ owner_id: 'me' }))
     mount()
-    await screen.findByText('Votre projet')
+    await screen.findByRole('heading', { level: 1 })
     expect(screen.queryByRole('button', { name: 'Signaler' })).not.toBeInTheDocument()
   })
 
@@ -228,7 +228,8 @@ describe('Project page', () => {
   it('a collaborator on a public project sees "you collaborate" instead of the star button', async () => {
     api.listCollaborators.mockResolvedValue([{ user_id: 'me', username: 'moussa', display_name: 'Moussa' }])
     mount()
-    expect(await screen.findByText('Vous collaborez à ce projet')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { level: 1 })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Mettre une étoile/ })).toBeNull()
+    expect(screen.queryByText('Vous collaborez à ce projet')).toBeNull()
   })
 })

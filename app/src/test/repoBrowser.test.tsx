@@ -532,13 +532,24 @@ describe('Repository: review, rename, folder and upload', () => {
 
   it('creates a folder with a placeholder file', async () => {
     await startEditing('/projets/p1/code?fichier=main.py')
-    await userEvent.click(screen.getByRole('button', { name: 'Nouveau dossier' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Ajouter' }))
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Nouveau dossier' }))
     await userEvent.type(screen.getByLabelText('Chemin du dossier'), 'docs')
     await userEvent.click(screen.getByRole('button', { name: 'Créer' }))
     await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
     await userEvent.type(screen.getByLabelText('Décrivez votre modification'), 'Dossier')
     await userEvent.click(submitBtn())
     await waitFor(() => expect(api.editorCommitTo.mock.calls[0]?.[1].files).toEqual([{ path: 'docs/.gitkeep', content: '' }]))
+  })
+
+  it('the + menu lists new file, new folder and upload; a new file asks for a name and refuses one that exists', async () => {
+    await startEditing('/projets/p1/code?fichier=main.py')
+    await userEvent.click(screen.getByRole('button', { name: 'Ajouter' }))
+    expect(screen.getAllByRole('menuitem').map((x) => x.textContent)).toEqual(['Nouveau fichier', 'Nouveau dossier', 'Téléverser un fichier'])
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Nouveau fichier' }))
+    await userEvent.type(screen.getByLabelText(/Chemin du fichier/), 'main.py')
+    await userEvent.click(screen.getByRole('button', { name: 'Créer' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('existe déjà')
   })
 
   it('uploads a small file as base64 and refuses a file over 1 MB', async () => {

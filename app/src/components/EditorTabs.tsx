@@ -4,7 +4,8 @@ import { fr } from '../i18n/fr'
 const base = (p: string) => p.split('/').pop() ?? p
 
 /** The files open in the editor, one tab each. A dot marks a file with changes that are not saved yet. */
-export function EditorTabs({ tabs, active, changed, removed, hrefFor, onClose }: {
+export function EditorTabs({ tabs, active, changed, removed, hrefFor, onClose, trailing }: {
+  trailing?: React.ReactNode
   tabs: string[]; active: string; changed: Set<string>; removed: Set<string>; hrefFor: (path: string) => string; onClose: (path: string) => void
 }) {
   const t = fr.editor
@@ -22,6 +23,7 @@ export function EditorTabs({ tabs, active, changed, removed, hrefFor, onClose }:
           <button type="button" className="editor-close" aria-label={t.closeTab(p)} onClick={() => onClose(p)}>×</button>
         </div>
       ))}
+      {trailing && <div className="editor-tabs-end">{trailing}</div>}
     </div>
   )
 }
