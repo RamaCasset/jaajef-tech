@@ -76,7 +76,7 @@ function RequireCharacter({ children }: { children: ReactNode }) {
 function PublicOnly({ children }: { children: ReactNode }) {
   const { loading, session } = useAuth()
   if (loading) return <Loading />
-  if (session) return <Navigate to="/communautes" replace />
+  if (session) return <Navigate to="/projets" replace />
   return <>{children}</>
 }
 
@@ -135,7 +135,7 @@ export function AppRoutes() {
       <Route path="/souk" element={<RequireAuth><RequireCharacter><Souk /></RequireCharacter></RequireAuth>} />
       <Route path="/profil/:username" element={<RequireAuth><RequireCharacter><Profile /></RequireCharacter></RequireAuth>} />
       <Route path="/jobs" element={<RequireAuth><RequireCharacter><Jobs /></RequireCharacter></RequireAuth>} />
-      <Route path="*" element={<Navigate to="/communautes" replace />} />
+      <Route path="*" element={<Navigate to="/projets" replace />} />
     </Routes>
   )
 }

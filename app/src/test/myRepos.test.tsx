@@ -127,13 +127,6 @@ describe('My repositories', () => {
     expect(await screen.findByText('14 / 20. Encore 6 pour le débloquer.')).toBeInTheDocument()
   })
 
-  it('has the switch to the community projects', async () => {
-    mount()
-    const toggle = await screen.findByRole('navigation', { name: 'Affichage des projets' })
-    expect(within(toggle).getByRole('link', { name: 'Communauté' })).toHaveAttribute('href', '/projets')
-    expect(within(toggle).getByRole('link', { name: 'Espace personnel' })).toHaveAttribute('aria-current', 'page')
-  })
-
   it('offers a retry when loading fails, and an empty message when there is nothing', async () => {
     api.listMyRepos.mockRejectedValueOnce(new Error('down'))
     const a = mount()

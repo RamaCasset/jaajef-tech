@@ -689,8 +689,8 @@ export const frMessages = {
       {
         id: 'cite',
         title: 'La Cité : la vie de la communauté',
-        text: "C'est la page d'accueil : les communautés de la plateforme. Votre niveau, votre XP, votre série de jours, la quête du jour et vos badges sont sur votre profil.",
-        to: '/communautes',
+        text: "C'est la page d'accueil : les projets de la communauté, à découvrir et à rejoindre. Votre niveau, votre série de jours, la quête du jour et vos badges sont sur votre profil. Vos propres dépôts sont dans Mes dépôts.",
+        to: '/projets',
         cta: 'Aller à la Cité',
       },
       {
