@@ -13,6 +13,7 @@ export function EditorTabs({ tabs, active, changed, removed, hrefFor, onClose, t
   // Two tabs with the same file name also show their folder, so they can be told apart.
   const label = (p: string) => (same(p) ? p.split('/').slice(-2).join('/') : base(p))
   return (
+    <div className="editor-tabs-row">
     <div className="editor-tabs-bar" role="tablist" aria-label={t.openTabs}>
       {tabs.map((p) => (
         <div key={p} className={`editor-tab ${p === active ? 'editor-tab-on' : ''}`}>
@@ -23,7 +24,8 @@ export function EditorTabs({ tabs, active, changed, removed, hrefFor, onClose, t
           <button type="button" className="editor-close" aria-label={t.closeTab(p)} onClick={() => onClose(p)}>×</button>
         </div>
       ))}
-      {trailing && <div className="editor-tabs-end">{trailing}</div>}
+    </div>
+    {trailing && <div className="editor-tabs-end">{trailing}</div>}
     </div>
   )
 }

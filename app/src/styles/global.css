@@ -773,3 +773,8 @@ div.alert[data-dismissed], p.alert[data-dismissed], div.notice[data-dismissed], 
 .add-pop > button:hover, .add-pop > button:focus-visible { background: rgba(255, 255, 255, 0.07); }
 .add-pop form { display: grid; gap: 8px; padding: 6px; }
 .add-error { color: var(--danger); margin: 0; }
+.editor-tabs-row { display: flex; align-items: stretch; border-bottom: 1px solid var(--line); }
+.editor-tabs-row .editor-tabs-bar { flex: 1 1 auto; min-width: 0; border-bottom: 0; }
+.editor-tabs-row .editor-tabs-end { margin-left: 0; padding: 0 12px 0 8px; }
+.add-menu > .icon-btn { border-color: transparent; background: none; }
+.add-menu > .icon-btn:hover, .add-menu > .icon-btn[aria-expanded='true'] { background: rgba(255, 255, 255, 0.08); }
