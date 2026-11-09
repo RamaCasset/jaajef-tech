@@ -1,15 +1,14 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { Logo } from './Logo'
 import { Icon } from './Icon'
 import { LanguageSwitch } from './LanguageSwitch'
 import { NotificationBell } from './NotificationBell'
 import { fr } from '../i18n/fr'
-import { getMyStaffAccess } from '../lib/api'
+import { getMyStaffAccess, listMyCommunities } from '../lib/api'
 
 const rail = (): { to: string; icon: string; label: string }[] => [
-  { to: '/communautes', icon: 'communities', label: fr.nav.communities },
   { to: '/blog', icon: 'blog', label: fr.nav.blog },
   { to: '/quetes', icon: 'quest', label: fr.nav.quests },
   { to: '/souk', icon: 'souk', label: fr.nav.souk },
@@ -19,11 +18,28 @@ const rail = (): { to: string; icon: string; label: string }[] => [
 export function AppShell({ children }: { children: ReactNode }) {
   const { member, signOut } = useAuth()
   const [isStaff, setIsStaff] = useState(false)
+  const navigate = useNavigate()
   const myId = member?.profile.id
+  const [spaces, setSpaces] = useState<{ id: string; slug: string; name: string }[]>([])
   useEffect(() => {
     let alive = true
     // The staff link is a convenience: if it cannot be checked, the link simply does not show.
     Promise.resolve().then(() => getMyStaffAccess(myId ?? '')).then((a) => { if (alive) setIsStaff(a.role !== null || a.shopManager || a.shopOwner || a.questWriter) }).catch(() => undefined)
+    return () => { alive = false }
+  }, [myId])
+  // Ctrl+K (or Cmd+K) opens the search, as the hint in the search box says.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); navigate('/recherche') }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [navigate])
+  // The communities of the member, shown in the side rail. If they cannot be loaded, the rail simply has none.
+  useEffect(() => {
+    if (!myId) return
+    let alive = true
+    Promise.resolve().then(() => listMyCommunities(myId)).then((l) => { if (alive && Array.isArray(l)) setSpaces(l.slice(0, 6)) }).catch(() => undefined)
     return () => { alive = false }
   }, [myId])
   const initial = (member?.profile.display_name ?? '?').slice(0, 1).toUpperCase()
@@ -41,6 +57,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <NavLink to="/recherche" className="topsearch" aria-label={fr.nav.search}>
           <Icon name="search" size={16} />
           <span>{fr.nav.searchHint}</span>
+          <kbd className="kbd-hint" aria-hidden="true">{typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘ K' : 'Ctrl K'}</kbd>
         </NavLink>
         <div className="topbar-right">
           <NavLink to="/messages" className="bell" aria-label={fr.nav.messages}>
@@ -64,6 +81,13 @@ export function AppShell({ children }: { children: ReactNode }) {
       </header>
       <div className="shell-frame">
         <nav aria-label={fr.nav.railLabel} className="rail">
+          {spaces.map((c, i) => (
+            <NavLink key={c.id} to={`/communautes/${c.slug}`} className={`rail-space rail-space-${(i % 2) + 1}`} title={c.name} aria-label={c.name}>
+              {c.name.split(/\s+/).slice(0, 2).map((w) => w.slice(0, 1)).join('').toUpperCase()}
+            </NavLink>
+          ))}
+          <NavLink to="/communautes" end className="rail-plus" title={fr.nav.communities} aria-label={fr.nav.communities}><Icon name="plus" size={16} /></NavLink>
+          <hr className="rail-sep" />
           {rail().map((r) => (
             <NavLink key={r.to} to={r.to} className="rail-link" title={r.label}>
               <Icon name={r.icon} />

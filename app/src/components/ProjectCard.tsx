@@ -50,7 +50,9 @@ export function ProjectCard({ project, build, people = [] }: { project: ProjectR
       </div>
       <footer className="project-foot">
         <PeopleStack people={people} />
-        {updated ? <span className="muted tiny">{fr.projects.updated(updated)}</span> : null}
+        {project.demo_url ? (
+          <a className="btn btn-demo btn-small" href={project.demo_url} target="_blank" rel="noreferrer noopener"><Icon name="play" size={14} /> {fr.projects.demo}</a>
+        ) : updated ? <span className="muted tiny">{fr.projects.updated(updated)}</span> : null}
       </footer>
     </article>
   )

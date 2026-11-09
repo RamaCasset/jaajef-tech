@@ -54,9 +54,8 @@ beforeEach(() => {
 })
 
 describe('Projects page', () => {
-  it('shows the featured project, the list, the count, trending creators and build badges', async () => {
+  it('shows the list, the count, trending creators and build badges', async () => {
     mount()
-    expect(await screen.findByRole('heading', { name: 'ndar / open-city' })).toBeInTheDocument()
     expect(await screen.findByText('repo-1')).toBeInTheDocument()
     expect(screen.getByText('repo-2')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'repo-1' })).toHaveAttribute('href', '/projets/p1')
@@ -179,8 +178,8 @@ describe('Projects page', () => {
     await waitFor(() => expect(calledWith({ region: 'thies' })).toBe(true))
   })
 
-  it('offers the live demo of the featured project, in a new tab, only when there is a link', async () => {
-    searchProjects.mockImplementation(async (_f, opts) => (opts?.featuredOnly ? [project(0, { github_repo: 'open-city', is_featured: true, demo_url: 'https://demo.exemple.sn/jeu' })] : [project(1)]))
+  it('offers the live demo on a project card, in a new tab, only when there is a link', async () => {
+    searchProjects.mockImplementation(async () => [project(1, { demo_url: 'https://demo.exemple.sn/jeu' })])
     mount()
     const link = await screen.findByRole('link', { name: /Tester la démo en live/ })
     expect(link).toHaveAttribute('href', 'https://demo.exemple.sn/jeu')
@@ -189,7 +188,7 @@ describe('Projects page', () => {
 
   it('shows no demo button without a link', async () => {
     mount()
-    await screen.findByRole('heading', { name: 'ndar / open-city' })
+    await screen.findByText('repo-1')
     expect(screen.queryByRole('link', { name: /Tester la démo en live/ })).toBeNull()
   })
 
