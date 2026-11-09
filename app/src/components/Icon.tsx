@@ -2,6 +2,7 @@ const PATHS: Record<string, string> = {
   question: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-5v.01M9.7 9.6a2.4 2.4 0 1 1 3.4 2.2c-.7.4-1.1.9-1.1 1.7',
   blog: 'M5 4h11a2 2 0 0 1 2 2v13H7a2 2 0 0 1-2-2V4Zm3 4h7M8 12h7M8 16h4',
   messages: 'M4 5h16v11H9l-5 4V5Z',
+  compass: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm3.6-12.6-2.1 5.1-5.1 2.1 2.1-5.1 5.1-2.1Z',
   communities: 'M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm7 1a2.5 2.5 0 1 0 0-5M3 19c0-3 3-5 6-5s6 2 6 5M16 14c3 0 5 1.6 5 4',
   arena: 'M7 4h10v4a5 5 0 0 1-10 0V4Zm5 9v4m-4 3h8M4 5h3m10 0h3',
   jobs: 'M4 8h16v11H4V8Zm5 0V5h6v3M4 13h16',

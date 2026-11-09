@@ -400,9 +400,10 @@ select { appearance: none; -webkit-appearance: none; background-color: var(--pan
 .rail-space-1 { background: #1a2340; color: #b79cf5; }
 .rail-space-2 { background: #14324a; color: #8fd3f0; }
 .rail-space.active { border-color: var(--accent); background: #0f2a4a; box-shadow: 0 0 0 3px var(--accent-soft); border-radius: 20px; }
-.rail-plus { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; border: 1.5px solid var(--accent); color: var(--accent); text-decoration: none; }
+.rail-explore { width: 58px; height: 58px; display: grid; place-items: center; border-radius: 50%; border: 2px dashed var(--line-strong); color: var(--accent); text-decoration: none; background: rgba(56, 160, 255, 0.06); }
+.rail-explore:hover, .rail-explore.active { border-style: solid; border-color: var(--accent); background: var(--accent-soft); }
 .rail-sep { width: 68%; border: 0; border-top: 1px solid var(--line-strong); margin: 2px 0; }
-@media (max-width: 860px) { .rail { align-items: center; } .rail-space { width: 44px; height: 44px; font-size: 15px; flex: none; } .rail-link { flex: none; width: 64px; } .rail-sep { width: 0; height: 28px; border-top: 0; border-left: 1px solid var(--line-strong); margin: 0 4px; } }
+@media (max-width: 860px) { .rail { align-items: center; } .rail-space, .rail-explore { width: 44px; height: 44px; font-size: 15px; flex: none; } .rail-link { flex: none; width: 64px; } .rail-sep { width: 0; height: 28px; border-top: 0; border-left: 1px solid var(--line-strong); margin: 0 4px; } }
 /* Project page actions, padding, editor */
 .panel-pad { padding: 20px 24px; }
 .panel-pad > h2:first-child, .panel-pad > h1:first-child { margin-top: 0; }
@@ -787,7 +788,6 @@ div.alert[data-dismissed], p.alert[data-dismissed], div.notice[data-dismissed], 
 .project-card { transition: border-color 0.15s, background 0.15s; }
 .project-card:hover { border-color: var(--accent); background: rgba(56, 160, 255, 0.07); }
 .rail-space { text-decoration: none; }
-.rail-plus { text-decoration: none; }
 .kbd-hint { margin-left: auto; font: 500 11px var(--font-mono); color: var(--fg-muted); border: 1px solid var(--line); border-radius: 5px; padding: 1px 6px; }
 
 /* Notifications (Marie's design) */
