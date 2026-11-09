@@ -47,15 +47,15 @@ describe('Questions list', () => {
   it('lists questions with their counts and a solved mark', async () => {
     mount('/questions')
     expect(await screen.findByRole('link', { name: 'Comment lire du JSON ?' })).toHaveAttribute('href', '/questions/q1')
-    expect(screen.getAllByText('2 réponses').length).toBeGreaterThan(0)
+    expect(screen.getAllByLabelText('2 réponses').length).toBeGreaterThan(0)
     expect(screen.getByText('Résolue')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Poser une question' })).toHaveAttribute('href', '/questions/poser')
+    expect(screen.getAllByRole('link', { name: 'Poser une question' })[0]).toHaveAttribute('href', '/questions/poser')
   })
 
   it('asks again with the chosen filter and sort', async () => {
     mount('/questions')
     await screen.findByRole('link', { name: 'Comment lire du JSON ?' })
-    await userEvent.selectOptions(screen.getByLabelText('Afficher'), 'open')
+    await userEvent.click(screen.getByRole('button', { name: 'Sans solution' }))
     await waitFor(() => expect(api.listQuestions).toHaveBeenLastCalledWith(expect.objectContaining({ filter: 'open', sort: 'recent' })))
     await userEvent.selectOptions(screen.getByLabelText('Trier par'), 'useful')
     await waitFor(() => expect(api.listQuestions).toHaveBeenLastCalledWith(expect.objectContaining({ filter: 'open', sort: 'useful' })))
