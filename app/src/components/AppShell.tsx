@@ -33,7 +33,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className="topbar">
         <NavLink to="/projets" aria-label={fr.appName}><Logo size={20} /></NavLink>
         <nav aria-label={fr.nav.main} className="topnav">
-          <NavLink to="/projets">{fr.nav.city}</NavLink>
+          <NavLink to="/projets" end>{fr.nav.city}</NavLink>
+          <NavLink to="/depots">{fr.nav.projects}</NavLink>
           <NavLink to="/quetes">{fr.nav.quests}</NavLink>
           <NavLink to="/souk">{fr.nav.souk}</NavLink>
         </nav>
@@ -51,7 +52,6 @@ export function AppShell({ children }: { children: ReactNode }) {
             <summary className="avatar-btn" aria-label={fr.nav.account}>{member?.profile.avatar_url ? <img src={member.profile.avatar_url} alt="" /> : initial}</summary>
             <div className="account-pop">
               {username && <NavLink to="/cite">{fr.nav.profile}</NavLink>}
-              <NavLink to="/depots">{fr.myRepos.title}</NavLink>
               <NavLink to="/arene">{fr.nav.arena}</NavLink>
               <NavLink to="/parametres">{fr.nav.settings}</NavLink>
               <NavLink to="/guide">{fr.nav.guide}</NavLink>
