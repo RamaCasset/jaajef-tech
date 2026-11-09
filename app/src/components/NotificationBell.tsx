@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Icon } from './Icon'
+import { NoticeFilters } from './NoticeFilters'
 import { NotificationItems } from './NotificationItems'
 import { fr } from '../i18n/fr'
 import { unreadNotificationCount } from '../lib/api'
+import { matchesFilter, type NoticeFilter } from '../lib/notificationMeta'
 import { useNotifications } from '../lib/useNotifications'
 
 const SHOWN = 8
@@ -14,6 +16,8 @@ export function NotificationBell() {
   const [count, setCount] = useState(0)
   const box = useRef<HTMLDivElement>(null)
   const feed = useNotifications(SHOWN, open)
+  const [filter, setFilter] = useState<NoticeFilter>('all')
+  const shown = feed.items ? feed.items.filter((n) => matchesFilter(n, filter)) : null
 
   // The little number is a convenience: if it cannot be loaded, the bell simply shows without it.
   const unreadInList = feed.items ? feed.unread : -1
@@ -42,20 +46,24 @@ export function NotificationBell() {
       {open && (
         <div className="bell-pop" role="region" aria-label={fr.notifications.title}>
           <div className="bell-pop-head">
+            <Icon name="bell" size={18} />
             <strong>{fr.notifications.title}</strong>
-            <span className="bell-pop-tools">
-              {feed.unread > 0 && <button type="button" className="linklike tiny" onClick={() => void feed.readAll()}>{fr.notifications.markAll}</button>}
-              {feed.items && feed.items.length > 0 && <button type="button" className="linklike tiny" onClick={() => void feed.clearAll()}>{fr.notifications.clearAll}</button>}
-            </span>
+            {feed.unread > 0 && <span className="count-pill">{feed.unread}</span>}
           </div>
+          <div className="bell-pop-tools">
+            {feed.unread > 0 && <button type="button" className="linklike tiny" onClick={() => void feed.readAll()}>{fr.notifications.markAll}</button>}
+            {feed.items && feed.items.length > 0 && <button type="button" className="linklike tiny" onClick={() => void feed.clearAll()}>{fr.notifications.clearAll}</button>}
+          </div>
+          <NoticeFilters value={filter} onChange={setFilter} unread={feed.unread} />
           {feed.error && <div className="alert" role="alert">{feed.error}</div>}
           {feed.failed && <p className="muted tiny">{fr.notifications.loadFailed} <button type="button" className="linklike" onClick={feed.load}>{fr.notifications.retry}</button></p>}
           {!feed.failed && !feed.items && <p className="muted tiny">{fr.common.loading}</p>}
           {feed.items && feed.items.length === 0 && <p className="muted tiny">{fr.notifications.empty}</p>}
-          {feed.items && feed.items.length > 0 && (
-            <NotificationItems items={feed.items} answered={feed.answered} onOpen={(n) => void feed.open(n)} onAnswer={(n, i, a) => void feed.answer(n, i, a)} onRemove={(n) => void feed.remove(n)} onNavigate={() => setOpen(false)} />
+          {shown && shown.length === 0 && feed.items && feed.items.length > 0 && <p className="muted tiny">{fr.notifications.noMatch}</p>}
+          {shown && shown.length > 0 && (
+            <NotificationItems items={shown} answered={feed.answered} onOpen={(n) => void feed.open(n)} onAnswer={(n, i, a) => void feed.answer(n, i, a)} onRemove={(n) => void feed.remove(n)} onNavigate={() => setOpen(false)} />
           )}
-          <p className="bell-pop-foot"><Link to="/notifications" onClick={() => setOpen(false)}>{fr.notifications.viewAll}</Link></p>
+          <p className="bell-pop-foot"><Link to="/notifications" onClick={() => setOpen(false)}>{fr.notifications.viewAllArrow}</Link></p>
         </div>
       )}
     </div>
