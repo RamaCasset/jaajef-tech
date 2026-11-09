@@ -2,6 +2,8 @@ import { dateLocale } from '../i18n/lang'
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
+import { ChatBody } from '../components/ChatBody'
+import { Icon } from '../components/Icon'
 import { ReportButton } from '../components/ReportButton'
 import { useAuth } from '../auth/AuthContext'
 import { fr } from '../i18n/fr'
@@ -99,7 +101,7 @@ export function Community() {
 
   return (
     <AppShell>
-      <main className="page souk">
+      <main className="page community-page">
         <p><Link to="/communautes">← {fr.community.back}</Link></p>
         {failed && (
           <div className="alert" role="alert">
@@ -116,25 +118,30 @@ export function Community() {
             {error && <div className="alert" role="alert">{error}</div>}
 
             <div className="chat-layout">
-              <aside className="panel chat-side">
+              <aside className="chat-side">
                 <div className="chat-community">
                   <h1>{community.name}</h1>
-                  {community.description && <p className="muted tiny">{community.description}</p>}
-                  <p className="tiny muted">{fr.communities.members(members.length)}</p>
+                  <div className="chat-intro">
+                    {community.description && <strong>{community.description}</strong>}
+                    <span className="tiny muted">{fr.communities.members(members.length)}</span>
+                  </div>
                 </div>
-                <h2 className="eyebrow">{fr.community.channels}</h2>
+                <h2 className="chat-side-label">{fr.community.channels}</h2>
                 <div role="tablist" aria-orientation="vertical" className="chat-channels">
                   {channels.map((c) => (
                     <button key={c.id} type="button" role="tab" aria-selected={c.id === channelId} className={`chat-channel ${c.id === channelId ? 'chat-channel-on' : ''}`} onClick={() => setChannelId(c.id)}>
-                      # {c.name}
+                      <span className="chat-hash">#</span> {c.name}
                     </button>
                   ))}
                 </div>
               </aside>
 
-              <section className="panel chat-main" aria-label={channel ? `# ${channel.name}` : fr.community.channels}>
+              <section className="chat-main" aria-label={channel ? `# ${channel.name}` : fr.community.channels}>
                 <header className="chat-head">
-                  <strong>{channel ? `# ${channel.name}` : ''}</strong>
+                  <div className="chat-head-title">
+                    <strong><span className="chat-hash">#</span> {channel ? channel.name : ''}</strong>
+                    {community.description && <span className="muted tiny">{community.description}</span>}
+                  </div>
                   <button type="button" className="btn" onClick={loadMessages}>{fr.community.refresh}</button>
                 </header>
 
@@ -142,32 +149,40 @@ export function Community() {
                   {messages === null && <p className="muted">{fr.common.loading}</p>}
                   {messages && messages.length === 0 && <p className="muted">{fr.community.noMessages}</p>}
                   <ul className="chat-list">
-                    {(messages ?? []).map((m) => (
-                      <li key={m.id} className="chat-msg">
-                        <span className="mini-avatar" aria-hidden="true">{(m.author_name || m.author_username).slice(0, 1).toUpperCase()}</span>
-                        <div className="chat-body">
-                          <div className="tiny muted">
-                            <Link to={`/profil/${m.author_username}`}>{m.author_name || m.author_username}</Link>
-                            {' · '}{new Date(m.created_at).toLocaleString(dateLocale(), { dateStyle: 'short', timeStyle: 'short' })}
+                    {(messages ?? []).map((m, i, all) => {
+                      const day = new Date(m.created_at).toDateString()
+                      const newDay = i === 0 || new Date(all[i - 1].created_at).toDateString() !== day
+                      const who = m.author_name || m.author_username
+                      return (
+                        <li key={m.id}>
+                          {newDay && <p className="chat-day"><span>{new Date(m.created_at).toLocaleDateString(dateLocale(), { day: 'numeric', month: 'long', year: 'numeric' })}</span></p>}
+                          <div className="chat-msg">
+                            <span className="chat-avatar" aria-hidden="true">{who.split(/\s+/).slice(0, 2).map((w) => w.slice(0, 1)).join('').toUpperCase()}</span>
+                            <div className="chat-body">
+                              <div className="chat-who">
+                                <Link to={`/profil/${m.author_username}`}>{who}</Link>
+                                <span className="tiny muted">{new Date(m.created_at).toLocaleTimeString(dateLocale(), { hour: '2-digit', minute: '2-digit' })}</span>
+                              </div>
+                              {m.deleted_at ? <em className="muted">{fr.community.deleted}</em> : <ChatBody text={m.body} />}
+                              <div className="chat-actions">
+                                {!m.deleted_at && m.author_id !== me && <ReportButton type="message" id={m.id} />}
+                                {!m.deleted_at && (m.author_id === me || canModerate) && (
+                                  <button type="button" className="btn" disabled={busy} onClick={() => void run(() => deleteMessage(m.id), loadMessages)}>{fr.community.deleteMessage}</button>
+                                )}
+                              </div>
+                            </div>
                           </div>
-                          {m.deleted_at ? <em className="muted">{fr.community.deleted}</em> : <p>{m.body}</p>}
-                          <div className="chat-actions">
-                            {!m.deleted_at && m.author_id !== me && <ReportButton type="message" id={m.id} />}
-                            {!m.deleted_at && (m.author_id === me || canModerate) && (
-                              <button type="button" className="btn" disabled={busy} onClick={() => void run(() => deleteMessage(m.id), loadMessages)}>{fr.community.deleteMessage}</button>
-                            )}
-                          </div>
-                        </div>
-                      </li>
-                    ))}
+                        </li>
+                      )
+                    })}
                   </ul>
                 </div>
 
                 {canWrite ? (
                   <form onSubmit={onSend} noValidate className="chat-compose">
                     <label htmlFor="body" className="sr-only">{fr.community.messageLabel}</label>
-                    <textarea id="body" rows={2} maxLength={4000} placeholder={fr.community.messageLabel} value={body} onChange={(e) => setBody(e.target.value)} />
-                    <button className="btn btn-cta" type="submit" disabled={busy || !body.trim()}>{fr.community.send}</button>
+                    <textarea id="body" rows={1} maxLength={4000} placeholder={channel ? fr.community.messageIn(channel.name) : fr.community.messageLabel} value={body} onChange={(e) => setBody(e.target.value)} />
+                    <button className="chat-send" type="submit" aria-label={fr.community.send} disabled={busy || !body.trim()}><Icon name="send" size={20} /></button>
                   </form>
                 ) : (
                   channel && <p className="muted chat-compose">{fr.community.announcementOnly}</p>

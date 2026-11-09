@@ -1077,6 +1077,7 @@ export const frMessages = {
     channels: 'Salons',
     noMessages: "Aucun message pour l'instant. Lancez la discussion.",
     messageLabel: 'Votre message',
+    messageIn: (name: string): string => `Envoyer un message dans #${name}`,
     send: 'Envoyer',
     deleted: 'Message supprimé',
     deleteMessage: 'Supprimer',
