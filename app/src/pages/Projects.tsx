@@ -2,11 +2,11 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
 import { Icon } from '../components/Icon'
-import { ClanTag, ProjectCard, BuildBadge } from '../components/ProjectCard'
+import { ClanTag, ProjectCard } from '../components/ProjectCard'
 import { fr, type ClanKey } from '../i18n/fr'
 import {
-  buildStatuses, listGoodFirstIssues, projectContributors, projectCoverUrl, projectLanguages, REGION_KEYS, searchProjects, trendingCreators,
-  type BuildStatus, type ProjectContributor, type RegionKey, type GoodFirstIssue, type LanguageCount, type ProjectRow, type SearchFilters, type SortKey, type TrendingCreator,
+  buildStatuses, listGoodFirstIssues, projectContributors, projectLanguages, REGION_KEYS, searchProjects, trendingCreators,
+  type BuildStatus, type ProjectContributor, type RegionKey, type GoodFirstIssue, type LanguageCount, type ProjectRow, type SortKey, type TrendingCreator,
 } from '../lib/api'
 import { useDebounced } from '../hooks'
 
@@ -27,7 +27,6 @@ export function Projects() {
   const [error, setError] = useState(false)
   const [reloads, setReloads] = useState(0)
 
-  const [featured, setFeatured] = useState<ProjectRow | null>(null)
   const [languages, setLanguages] = useState<LanguageCount[]>([])
   const [creators, setCreators] = useState<TrendingCreator[] | null>(null)
   const [issues, setIssues] = useState<GoodFirstIssue[] | null>(null)
@@ -36,8 +35,6 @@ export function Projects() {
   // Things that do not depend on the filters. A failure here only hides that block.
   useEffect(() => {
     let alive = true
-    const filters: SearchFilters = { query: '', language: '', clan: '', sort: 'recent', region: '' }
-    searchProjects(filters, { featuredOnly: true, limit: 1 }).then((r) => alive && setFeatured(r[0] ?? null)).catch(() => undefined)
     projectLanguages().then((r) => alive && setLanguages(r)).catch(() => undefined)
     trendingCreators(7, 5).then((r) => alive && setCreators(r)).catch(() => alive && setCreators([]))
     listGoodFirstIssues(20).then((r) => alive && setIssues(r)).catch(() => alive && setIssues([]))
@@ -105,27 +102,32 @@ export function Projects() {
           </select>
         </div>
 
+        <section className="panel creators-row" aria-label={fr.projects.trending}>
+          <header className="creators-head">
+            <h2 className="side-title">{fr.projects.trending}</h2>
+            <span className="muted tiny">{fr.projects.trendingSub}</span>
+            <Link className="side-link" to="/arene">{fr.projects.fullRanking} →</Link>
+          </header>
+          {creators && creators.length === 0 && <p className="muted tiny">{fr.projects.trendingEmpty}</p>}
+          <ol className="creators-list">
+            {(creators ?? []).map((c, i) => (
+              <li key={c.user_id}>
+                <div className="creator-top">
+                  <span className={`rank ${i === 0 ? 'rank-first' : 'muted'}`}>{String(i + 1).padStart(2, '0')}</span>
+                  <Link to={`/profil/${c.username}`} className="creator-avatar" aria-label={c.display_name}>
+                    {c.avatar_url ? <img src={c.avatar_url} alt="" /> : c.display_name.slice(0, 1).toUpperCase()}
+                  </Link>
+                  <span className="creator-score">{c.contributions}</span>
+                </div>
+                <strong>{c.display_name}</strong>
+                <ClanTag clan={c.clan} />
+              </li>
+            ))}
+          </ol>
+        </section>
+
         <div className="projects-layout">
           <div className="projects-main">
-            {featured && (
-              <section className="panel featured" aria-label={fr.projects.featured}>
-                <div className="featured-art" aria-hidden="true" style={featured.cover_path ? { backgroundImage: `url(${projectCoverUrl(featured.cover_path)})` } : undefined} />
-                <div className="featured-body">
-                  <span className="tag tag-accent">{fr.projects.featured.toUpperCase()}</span>
-                  <h2>{featured.github_owner} / {featured.github_repo}</h2>
-                  <p className="muted">{featured.summary ?? featured.title}</p>
-                  <p className="tiny">
-                    {featured.owner_display_name} <ClanTag clan={featured.owner_clan} />{' '}
-                    <span className="muted">★ {featured.github_stars + featured.star_count}</span>{' '}
-                    <BuildBadge status={builds[featured.project_id]} />
-                  </p>
-                  {featured.demo_url ? (
-                    <p><a className="btn btn-demo" href={featured.demo_url} target="_blank" rel="noreferrer noopener"><Icon name="play" size={16} /> {fr.projects.demo}</a></p>
-                  ) : null}
-                </div>
-              </section>
-            )}
-
             <div className="list-head">
               <h2>{fr.projects.community}</h2>
               <span className="muted tiny">
@@ -160,26 +162,6 @@ export function Projects() {
           </div>
 
           <aside className="projects-side">
-            <section className="panel side-card">
-              <h2 className="side-title">{fr.projects.trending}</h2>
-              <p className="muted tiny">{fr.projects.trendingSub}</p>
-              {creators && creators.length === 0 && <p className="muted tiny">{fr.projects.trendingEmpty}</p>}
-              <ol className="creators">
-                {(creators ?? []).map((c, i) => (
-                  <li key={c.user_id}>
-                    <span className="muted rank">{String(i + 1).padStart(2, '0')}</span>
-                    <span className="mini-avatar" aria-hidden="true">{c.display_name.slice(0, 1).toUpperCase()}</span>
-                    <span className="creator-name">
-                      <strong>{c.display_name}</strong>
-                      <ClanTag clan={c.clan} />
-                    </span>
-                    <span className="creator-score">{c.contributions}</span>
-                  </li>
-                ))}
-              </ol>
-              <Link className="side-link" to="/arene">{fr.projects.fullRanking} →</Link>
-            </section>
-
             <section className="panel side-card">
               <p className="eyebrow">{fr.projects.grow}</p>
               <p style={{ margin: '10px 0 14px' }}>
