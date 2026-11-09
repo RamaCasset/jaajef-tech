@@ -8,7 +8,7 @@ const api = vi.hoisted(() => ({
   deleteProjectComment: vi.fn(), listCollaborators: vi.fn(), listCollabRequests: vi.fn(), requestCollaboration: vi.fn(),
   withdrawCollabRequest: vi.fn(), decideCollabRequest: vi.fn(), removeCollaborator: vi.fn(), loadRepoTree: vi.fn(), getLastCommits: vi.fn(),
   GithubError: class GithubError extends Error { code = 'failed' },
-  projectCoverUrl: vi.fn(), saveProjectShowcase: vi.fn(), uploadProjectCover: vi.fn(), inviteCollaborator: vi.fn(), listProjectInvites: vi.fn(), cancelCollabInvite: vi.fn(), searchEverything: vi.fn(),
+  projectCoverUrl: vi.fn(), saveProjectShowcase: vi.fn(), uploadProjectCover: vi.fn(), inviteCollaborator: vi.fn(), listProjectInvites: vi.fn(), cancelCollabInvite: vi.fn(), getProjectRoom: vi.fn(), searchEverything: vi.fn(), openProjectRoom: vi.fn(),
 }))
 vi.mock('../lib/api', () => api)
 vi.mock('../auth/AuthContext', () => ({
@@ -38,6 +38,7 @@ beforeEach(() => {
   api.listCollabRequests.mockResolvedValue([])
   api.listProjectInvites.mockResolvedValue([])
   api.searchEverything.mockResolvedValue([])
+  api.getProjectRoom.mockResolvedValue(null)
   api.loadRepoTree.mockResolvedValue({ branch: 'main', truncated: false, entries: [{ path: 'src', type: 'tree', size: 0 }, { path: 'app.py', type: 'blob', size: 10 }] })
   api.getLastCommits.mockResolvedValue({})
   for (const f of [api.starProject, api.unstarProject, api.postProjectComment, api.deleteProjectComment, api.requestCollaboration, api.withdrawCollabRequest, api.decideCollabRequest, api.removeCollaborator, api.inviteCollaborator, api.cancelCollabInvite]) f.mockResolvedValue(undefined)
@@ -231,5 +232,26 @@ describe('Project page', () => {
     expect(await screen.findByRole('heading', { level: 1 })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Mettre une étoile/ })).toBeNull()
     expect(screen.queryByText('Vous collaborez à ce projet')).toBeNull()
+  })
+
+  it('the owner can create the project room, then open it', async () => {
+    api.getProjectFull.mockResolvedValue(project({ owner_id: 'me' }))
+    api.openProjectRoom.mockImplementation(async () => { api.getProjectRoom.mockResolvedValue('projet-abc'); return 'room1' })
+    mount()
+    await userEvent.click(await screen.findByRole('button', { name: 'Créer le salon du projet' }))
+    expect(api.openProjectRoom).toHaveBeenCalledWith('p1')
+    expect(await screen.findByRole('link', { name: 'Ouvrir le salon' })).toHaveAttribute('href', '/communautes/projet-abc')
+  })
+
+  it('a collaborator sees the link when the room exists; a visitor sees nothing', async () => {
+    api.getProjectRoom.mockResolvedValue('projet-abc')
+    mount()
+    expect(await screen.findByRole('link', { name: 'Ouvrir le salon' })).toBeInTheDocument()
+  })
+
+  it('a visitor does not see the room section', async () => {
+    mount()
+    await screen.findByText('Teranga')
+    expect(screen.queryByText('Salon du projet')).toBeNull()
   })
 })
