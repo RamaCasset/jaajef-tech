@@ -23,7 +23,7 @@ describe('AppShell', () => {
     mount()
     const nav = screen.getByRole('navigation', { name: 'Navigation principale' })
     expect(within(nav).getByRole('link', { name: 'La Cité' })).toHaveAttribute('href', '/projets')
-    expect(within(nav).queryByRole('link', { name: 'Projets' })).toBeNull()
+    expect(within(nav).getByRole('link', { name: 'Projets' })).toHaveAttribute('href', '/depots')
     expect(within(nav).getByRole('link', { name: 'Quêtes' })).toHaveAttribute('href', '/quetes')
     expect(within(nav).getByRole('link', { name: 'Le Souk' })).toHaveAttribute('href', '/souk')
     expect(await screen.findByRole('button', { name: 'Notifications (3)' })).toBeInTheDocument()
