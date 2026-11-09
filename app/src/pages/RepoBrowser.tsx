@@ -3,13 +3,16 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
 import { CodeEditor } from '../components/CodeEditor'
 import { ChangeDiff } from '../components/ChangeDiff'
+import { FileSearch } from '../components/FileSearch'
+import { ImagePreview } from '../components/ImagePreview'
+import { ArticleBody } from '../components/ArticleBody'
 import { EditorTabs } from '../components/EditorTabs'
 import { FileTree } from '../components/FileTree'
 import { Icon } from '../components/Icon'
 import { ProjectFiles, dirUrl, fileUrl, parentOf } from '../components/ProjectFiles'
 import { useAuth } from '../auth/AuthContext'
 import {
-  EditorError, editorCommitTo, editorPropose, editorStatus, editorTreeOf, getProjectFull, GithubError, isViewable, listCollaborators, loadBranches, loadRepoFile, loadRepoTree,
+  EditorError, imageMime, editorCommitTo, editorPropose, editorStatus, editorTreeOf, getProjectFull, GithubError, isViewable, listCollaborators, loadBranches, loadRepoFile, loadRepoTree,
   pullRequestUrl, type BranchList, type EditorStatus, type ProjectFull, type RepoTree,
 } from '../lib/api'
 import { fr } from '../i18n/fr'
@@ -53,6 +56,8 @@ export function RepoBrowser() {
   const [folderName, setFolderName] = useState<string | null>(null)
   const fileInput = useRef<HTMLInputElement>(null)
   const pendingRef = useRef<Pending>({})
+  const searchBox = useRef<HTMLInputElement>(null)
+  const [previewOn, setPreviewOn] = useState(false)
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
@@ -89,7 +94,10 @@ export function RepoBrowser() {
   const removedHere = !!path && Object.values(pending).some((c) => c.kind === 'delete' && c.path === path)
   const sourcePath = active?.from ?? path
   const original = texts[sourcePath]
+  const isImg = !!path && imageMime(sourcePath) !== null
+  const isMarkdown = /\.(md|markdown)$/i.test(path)
   const shownContent: string | null = active && active.kind === 'add' ? active.text ?? '' : active?.text ?? original ?? null
+  const canAct = shownContent !== null || !!active || (isImg && treePaths.has(sourcePath))
 
   useEffect(() => {
     let alive = true
@@ -125,7 +133,7 @@ export function RepoBrowser() {
 
   // Opening another file clears the old messages and adds a tab.
   useEffect(() => {
-    setFileError(null); setActionError(null); setInstall(null); setNotAllowed(false)
+    setFileError(null); setActionError(null); setInstall(null); setNotAllowed(false); setPreviewOn(false)
     if (path) setTabs((t) => (t.includes(path) ? t : [...t, path]))
   }, [path])
 
@@ -133,7 +141,7 @@ export function RepoBrowser() {
   useEffect(() => {
     if (!project || !tree || !path || removedHere) return
     const c = changeAt(pending, path)
-    if (c?.kind === 'add' || (wantsNew && !treePaths.has(path))) return
+    if (c?.kind === 'add' || (wantsNew && !treePaths.has(path)) || imageMime(c?.from ?? path)) return
     const src = c?.from ?? path
     if (texts[src] !== undefined) return
     const entry = tree.entries.find((e) => e.path === src && e.type === 'blob')
@@ -323,6 +331,20 @@ export function RepoBrowser() {
     }
   }
 
+  // Ctrl+P (or Cmd+P) jumps to the file search, like in a code editor.
+  useEffect(() => {
+    if (!path) return
+    const onKey = (ev: KeyboardEvent) => {
+      if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === 'p') {
+        ev.preventDefault()
+        setPanelOpen(true)
+        setTimeout(() => searchBox.current?.focus(), 0)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [path])
+
   // Ctrl+S (or Cmd+S) opens the save box instead of the browser's own "save page".
   useEffect(() => {
     if (!isMember || !path) return
@@ -463,6 +485,7 @@ export function RepoBrowser() {
                       <h2>{t.panelTitle}</h2>
                       <button type="button" className="icon-btn icon-btn-small" aria-label={t.hidePanel} title={t.hidePanel} onClick={() => setPanelOpen(false)}><Icon name="chevron-left" size={16} /></button>
                     </div>
+                    <FileSearch ref={searchBox} projectId={project.id} paths={marked.paths} branch={shownBranch} canSearchText={isMember} />
                     {isMember && (
                       <div className="panel-tools">
                         <button type="button" className="btn" disabled={busy} onClick={() => void startFolder()}>{fr.editor.newFolder}</button>
@@ -488,19 +511,22 @@ export function RepoBrowser() {
                   <div className="file-bar">
                     <Link className="muted tiny" to={`/projets/${project.id}/historique?fichier=${encodeURIComponent(path)}`} onClick={guard}>{t.fileHistory}</Link>
                     {shownContent !== null && <span className="muted tiny">{fr.repoViewer.lines(lineCount)}</span>}
+                    {isMarkdown && shownContent !== null && !removedHere && (
+                      <button type="button" className="btn" aria-pressed={previewOn} onClick={() => setPreviewOn((v) => !v)}>{previewOn ? fr.editor.codeView : fr.editor.preview}</button>
+                    )}
                     {dirty && <span className="muted tiny">{fr.editor.changesTitle(changeCount)}</span>}
                     <div className="file-actions">
                       {isMember && (
-                        <button type="button" className={`icon-btn ${base ? 'icon-btn-on' : ''}`} aria-label={t.edit} title={t.edit} aria-pressed={base !== null} disabled={busy || base !== null || (shownContent === null && !removedHere)} onClick={() => void startEdit()}><Icon name="pen" size={18} /></button>
+                        <button type="button" className={`icon-btn ${base ? 'icon-btn-on' : ''}`} aria-label={t.edit} title={t.edit} aria-pressed={base !== null} disabled={busy || base !== null || (!canAct && !removedHere)} onClick={() => void startEdit()}><Icon name="pen" size={18} /></button>
                       )}
                       {isMember && (
                         <button type="button" className="icon-btn" aria-label={t.save} title={dirty ? t.save : t.noChanges} disabled={busy || !dirty} onClick={() => setBox(true)}><Icon name="save" size={18} /></button>
                       )}
                       {isMember && (
-                        <button type="button" className="btn" disabled={busy || removedHere || renaming !== null || (shownContent === null && !active)} onClick={() => void startRename()}>{fr.editor.renameTitle}</button>
+                        <button type="button" className="btn" disabled={busy || removedHere || renaming !== null || !canAct} onClick={() => void startRename()}>{fr.editor.renameTitle}</button>
                       )}
                       {isMember && (
-                        <button type="button" className="icon-btn icon-btn-danger" aria-label={t.delete} title={t.delete} disabled={busy || removedHere || (shownContent === null && !active)} onClick={() => void startDelete()}><Icon name="trash" size={18} /></button>
+                        <button type="button" className="icon-btn icon-btn-danger" aria-label={t.delete} title={t.delete} disabled={busy || removedHere || !canAct} onClick={() => void startDelete()}><Icon name="trash" size={18} /></button>
                       )}
                     </div>
                   </div>
@@ -557,8 +583,12 @@ export function RepoBrowser() {
                     {removedHere && (
                       <p className="editor-pad">{fr.editor.willBeDeleted} <button type="button" className="btn" onClick={restore}>{fr.editor.restoreFile}</button></p>
                     )}
-                    {!fileError && !removedHere && shownContent === null && <p className="muted editor-pad">{fr.repoViewer.loading}</p>}
-                    {!fileError && !removedHere && shownContent !== null && (
+                    {isImg && !removedHere && (
+                      <ImagePreview projectId={project.id} owner={project.github_owner} repo={project.github_repo} isPrivate={!!project.repo_private} branch={branch} path={sourcePath} base64={active?.base64} />
+                    )}
+                    {!isImg && !fileError && !removedHere && shownContent === null && <p className="muted editor-pad">{fr.repoViewer.loading}</p>}
+                    {!isImg && !fileError && !removedHere && shownContent !== null && previewOn && <div className="preview-body"><ArticleBody text={shownText} /></div>}
+                    {!isImg && !fileError && !removedHere && shownContent !== null && !previewOn && (
                       <CodeEditor path={path} value={shownText} readOnly={base === null} onChange={onType} />
                     )}
                   </div>

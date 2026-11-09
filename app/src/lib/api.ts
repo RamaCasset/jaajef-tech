@@ -1650,6 +1650,19 @@ export const editorFile = (repo: string, path: string, ref: string) =>
 export const editorCommit = (repo: string, branch: string, baseSha: string, message: string, files: FileChange[]) =>
   callEditor<{ commit_sha: string; html_url: string }>({ action: 'commit', repo, branch, base_sha: baseSha, message, files })
 
+export type SearchMatch = { path: string; line: number; text: string }
+export type SearchResult = { matches: SearchMatch[]; scanned: number; skipped: number; more: boolean }
+/** Text inside the files of a branch (members only). */
+export const editorSearch = (projectId: string, q: string, branch: string | null) =>
+  callEditor<SearchResult>({ action: 'search', project: projectId, q, ...(branch ? { branch } : {}) })
+/** One file as base64 (used to show an image of a private repository). */
+export const editorBlob = (projectId: string, path: string, ref: string) =>
+  callEditor<{ path: string; size: number; content_base64: string }>({ action: 'blob', project: projectId, path, ref })
+const IMAGE_TYPES: Record<string, string> = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', svg: 'image/svg+xml', ico: 'image/x-icon' }
+export const imageMime = (path: string) => IMAGE_TYPES[path.split('.').pop()?.toLowerCase() ?? ''] ?? null
+export const rawFileUrl = (owner: string, repo: string, branch: string, path: string) =>
+  `https://raw.githubusercontent.com/${owner}/${repo}/${encodeURIComponent(branch)}/${path.split('/').map(encodeURIComponent).join('/')}`
+
 export type Proposal = { number: number; title: string; branch: string; sha: string; author: string; url: string; created_at: string }
 export const editorProposals = (projectId: string) => callEditor<{ default_branch: string; pulls: Proposal[] }>({ action: 'prs', project: projectId })
 /** Proposes a branch to the main code. `existed` is true when a proposal for that branch was already open. */
