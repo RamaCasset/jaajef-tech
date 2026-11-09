@@ -28,6 +28,7 @@ const PATHS: Record<string, string> = {
   folder: 'M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6Z',
   file: 'M7 3h7l5 5v13H7V3Zm7 0v5h5',
   souk: 'M4 9 5.5 4h13L20 9M4 9h16M4 9v1a2.5 2.5 0 0 0 4 2 2.5 2.5 0 0 0 4 0 2.5 2.5 0 0 0 4 0 2.5 2.5 0 0 0 4-2V9M5 13v7h14v-7M10 20v-4h4v4',
+  send: 'M21 3 10 14M21 3l-7 18-4-8-8-4 19-6Z',
   plus: 'M12 5v14M5 12h14',
   play: 'M8 5v14l11-7L8 5Z',
   user: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0',
