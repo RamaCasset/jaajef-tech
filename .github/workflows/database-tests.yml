@@ -108,5 +108,8 @@ jobs:
         run: npm run typecheck
       - name: Test
         run: npm test
+        env:
+          # The suite is large now: the default memory of node ran out on the GitHub machine.
+          NODE_OPTIONS: --max-old-space-size=4096
       - name: Build
         run: npm run build
