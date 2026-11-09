@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { answerCollabInvite, listNotifications, markAllNotificationsRead, markNotificationRead, type NotificationRow } from './api'
+import { fr } from '../i18n/fr'
 import { friendlyError } from './errors'
 
 /** The notifications of the signed-in member, with the actions that can be done on them (shared by the bell and the inbox page). */
@@ -7,7 +8,7 @@ export function useNotifications(limit: number, enabled = true) {
   const [items, setItems] = useState<NotificationRow[] | null>(null)
   const [failed, setFailed] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [answered, setAnswered] = useState<Record<string, boolean>>({})
+  const [answered, setAnswered] = useState<Record<string, boolean | null>>({})
 
   const load = useCallback(() => {
     setFailed(false)
@@ -33,7 +34,11 @@ export function useNotifications(limit: number, enabled = true) {
       setAnswered((a) => ({ ...a, [invite]: accept }))
       void open(n)
     } catch (err) {
-      setError(friendlyError(err))
+      const text = friendlyError(err)
+      if (text === fr.errors.inviteGone || text === fr.errors.inviteExpired) {
+        setAnswered((a) => ({ ...a, [invite]: null }))
+        void open(n)
+      } else setError(text)
     }
   }, [open])
 

@@ -62,6 +62,7 @@ export const frMessages = {
     inviteDecline: 'Refuser',
     inviteAccepted: 'Invitation acceptée : vous collaborez maintenant sur ce projet.',
     inviteDeclined: 'Invitation refusée.',
+    inviteClosed: 'Invitation expirée ou déjà traitée.',
     chooseInSettings: 'Choisir ce que je reçois (dans les paramètres)',
     viewAll: 'Voir toutes mes notifications',
     seeProposals: 'Voir les propositions',
