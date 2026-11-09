@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
 import { Icon } from '../components/Icon'
-import { SpaceToggle } from '../components/SpaceToggle'
 import { ClanTag, ProjectCard, BuildBadge } from '../components/ProjectCard'
 import { fr, type ClanKey } from '../i18n/fr'
 import {
@@ -74,7 +73,6 @@ export function Projects() {
   return (
     <AppShell>
       <main className="page">
-        <div className="space-bar"><SpaceToggle active="community" /></div>
         <div className="page-head-row">
           <div>
             <p className="eyebrow">{fr.projects.eyebrow}</p>

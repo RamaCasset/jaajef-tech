@@ -689,8 +689,8 @@ export const en: Messages = {
       {
         id: 'cite',
         title: 'The City: community life',
-        text: 'This is the home page: the communities of the platform. Your level, XP, day streak, quest of the day and badges are on your profile.',
-        to: '/communautes',
+        text: 'This is the home page: the projects of the community, to discover and join. Your level, day streak, quest of the day and badges are on your profile. Your own repositories are in My repositories.',
+        to: '/projets',
         cta: 'Go to the City',
       },
       {

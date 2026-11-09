@@ -4,7 +4,6 @@ import { AppShell } from '../components/AppShell'
 import { Icon } from '../components/Icon'
 import { PinnedCard, RepoListRow } from '../components/RepoRow'
 import { RepoSide } from '../components/RepoSide'
-import { SpaceToggle } from '../components/SpaceToggle'
 import { useAuth } from '../auth/AuthContext'
 import { fr } from '../i18n/fr'
 import { friendlyError } from '../lib/errors'
@@ -89,7 +88,6 @@ export function MyRepos() {
   return (
     <AppShell>
       <main className="page repos-page">
-        <div className="space-bar"><SpaceToggle active="personal" /></div>
         <RepoSide repoCount={repos ? all.length : null} />
         <div className="repos-main">
           <p className="mono tiny muted repo-crumb">{t.root} / {username} / <span className="crumb-on">{t.nav.repos}</span></p>
