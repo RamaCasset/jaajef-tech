@@ -1,7 +1,8 @@
 import { lazy, Suspense } from 'react'
 
-// Monaco is the editor that powers VS Code. It is large, so it loads only when the editor page opens.
-const Monaco = lazy(() => import('@monaco-editor/react'))
+// Monaco is the editor that powers VS Code. It is large, so it loads only when the editor page opens,
+// and it comes from this site (see monacoSetup), never from an outside server.
+const Monaco = lazy(async () => { await import('./monacoSetup'); return import('@monaco-editor/react') })
 
 const LANGUAGES: Record<string, string> = {
   py: 'python', js: 'javascript', jsx: 'javascript', ts: 'typescript', tsx: 'typescript', json: 'json', md: 'markdown',
