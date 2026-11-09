@@ -1040,6 +1040,10 @@ export const frMessages = {
     notFound: "Cette conversation n'existe pas.",
     write: 'Envoyer un message',
   },
+  memberSuggest: {
+    label: 'Membres suggérés',
+    hint: 'Tapez au moins deux lettres pour voir des suggestions.',
+  },
   blog: {
     title: 'Le Blog',
     subtitle: 'Les idées et les histoires de la communauté.',

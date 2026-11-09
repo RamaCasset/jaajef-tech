@@ -8,7 +8,7 @@ const api = vi.hoisted(() => ({
   deleteProjectComment: vi.fn(), listCollaborators: vi.fn(), listCollabRequests: vi.fn(), requestCollaboration: vi.fn(),
   withdrawCollabRequest: vi.fn(), decideCollabRequest: vi.fn(), removeCollaborator: vi.fn(), loadRepoTree: vi.fn(), getLastCommits: vi.fn(),
   GithubError: class GithubError extends Error { code = 'failed' },
-  projectCoverUrl: vi.fn(), saveProjectShowcase: vi.fn(), uploadProjectCover: vi.fn(), inviteCollaborator: vi.fn(), listProjectInvites: vi.fn(), cancelCollabInvite: vi.fn(),
+  projectCoverUrl: vi.fn(), saveProjectShowcase: vi.fn(), uploadProjectCover: vi.fn(), inviteCollaborator: vi.fn(), listProjectInvites: vi.fn(), cancelCollabInvite: vi.fn(), searchEverything: vi.fn(),
 }))
 vi.mock('../lib/api', () => api)
 vi.mock('../auth/AuthContext', () => ({
@@ -37,6 +37,7 @@ beforeEach(() => {
   api.listCollaborators.mockResolvedValue([{ user_id: 'u4', username: 'cheikh', display_name: 'Cheikh' }])
   api.listCollabRequests.mockResolvedValue([])
   api.listProjectInvites.mockResolvedValue([])
+  api.searchEverything.mockResolvedValue([])
   api.loadRepoTree.mockResolvedValue({ branch: 'main', truncated: false, entries: [{ path: 'src', type: 'tree', size: 0 }, { path: 'app.py', type: 'blob', size: 10 }] })
   api.getLastCommits.mockResolvedValue({})
   for (const f of [api.starProject, api.unstarProject, api.postProjectComment, api.deleteProjectComment, api.requestCollaboration, api.withdrawCollabRequest, api.decideCollabRequest, api.removeCollaborator, api.inviteCollaborator, api.cancelCollabInvite]) f.mockResolvedValue(undefined)

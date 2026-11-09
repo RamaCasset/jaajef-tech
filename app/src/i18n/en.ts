@@ -1040,6 +1040,10 @@ export const en: Messages = {
     notFound: 'This conversation does not exist.',
     write: 'Send a message',
   },
+  memberSuggest: {
+    label: 'Suggested members',
+    hint: 'Type at least two letters to see suggestions.',
+  },
   blog: {
     title: 'The Blog',
     subtitle: 'The ideas and stories of the community.',

@@ -2,6 +2,7 @@ import { dateLocale } from '../i18n/lang'
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
+import { MemberSuggest } from '../components/MemberSuggest'
 import { ProjectFiles } from '../components/ProjectFiles'
 import { ProjectShowcase } from '../components/ProjectShowcase'
 import { Icon } from '../components/Icon'
@@ -154,7 +155,7 @@ export function ProjectPage() {
                 <form onSubmit={onAddCollab} noValidate>
                   <div className="field">
                     <label htmlFor="add-collab">{fr.projectPage.collabAddLabel}</label>
-                    <input id="add-collab" value={newCollab} maxLength={40} placeholder={fr.projectPage.collabAddPlaceholder} onChange={(e) => setNewCollab(e.target.value)} />
+                    <MemberSuggest id="add-collab" value={newCollab} onChange={setNewCollab} exclude={[...collabs.map((c) => c.username), ...invites.map((i) => i.invitee_username), member?.profile.username ?? '']} placeholder={fr.projectPage.collabAddPlaceholder} />
                   </div>
                   <button className="btn btn-cta" type="submit" disabled={busy || !newCollab.trim()}>{fr.projectPage.collabInvite}</button>
                 </form>
