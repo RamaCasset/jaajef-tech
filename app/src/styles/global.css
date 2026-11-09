@@ -695,3 +695,15 @@ select { appearance: none; -webkit-appearance: none; background-color: var(--pan
 .file-search .btn, .panel-tools .btn, .panel-form .btn, .rename-form .btn, .file-actions .btn { padding: 7px 12px; font-size: 13px; border-radius: 10px; }
 .file-actions .btn { white-space: nowrap; }
 .file-bar .btn { padding: 7px 12px; font-size: 13px; border-radius: 10px; white-space: nowrap; }
+
+/* Member suggestions under a username box */
+.member-suggest { position: relative; }
+.member-suggest-list { position: absolute; z-index: 20; left: 0; right: 0; top: calc(100% + 4px); margin: 0; padding: 4px; list-style: none; background: #0b1120; border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4); }
+.member-suggest-list[hidden] { display: none; }
+.member-suggest-list li { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; cursor: pointer; }
+.member-suggest-list li.is-active, .member-suggest-list li:hover { background: rgba(60, 140, 255, 0.16); }
+.member-suggest-list img { border-radius: 50%; object-fit: cover; }
+.member-suggest-dot { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: #17305a; font-size: 12px; font-weight: 700; }
+
+.notice-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
+.notice-actions .btn { padding: 7px 14px; font-size: 13px; border-radius: 10px; }
