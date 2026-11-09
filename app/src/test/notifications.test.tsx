@@ -151,7 +151,7 @@ describe('The bell in the top bar', () => {
     const panel = await screen.findByRole('region', { name: 'Notifications' })
     expect(await within(panel).findByText(/awa a mis une étoile/)).toBeInTheDocument()
     expect(listNotifications).toHaveBeenCalledWith(8)
-    expect(within(panel).getByRole('link', { name: 'Voir toutes mes notifications' })).toHaveAttribute('href', '/notifications')
+    expect(within(panel).getByRole('link', { name: 'Voir toutes les notifications →' })).toHaveAttribute('href', '/notifications')
     await userEvent.click(screen.getByRole('button', { name: 'Notifications' }))
     expect(screen.queryByRole('region', { name: 'Notifications' })).toBeNull()
   })
