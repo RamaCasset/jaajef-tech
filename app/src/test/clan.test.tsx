@@ -25,7 +25,7 @@ function mount() {
     <MemoryRouter initialEntries={['/inscription/clan']}>
       <Routes>
         <Route path="/inscription/clan" element={<ChooseClan />} />
-        <Route path="/cite" element={<p>arrived</p>} />
+        <Route path="/communautes" element={<p>arrived</p>} />
         <Route path="/connexion" element={<p>login</p>} />
       </Routes>
     </MemoryRouter>,

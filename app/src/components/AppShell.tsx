@@ -31,9 +31,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="shell">
       <header className="topbar">
-        <NavLink to="/cite" aria-label={fr.appName}><Logo size={20} /></NavLink>
+        <NavLink to="/communautes" aria-label={fr.appName}><Logo size={20} /></NavLink>
         <nav aria-label={fr.nav.main} className="topnav">
-          <NavLink to="/cite" end>{fr.nav.city}</NavLink>
+          <NavLink to="/communautes">{fr.nav.city}</NavLink>
           <NavLink to="/projets">{fr.nav.projects}</NavLink>
           <NavLink to="/quetes">{fr.nav.quests}</NavLink>
           <NavLink to="/souk">{fr.nav.souk}</NavLink>
@@ -51,7 +51,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <details className="account-menu">
             <summary className="avatar-btn" aria-label={fr.nav.account}>{member?.profile.avatar_url ? <img src={member.profile.avatar_url} alt="" /> : initial}</summary>
             <div className="account-pop">
-              {username && <NavLink to={`/profil/${username}`}>{fr.nav.profile}</NavLink>}
+              {username && <NavLink to="/cite">{fr.nav.profile}</NavLink>}
               <NavLink to="/arene">{fr.nav.arena}</NavLink>
               <NavLink to="/parametres">{fr.nav.settings}</NavLink>
               <NavLink to="/guide">{fr.nav.guide}</NavLink>

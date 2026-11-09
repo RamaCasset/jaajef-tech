@@ -40,7 +40,7 @@ export function ChooseClan() {
       // Step 3 of the original design ("Votre guide") is not built yet, so we go straight to step 4.
       await setOnboardingStep(4)
       await refreshMember()
-      navigate('/cite', { replace: true })
+      navigate('/communautes', { replace: true })
     } catch (err) {
       setError(friendlyError(err))
     } finally {

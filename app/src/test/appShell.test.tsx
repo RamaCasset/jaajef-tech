@@ -22,7 +22,7 @@ describe('AppShell', () => {
   it('shows the four main links in the top bar', async () => {
     mount()
     const nav = screen.getByRole('navigation', { name: 'Navigation principale' })
-    expect(within(nav).getByRole('link', { name: 'La Cité' })).toHaveAttribute('href', '/cite')
+    expect(within(nav).getByRole('link', { name: 'La Cité' })).toHaveAttribute('href', '/communautes')
     expect(within(nav).getByRole('link', { name: 'Projets' })).toHaveAttribute('href', '/projets')
     expect(within(nav).getByRole('link', { name: 'Quêtes' })).toHaveAttribute('href', '/quetes')
     expect(within(nav).getByRole('link', { name: 'Le Souk' })).toHaveAttribute('href', '/souk')
@@ -52,7 +52,7 @@ describe('AppShell', () => {
 
   it('puts profile, settings, guide and sign out in the account menu', async () => {
     mount()
-    expect(screen.getByRole('link', { name: 'Mon profil' })).toHaveAttribute('href', '/profil/moussa_dev')
+    expect(screen.getByRole('link', { name: 'Mon profil' })).toHaveAttribute('href', '/cite')
     expect(screen.getByRole('link', { name: 'Paramètres' })).toHaveAttribute('href', '/parametres')
     expect(screen.getByRole('link', { name: 'Guide' })).toHaveAttribute('href', '/guide')
     await userEvent.click(screen.getByRole('button', { name: 'Se déconnecter' }))

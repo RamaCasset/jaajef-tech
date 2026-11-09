@@ -6,8 +6,11 @@ import { ProfileView } from '../components/ProfileView'
 import { loadProfile, type ProfileData } from '../lib/api'
 import { fr } from '../i18n/fr'
 
-export function Profile() {
-  const { username = '' } = useParams()
+/** `own` shows the signed-in member's profile (used by La Cité); otherwise the profile named in the address. */
+export function Profile({ own = false }: { own?: boolean }) {
+  const params = useParams()
+  const { member } = useAuth()
+  const username = own ? (member?.profile.username ?? '') : (params.username ?? '')
   const { session } = useAuth()
   const viewerId = session?.user.id ?? ''
   const [data, setData] = useState<ProfileData | null | undefined>(undefined)
