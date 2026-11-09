@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { Icon } from './Icon'
 import { fr } from '../i18n/fr'
 import type { NotificationRow } from '../lib/api'
-import { groupByDay, noticeText, noticeTitle, tileOf, whenLabel } from '../lib/notificationMeta'
+import { groupByDay, noticeLink, noticeText, noticeTitle, tileOf, whenLabel } from '../lib/notificationMeta'
 
 const SECTION = { today: 'sectionToday', yesterday: 'sectionYesterday', week: 'sectionWeek', older: 'sectionOlder' } as const
 
@@ -47,6 +47,7 @@ export function NotificationItems({ items, answered, onOpen, onAnswer, onRemove,
                         )}
                       </div>
                     )}
+                    {noticeLink(n) && <div className="tiny"><Link to={noticeLink(n)!} onClick={onNavigate}>{fr.notifications.see}</Link></div>}
                     {n.kind.startsWith('proposal_') && typeof n.data.project_id === 'string' && <div className="tiny"><Link to={`/projets/${n.data.project_id}/propositions`} onClick={onNavigate}>{fr.notifications.seeProposals}</Link></div>}
                     {who && <div className="tiny"><Link to={`/profil/${who}`} onClick={onNavigate}>@{who}</Link></div>}
                     <div className="notice-meta">

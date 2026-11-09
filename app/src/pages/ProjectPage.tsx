@@ -2,6 +2,7 @@ import { dateLocale } from '../i18n/lang'
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
+import { MentionText } from '../components/MentionText'
 import { MemberSuggest } from '../components/MemberSuggest'
 import { ProjectFiles } from '../components/ProjectFiles'
 import { ProjectShowcase } from '../components/ProjectShowcase'
@@ -212,7 +213,7 @@ export function ProjectPage() {
                       <button type="button" className="btn btn-small" disabled={busy} onClick={() => void run(() => deleteProjectComment(c.id), loadSide)}>{fr.projectPage.commentDelete}</button>
                       )}
                     </div>
-                    <p className="comment-body">{c.body}</p>
+                    <p className="comment-body"><MentionText text={c.body} /></p>
                   </li>
                 ))}
               </ul>

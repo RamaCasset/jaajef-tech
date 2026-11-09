@@ -830,3 +830,5 @@ div.alert[data-dismissed], p.alert[data-dismissed], div.notice[data-dismissed], 
 @media (max-width: 900px) { .notices-layout { grid-template-columns: 1fr; } .notices-page .notice-search-row { flex-wrap: wrap; } }
 .notice-groups-wide .notice-meta { display: contents; }
 .notice-groups-wide .notice-meta .linklike { position: absolute; right: 40px; bottom: 10px; }
+.mention { color: var(--accent); font-weight: 600; text-decoration: none; }
+.mention:hover { text-decoration: underline; }
