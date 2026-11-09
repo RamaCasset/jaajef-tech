@@ -1030,6 +1030,8 @@ export async function listNotifications(limit = 50): Promise<NotificationRow[]> 
 export const unreadNotificationCount = () => rpc<number>('unread_notification_count')
 export const markNotificationRead = (id: number) => rpc<void>('mark_notification_read', { p_id: id })
 export const markAllNotificationsRead = () => rpc<number>('mark_all_notifications_read')
+export const deleteNotification = (id: number) => rpc<void>('delete_notification', { p_id: id })
+export const clearMyNotifications = () => rpc<number>('clear_my_notifications')
 export const setNotificationMute = (kind: NotificationKind, muted: boolean) =>
   rpc<void>('set_notification_mute', { p_kind: kind, p_muted: muted })
 

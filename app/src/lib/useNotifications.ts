@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { answerCollabInvite, listNotifications, markAllNotificationsRead, markNotificationRead, type NotificationRow } from './api'
+import { answerCollabInvite, clearMyNotifications, deleteNotification, listNotifications, markAllNotificationsRead, markNotificationRead, type NotificationRow } from './api'
 import { fr } from '../i18n/fr'
 import { friendlyError } from './errors'
 
@@ -27,6 +27,16 @@ export function useNotifications(limit: number, enabled = true) {
     try { await markAllNotificationsRead() } catch { load() }
   }, [load])
 
+  const remove = useCallback(async (n: NotificationRow) => {
+    setItems((cur) => cur && cur.filter((x) => x.id !== n.id))
+    try { await deleteNotification(n.id) } catch { load() }
+  }, [load])
+
+  const clearAll = useCallback(async () => {
+    setItems([])
+    try { await clearMyNotifications() } catch { load() }
+  }, [load])
+
   const answer = useCallback(async (n: NotificationRow, invite: string, accept: boolean) => {
     setError(null)
     try {
@@ -43,5 +53,5 @@ export function useNotifications(limit: number, enabled = true) {
   }, [open])
 
   const unread = items ? items.filter((n) => !n.read_at).length : 0
-  return { items, failed, error, answered, unread, load, open, readAll, answer }
+  return { items, failed, error, answered, unread, load, open, readAll, remove, clearAll, answer }
 }

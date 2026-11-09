@@ -9,11 +9,12 @@ function sentence(n: NotificationRow): string {
 }
 
 /** One notice per line, like a mailbox: what happened, who did it, when, and what can be done about it. */
-export function NotificationItems({ items, answered, onOpen, onAnswer, onNavigate }: {
+export function NotificationItems({ items, answered, onOpen, onAnswer, onRemove, onNavigate }: {
   items: NotificationRow[]
   answered: Record<string, boolean | null>
   onOpen: (n: NotificationRow) => void
   onAnswer: (n: NotificationRow, invite: string, accept: boolean) => void
+  onRemove: (n: NotificationRow) => void
   onNavigate?: () => void
 }) {
   return (
@@ -43,7 +44,10 @@ export function NotificationItems({ items, answered, onOpen, onAnswer, onNavigat
             </div>
             {n.kind.startsWith('proposal_') && typeof n.data.project_id === 'string' && <div className="tiny"><Link to={`/projets/${n.data.project_id}/propositions`} onClick={onNavigate}>{fr.notifications.seeProposals}</Link></div>}
             {who && <div className="tiny"><Link to={`/profil/${who}`} onClick={onNavigate}>@{who}</Link></div>}
-            <div className="muted tiny">{new Date(n.created_at).toLocaleString(dateLocale(), { dateStyle: 'medium', timeStyle: 'short' })}</div>
+            <div className="notice-meta">
+              <span className="muted tiny">{new Date(n.created_at).toLocaleString(dateLocale(), { dateStyle: 'medium', timeStyle: 'short' })}</span>
+              <button type="button" className="linklike tiny" onClick={() => onRemove(n)} aria-label={`${fr.notifications.remove} : ${sentence(n)}`}>{fr.notifications.remove}</button>
+            </div>
           </li>
         )
       })}

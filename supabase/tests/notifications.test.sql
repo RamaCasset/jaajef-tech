@@ -382,6 +382,44 @@ begin
   raise notice 'OK 11: old notices are tidied up by the server, recent ones stay';
 end $$;
 
+-- ---- 11b. Deleting your own notices -------------------------------------------------------------------------------------------------
+do $$
+declare
+  victim bigint;
+  before_others int;
+begin
+  perform nfkit.as_user(3);
+  select id into victim from public.notifications order by id limit 1;
+  reset role;
+  before_others := nfkit.total(5);
+  if victim is null then raise exception 'FAIL: rama should have a notice to delete'; end if;
+
+  perform nfkit.as_user(5); -- sidy cannot delete rama's notice
+  perform public.delete_notification(victim);
+  reset role;
+  if not exists (select 1 from public.notifications where id = victim) then raise exception 'FAIL: someone deleted another member''s notice'; end if;
+
+  perform nfkit.as_user(3);
+  perform public.delete_notification(victim);
+  reset role;
+  if exists (select 1 from public.notifications where id = victim) then raise exception 'FAIL: the owner could not delete a notice'; end if;
+
+  perform nfkit.as_user(3);
+  perform public.clear_my_notifications();
+  reset role;
+  if nfkit.total(3) <> 0 then raise exception 'FAIL: clear should remove all of rama''s notices'; end if;
+  if nfkit.total(5) <> before_others then raise exception 'FAIL: clearing touched someone else''s notices'; end if;
+
+  set local role anon;
+  begin
+    perform public.clear_my_notifications();
+    raise exception 'FAIL: anonymous visitors must not clear notices';
+  exception when insufficient_privilege then null;
+  end;
+  reset role;
+  raise notice 'OK 11b: members delete only their own notices, one or all';
+end $$;
+
 -- ---- Clean up ----------------------------------------------------------------------------------------------------------------------
 delete from public.communities where slug = 'nf-cercle';
 delete from public.projects where owner_id::text like 'd9d9d9d9-%';

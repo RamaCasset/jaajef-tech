@@ -749,3 +749,14 @@ div.alert[data-dismissed], p.alert[data-dismissed], div.notice[data-dismissed], 
 .bell-pop-head .linklike { background: transparent; border: 1px solid var(--line); color: var(--text-muted, inherit); border-radius: 8px; padding: 4px 10px; font-size: 12px; cursor: pointer; }
 .bell-pop-head .linklike:hover { border-color: var(--line-strong); }
 .bell-pop-head strong { font-size: 16px; }
+.notice-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 2px; }
+.notice-meta .linklike { background: none; border: 0; padding: 0; color: var(--text-muted, #8b98b3); cursor: pointer; text-decoration: underline; }
+.notice-meta .linklike:hover { color: inherit; }
+.bell-pop-tools { display: flex; gap: 8px; }
+.inbox-tools { display: flex; gap: 8px; margin-bottom: 12px; }
+.history-page .page-title { font-size: 26px; }
+.proposal-list { font-size: 14px; }
+.proposal-list li { padding: 12px 16px; }
+.proposal-list .btn { padding: 6px 14px; font-size: 13px; }
+.proposal-list .history-main strong { font-size: 15px; }
+.proposal-confirm { font-size: 14px; }

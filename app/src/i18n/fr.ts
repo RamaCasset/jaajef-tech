@@ -66,6 +66,8 @@ export const frMessages = {
     chooseInSettings: 'Choisir ce que je reçois (dans les paramètres)',
     viewAll: 'Voir toutes mes notifications',
     seeProposals: 'Voir les propositions',
+    clearAll: 'Tout effacer',
+    remove: 'Supprimer',
     markAll: 'Tout marquer comme lu',
     unread: 'Non lu',
     loadFailed: 'Impossible de charger vos notifications.',

@@ -66,6 +66,8 @@ export const en: Messages = {
     chooseInSettings: 'Choose what I receive (in settings)',
     viewAll: 'See all my notifications',
     seeProposals: 'See the proposals',
+    clearAll: 'Clear all',
+    remove: 'Delete',
     markAll: 'Mark all as read',
     unread: 'Unread',
     loadFailed: 'Could not load your notifications.',
