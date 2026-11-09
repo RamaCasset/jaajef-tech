@@ -4,6 +4,15 @@ import { fr } from '../i18n/fr'
 export function friendlyError(error: unknown): string {
   const message = error instanceof Error ? error.message : typeof error === 'string' ? error : ''
   const m = message.toLowerCase()
+  if (m.includes('title needs') || m.includes('title is too long')) return fr.errors.qaTitle
+  if (m.includes('describe your problem') || m.includes('question needs') || m.includes('question is too long')) return fr.errors.qaBody
+  if (m.includes('tags must be') || m.includes('5 tags')) return fr.errors.qaTags
+  if (m.includes('enough questions for today')) return fr.errors.qaDaily
+  if (m.includes('write your answer') || m.includes('answer needs') || m.includes('answer is too long')) return fr.errors.qaAnswerText
+  if (m.includes('too many answers')) return fr.errors.qaSlow
+  if (m.includes('question not found') || m.includes('answer not found')) return fr.errors.qaGone
+  if (m.includes('only the person who asked')) return fr.errors.qaOnlyAsker
+  if (m.includes('vote for your own')) return fr.errors.qaOwnVote
   if (m.includes('invalid login credentials')) return fr.errors.invalidCredentials
   if (m.includes('already registered') || m.includes('already been registered')) return fr.errors.emailTaken
   if (m.includes('password should be at least') || m.includes('weak password')) return fr.errors.weakPassword

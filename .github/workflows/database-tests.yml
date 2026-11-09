@@ -113,3 +113,6 @@ jobs:
           NODE_OPTIONS: --max-old-space-size=4096
       - name: Build
         run: npm run build
+        env:
+          # The build also needs more memory than the default on the GitHub machine.
+          NODE_OPTIONS: --max-old-space-size=4096

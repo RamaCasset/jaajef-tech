@@ -254,4 +254,25 @@ describe('Project page', () => {
     await screen.findByText('Teranga')
     expect(screen.queryByText('Salon du projet')).toBeNull()
   })
+
+  it('the owner can create the project room, then open it', async () => {
+    api.getProjectFull.mockResolvedValue(project({ owner_id: 'me' }))
+    api.openProjectRoom.mockImplementation(async () => { api.getProjectRoom.mockResolvedValue('projet-abc'); return 'room1' })
+    mount()
+    await userEvent.click(await screen.findByRole('button', { name: 'Créer le salon du projet' }))
+    expect(api.openProjectRoom).toHaveBeenCalledWith('p1')
+    expect(await screen.findByRole('link', { name: 'Ouvrir le salon' })).toHaveAttribute('href', '/communautes/projet-abc')
+  })
+
+  it('a collaborator sees the link when the room exists; a visitor sees nothing', async () => {
+    api.getProjectRoom.mockResolvedValue('projet-abc')
+    mount()
+    expect(await screen.findByRole('link', { name: 'Ouvrir le salon' })).toBeInTheDocument()
+  })
+
+  it('a visitor does not see the room section', async () => {
+    mount()
+    await screen.findByText('Teranga')
+    expect(screen.queryByText('Salon du projet')).toBeNull()
+  })
 })

@@ -41,6 +41,9 @@ import { SoukSell } from './pages/SoukSell'
 import { EditProfile } from './pages/EditProfile'
 import { Search } from './pages/Search'
 import { Blog } from './pages/Blog'
+import { Questions } from './pages/Questions'
+import { AskQuestion } from './pages/AskQuestion'
+import { QuestionPage } from './pages/QuestionPage'
 import { BlogPost } from './pages/BlogPost'
 import { BlogEditor } from './pages/BlogEditor'
 import { BlogMine } from './pages/BlogMine'
@@ -110,6 +113,9 @@ export function AppRoutes() {
       <Route path="/souk/vendre" element={<RequireAuth><RequireCharacter><SoukSell /></RequireCharacter></RequireAuth>} />
       <Route path="/parametres/profil" element={<RequireAuth><RequireCharacter><EditProfile /></RequireCharacter></RequireAuth>} />
       <Route path="/recherche" element={<RequireAuth><RequireCharacter><Search /></RequireCharacter></RequireAuth>} />
+      <Route path="/questions" element={<RequireAuth><RequireCharacter><Questions /></RequireCharacter></RequireAuth>} />
+      <Route path="/questions/poser" element={<RequireAuth><RequireCharacter><AskQuestion /></RequireCharacter></RequireAuth>} />
+      <Route path="/questions/:id" element={<RequireAuth><RequireCharacter><QuestionPage /></RequireCharacter></RequireAuth>} />
       <Route path="/blog" element={<RequireAuth><RequireCharacter><Blog /></RequireCharacter></RequireAuth>} />
       <Route path="/blog/ecrire" element={<RequireAuth><RequireCharacter><BlogEditor /></RequireCharacter></RequireAuth>} />
       <Route path="/blog/mes-articles" element={<RequireAuth><RequireCharacter><BlogMine /></RequireCharacter></RequireAuth>} />
