@@ -95,8 +95,8 @@ a.btn { text-decoration: none; }
 .account-pop { position: absolute; right: 0; top: 46px; min-width: 190px; display: grid; background: var(--panel); border: 1px solid var(--line-strong); border-radius: var(--radius); padding: 6px; box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45); }
 .account-pop a, .account-pop button { text-align: left; background: none; border: 0; color: var(--fg); padding: 9px 12px; border-radius: 8px; cursor: pointer; font-size: 14px; }
 .account-pop a:hover, .account-pop button:hover { background: var(--accent-soft); }
-.shell-frame { display: grid; grid-template-columns: 76px minmax(0, 1fr); align-items: start; }
-.rail { position: sticky; top: 61px; display: grid; gap: 6px; padding: 18px 8px; min-height: calc(100vh - 61px); align-content: start; }
+.shell-frame { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 12px; align-items: start; padding: 12px 12px 0 12px; }
+.rail { position: sticky; top: 73px; display: grid; gap: 6px; padding: 14px 8px; min-height: calc(100vh - 97px); align-content: start; background: var(--panel); border: 1px solid var(--line-strong); border-radius: var(--radius); }
 .rail-link { display: grid; justify-items: center; gap: 4px; padding: 9px 2px; border-radius: 10px; color: var(--fg-muted); text-decoration: none; font-size: 10px; border: 1px solid transparent; }
 .rail-link:hover { color: var(--fg); }
 .rail-link.active { color: var(--accent); background: var(--accent-soft); border-color: var(--line-strong); }
@@ -105,8 +105,8 @@ a.btn { text-decoration: none; }
   .topnav { order: 3; width: 100%; overflow-x: auto; }
   .topsearch { display: none; }
   .topbar-right { margin-left: auto; }
-  .shell-frame { grid-template-columns: 1fr; }
-  .rail { position: static; display: flex; min-height: 0; border-right: 0; border-bottom: 1px solid var(--line); padding: 8px 12px; overflow-x: auto; }
+  .shell-frame { grid-template-columns: 1fr; padding: 8px 8px 0 8px; }
+  .rail { position: static; display: flex; min-height: 0; padding: 8px 12px; overflow-x: auto; }
   .rail-link { min-width: 64px; }
 }
 
