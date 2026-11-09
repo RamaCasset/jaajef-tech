@@ -3,7 +3,7 @@ import { fr } from '../i18n/fr'
 import { listMutedKinds, setNotificationMute, type NotificationKind } from '../lib/api'
 
 const KINDS = Object.keys(fr.notifications.kinds) as NotificationKind[]
-const LOCKED: NotificationKind[] = ['warning', 'suspension', 'project_hidden']
+const LOCKED: NotificationKind[] = ['warning', 'suspension', 'project_hidden', 'blog_hidden', 'job_offer_hidden']
 
 /** "Choisir ce que je reçois": which kinds of notice the member wants. Lives in the settings. */
 export function NotificationPrefs() {

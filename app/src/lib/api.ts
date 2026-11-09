@@ -1008,6 +1008,10 @@ export type NotificationKind =
   | 'proposal_opened' | 'proposal_merged' | 'proposal_declined'
   | 'join_request' | 'join_approved' | 'join_declined'
   | 'badge_unlocked' | 'warning' | 'suspension'
+  | 'new_application' | 'application_seen' | 'application_shortlisted' | 'application_declined' | 'job_alert'
+  | 'blog_comment' | 'blog_like' | 'blog_hidden' | 'job_offer_hidden'
+  | 'souk_submission_approved' | 'souk_submission_rejected' | 'souk_sale' | 'souk_item_removed'
+  | 'mention' | 'quest_completed'
 
 export type NotificationRow = {
   id: number
