@@ -5,5 +5,5 @@
 - `demo_data_remove.sql` removes all of it. Real members and their content are never touched.
 
 Every sample member has an e-mail ending in `@demo.jaajef.invalid` (an address that cannot exist), has no password and cannot sign in.
-The sample projects point to a GitHub account that does not exist, so their GitHub links lead nowhere.
+Each sample project points to a real public GitHub repository of the same kind (for example Teranga Racer to a browser racing game, Gardien des secrets to a secret scanner), so the GitHub link and the file list work. The titles and texts are sample ones.
 Run these after all the database files, including `community_questions`, `project_counts_on_delete` and `chat_inbox`.
