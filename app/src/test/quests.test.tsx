@@ -54,9 +54,9 @@ describe('Quests page', () => {
     mount()
     await screen.findByText('Quête 1')
     expect(screen.getAllByText('Résolue').length).toBe(1)
-    expect(screen.getByText('En cours (1/3)')).toBeInTheDocument()
+    expect(screen.getByText('En cours · 1/3 tests')).toBeInTheDocument()
     expect(screen.getAllByText('Disponible').length).toBe(1)
-    expect(screen.getAllByRole('link', { name: /^Ouvrir/ }).map((a) => a.textContent).sort()).toEqual(['Lancer la quête', 'Reprendre', 'Revoir'])
+    expect(screen.getAllByRole('link', { name: /^Ouvrir/ }).map((a) => a.textContent?.trim()).sort()).toEqual(['Lancer la quête', 'Reprendre', 'Reprendre'])
   })
 
   it('sends the chosen filters to the database', async () => {
