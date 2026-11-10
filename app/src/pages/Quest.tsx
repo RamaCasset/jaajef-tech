@@ -195,7 +195,9 @@ export function Quest() {
                 {changed ? <span className="quest-dirty" role="img" aria-label={p.unsaved} title={p.unsaved} /> : null}
                 <span className="quest-lang mono tiny muted">{quest.language ? fr.quests.languages[quest.language] : ''}</span>
               </header>
-              <CodeEditor path={file} value={code} onChange={setCode} readOnly={solved} height="380px" onCursor={(line, col) => setCursor({ line, col })} />
+              <div className="quest-editor-box">
+                <CodeEditor path={file} value={code} onChange={setCode} readOnly={solved} height="100%" onCursor={(line, col) => setCursor({ line, col })} />
+              </div>
               <footer className="quest-statusbar">
                 <span className="mono tiny muted">{p.cursor(cursor.line, cursor.col)} · UTF-8</span>
                 {solved ? <span className="muted tiny">{p.solvedLocked}</span> : (

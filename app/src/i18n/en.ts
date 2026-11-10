@@ -519,6 +519,11 @@ export const en: Messages = {
     dailyEyebrow: 'Quest of the day',
     dailyLeft: (h: number, m: number): string => (h > 0 ? `${h} h left` : `${m} min left`),
     dailyHint: 'A small step for today.',
+    streakTagline: 'Your curiosity is taking root.',
+    streakDaysRow: (n: number): string => (n === 1 ? '1 day in a row!' : `${n} days in a row!`),
+    chestTitle: (every: number): string => `At ${every} days, a little treasure.`,
+    chestLeft: (n: number): string => `${n === 1 ? '1 more day' : `${n} more days`} to unlock your rewards chest.`,
+    chestReward: (k: number): string => `+${k} Kopeks`,
     notebookLink: (n: number): string => (n === 1 ? 'My notebook · 1 quest passed' : `My notebook · ${n} quests passed`),
     notebook: {
       eyebrow: 'THE CITY / QUESTS / MY NOTEBOOK',

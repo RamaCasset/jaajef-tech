@@ -1110,3 +1110,32 @@ div.alert[data-dismissed], p.alert[data-dismissed], div.notice[data-dismissed], 
   .quest-deco img:nth-child(2) { top: 330px; }
   .quest-deco img:nth-child(3) { top: 760px; }
 }
+
+/* Streak card, like Marie's design */
+.quests .hero-streak { padding: 28px 28px 26px; gap: 20px; border-radius: 22px; }
+.quests .hero-streak-top { gap: 18px; }
+.quests .hero-streak-top svg { width: 64px; height: 64px; flex: none; }
+.quests .hero-streak-top h2 { font-size: 28px; line-height: 1.15; }
+.quests .hero-streak-top p { margin-top: 4px; }
+.quests .week-dots { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; margin: 0; padding-bottom: 20px; border-bottom: 1px solid var(--line); }
+.quests .week-day { gap: 8px; }
+.quests .week-day svg { width: 100%; max-width: 56px; height: auto; }
+.week-today { color: #f0b24a; }
+.hero-chest { display: grid; gap: 8px; }
+.hero-chest h3 { margin: 0; font-size: 16px; }
+.hero-chest-reward { color: #f0b24a; font-weight: 700; }
+
+/* Quest page: the three columns fill the screen and scroll on their own */
+@media (min-width: 1200px) {
+  .quest-ws { height: calc(100vh - 65px); overflow: hidden; display: flex; flex-direction: column; padding-bottom: 20px; }
+  .quest-ws .quest-grid { flex: 1; min-height: 0; grid-template-rows: minmax(0, 1fr); align-items: stretch; }
+  .quest-ws .quest-grid > * { min-height: 0; }
+  .quest-grid > .quest-pane { display: flex; flex-direction: column; }
+  .quest-grid > .quest-pane .quest-pane-body { overflow-y: auto; flex: 1; min-height: 0; align-content: start; }
+  .quest-center { grid-template-rows: minmax(0, 1fr) minmax(130px, 34%); }
+  .quest-center > .quest-pane { display: flex; flex-direction: column; min-height: 0; }
+  .quest-center .quest-results .quest-pane-body { overflow-y: auto; flex: 1; min-height: 0; align-content: start; }
+  .quest-side-col { min-height: 0; overflow-y: auto; align-content: start; }
+}
+.quest-editor-box { flex: 1; min-height: 0; height: 380px; }
+@media (min-width: 1200px) { .quest-editor-box { height: auto; } }
