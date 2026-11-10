@@ -3,7 +3,7 @@
 -- Run it in the Supabase SQL Editor. It first removes any earlier sample data, then adds a fresh set,
 -- so running it twice is fine. To take it all out again, run demo_data_remove.sql.
 -- None of these members can sign in (no password), and none of this is real activity.
--- The sample projects point to a GitHub account that does not exist, so their GitHub links lead nowhere.
+-- Each sample project points to a real, public GitHub repository of the same kind, so its GitHub link and file list work.
 
 begin;
 
@@ -136,12 +136,12 @@ select a.id, pg_temp.uid(n) from public.answers a, generate_series(1, 6) n
 -- 6 sample projects, with stars and a few comments
 -- ---------------------------------------------------------------------
 insert into public.projects (id, owner_id, github_owner, github_repo, title, summary, tags, is_public, github_description, language, github_stars, github_forks, github_synced_at, github_pushed_at, verified_at, created_at) values
-  ('de000000-0000-4000-c000-000000000001', pg_temp.uid(2), 'jaajef-demo', 'teranga-racer', 'Teranga Racer', 'Un jeu de course sur le circuit de la Corniche de Dakar, jouable dans le navigateur.', '{gamedev,typescript,webgl}', true, 'Browser racing game set in Dakar', 'TypeScript', 186, 18, now(), now() - interval '2 hours', now() - interval '10 days', now() - interval '12 days'),
-  ('de000000-0000-4000-c000-000000000002', pg_temp.uid(1), 'jaajef-demo', 'teranga-ui', 'Teranga UI', 'Des composants accessibles, inspirés des couleurs et des motifs du Sénégal.', '{react,ui,design}', true, 'Accessible React components', 'TypeScript', 248, 31, now(), now() - interval '5 hours', now() - interval '20 days', now() - interval '22 days'),
-  ('de000000-0000-4000-c000-000000000003', pg_temp.uid(3), 'jaajef-demo', 'wolof-llm', 'Wolof LLM', 'Un modèle ouvert pour comprendre et écrire le wolof.', '{ia,nlp,wolof}', true, 'Open language model for Wolof', 'Python', 312, 44, now(), now() - interval '1 day', now() - interval '25 days', now() - interval '27 days'),
-  ('de000000-0000-4000-c000-000000000004', pg_temp.uid(8), 'jaajef-demo', 'mbalit-pay', 'Mbalit Pay', 'Une application mobile de paiement qui fonctionne même avec un réseau lent.', '{flutter,mobile,paiement}', true, 'Offline-first payments app', 'Dart', 97, 9, now(), now() - interval '3 days', now() - interval '8 days', now() - interval '9 days'),
-  ('de000000-0000-4000-c000-000000000005', pg_temp.uid(4), 'jaajef-demo', 'gardien-secrets', 'Gardien des secrets', 'Un outil en ligne de commande qui détecte les clés oubliées dans un dépôt.', '{securite,cli,go}', true, 'Detect leaked secrets in a repo', 'Go', 154, 12, now(), now() - interval '2 days', now() - interval '15 days', now() - interval '16 days'),
-  ('de000000-0000-4000-c000-000000000006', pg_temp.uid(9), 'jaajef-demo', 'pipeline-simple', 'Pipeline simple', 'Un modèle de pipeline pour tester et déployer un projet en cinq minutes.', '{devops,ci,docker}', true, 'Five-minute CI/CD template', 'Shell', 63, 7, now(), now() - interval '4 days', now() - interval '6 days', now() - interval '7 days');
+  ('de000000-0000-4000-c000-000000000001', pg_temp.uid(2), 'jakesgordon', 'javascript-racer', 'Teranga Racer', 'Un jeu de course sur le circuit de la Corniche de Dakar, jouable dans le navigateur.', '{gamedev,typescript,webgl}', true, 'Browser racing game set in Dakar', 'JavaScript', 186, 18, now(), now() - interval '2 hours', now() - interval '10 days', now() - interval '12 days'),
+  ('de000000-0000-4000-c000-000000000002', pg_temp.uid(1), 'radix-ui', 'primitives', 'Teranga UI', 'Des composants accessibles, inspirés des couleurs et des motifs du Sénégal.', '{react,ui,design}', true, 'Accessible React components', 'TypeScript', 248, 31, now(), now() - interval '5 hours', now() - interval '20 days', now() - interval '22 days'),
+  ('de000000-0000-4000-c000-000000000003', pg_temp.uid(3), 'huggingface', 'transformers', 'Wolof LLM', 'Un modèle ouvert pour comprendre et écrire le wolof.', '{ia,nlp,wolof}', true, 'Open language model for Wolof', 'Python', 312, 44, now(), now() - interval '1 day', now() - interval '25 days', now() - interval '27 days'),
+  ('de000000-0000-4000-c000-000000000004', pg_temp.uid(8), 'flutter', 'samples', 'Mbalit Pay', 'Une application mobile de paiement qui fonctionne même avec un réseau lent.', '{flutter,mobile,paiement}', true, 'Offline-first payments app', 'Dart', 97, 9, now(), now() - interval '3 days', now() - interval '8 days', now() - interval '9 days'),
+  ('de000000-0000-4000-c000-000000000005', pg_temp.uid(4), 'gitleaks', 'gitleaks', 'Gardien des secrets', 'Un outil en ligne de commande qui détecte les clés oubliées dans un dépôt.', '{securite,cli,go}', true, 'Detect leaked secrets in a repo', 'Go', 154, 12, now(), now() - interval '2 days', now() - interval '15 days', now() - interval '16 days'),
+  ('de000000-0000-4000-c000-000000000006', pg_temp.uid(9), 'actions', 'starter-workflows', 'Pipeline simple', 'Un modèle de pipeline pour tester et déployer un projet en cinq minutes.', '{devops,ci,docker}', true, 'Five-minute CI/CD template', 'YAML', 63, 7, now(), now() - interval '4 days', now() - interval '6 days', now() - interval '7 days');
 
 insert into public.project_stars (project_id, user_id)
 select p.id, pg_temp.uid(n) from public.projects p, generate_series(1, 10) n
