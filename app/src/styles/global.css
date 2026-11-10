@@ -1172,11 +1172,6 @@ div.alert[data-dismissed], p.alert[data-dismissed], div.notice[data-dismissed], 
 .path-complete { margin: 0; color: #f0b24a; font-weight: 700; }
 @media (max-width: 900px) { .path-layout { grid-template-columns: 1fr; } .path-steps { position: static; } }
 
-/* Souk, like Marie's design */
-.souk, .quests { position: relative; }
-.page-deco { display: none; }
-@media (min-width: 1360px) {
-  .souk { padding-right: 76px; }
 /* Communautés, like Marie's design */
 .communities-page { position: relative; }
 .communities-hero { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; }
@@ -1222,9 +1217,11 @@ div.alert[data-dismissed], p.alert[data-dismissed], div.notice[data-dismissed], 
 @media (min-width: 1360px) { .communities-page { padding-right: 76px; } }
 @media (max-width: 1000px) { .communities-art { display: none; } .communities-title { font-size: 34px; } }
 
-/* Small line icons in the right margin (shared by the pages that have them) */
+/* Souk, like Marie's design */
+.souk, .quests { position: relative; }
 .page-deco { display: none; }
 @media (min-width: 1360px) {
+  .souk { padding-right: 76px; }
   .page-deco { display: block; position: absolute; top: 0; right: 14px; width: 40px; height: 100%; pointer-events: none; }
   .page-deco img { position: absolute; left: 0; width: 34px; height: auto; }
   .page-deco img:nth-child(1) { top: 30px; }
