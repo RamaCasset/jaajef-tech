@@ -803,6 +803,20 @@ export type Conversation = {
   unread_count: number
 }
 export const listMyConversations = () => rpc<Conversation[]>('list_my_conversations')
+export type ChatInboxRow = {
+  community_id: string
+  slug: string
+  name: string
+  avatar_url: string | null
+  project_id: string | null
+  last_message_preview: string | null
+  last_author_name: string | null
+  last_message_at: string | null
+  unread_count: number
+}
+/** Every community and project room I am in, with the last message and the unread count. */
+export const listMyChatInbox = () => rpc<ChatInboxRow[]>('list_my_chat_inbox')
+export const markChannelRead = (channelId: string) => rpc<void>('mark_channel_read', { p_channel: channelId })
 export const startConversation = (userId: string) => rpc<string>('start_conversation', { p_user: userId })
 
 export type DirectMessage = {

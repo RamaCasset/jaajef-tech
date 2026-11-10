@@ -7,7 +7,7 @@ import type { Community as C } from '../lib/api'
 const api = vi.hoisted(() => ({
   listMyCommunities: vi.fn(), listDiscoverCommunities: vi.fn(), communityMemberCount: vi.fn(), createCommunity: vi.fn(),
   joinCommunity: vi.fn(), requestToJoin: vi.fn(), leaveCommunity: vi.fn(), getCommunityBySlug: vi.fn(), listChannels: vi.fn(),
-  listChannelMessages: vi.fn(), sendMessage: vi.fn(), deleteMessage: vi.fn(), listCommunityMembers: vi.fn(),
+  listChannelMessages: vi.fn(), markChannelRead: vi.fn(), sendMessage: vi.fn(), deleteMessage: vi.fn(), listCommunityMembers: vi.fn(),
   listPendingJoinRequests: vi.fn(), decideJoinRequest: vi.fn(), removeCommunityMember: vi.fn(), setMemberRole: vi.fn(),
   transferCommunity: vi.fn(), deleteCommunity: vi.fn(), listQuestions: vi.fn(),
 }))
@@ -23,6 +23,7 @@ const comm = (id: string, extra: Partial<C> = {}): C => ({ id, slug: `slug-${id}
 
 beforeEach(() => {
   for (const f of Object.values(api)) f.mockReset()
+  api.markChannelRead.mockResolvedValue(undefined)
   api.listMyCommunities.mockResolvedValue([{ ...comm('1'), role: 'owner' }])
   api.listDiscoverCommunities.mockResolvedValue([comm('1'), comm('2', { description: 'Pour apprendre' }), comm('3', { is_private: true })])
   api.communityMemberCount.mockResolvedValue(5)
@@ -107,6 +108,12 @@ describe('One community', () => {
     expect(document.querySelector('p b')).toBeNull()
     expect(screen.getByText('Message supprimé')).toBeInTheDocument()
     expect(screen.queryByText('secret')).not.toBeInTheDocument()
+  })
+
+  it('marks the open channel as read so the inbox count goes down', async () => {
+    setup('member')
+    await screen.findByLabelText('Votre message')
+    await waitFor(() => expect(api.markChannelRead).toHaveBeenCalledWith('ch1'))
   })
 
   it('sends a message to the open channel, then clears the box and reloads', async () => {
