@@ -1145,6 +1145,28 @@ export async function removeProfileImage(userId: string, kind: ProfileImageKind,
   const old = profileImagePath(oldUrl)
   if (old) await supabase.storage.from(PROFILE_BUCKET).remove([old])
 }
+// ---- Blog pictures ------------------------------------------------------------------------------------------
+const BLOG_BUCKET = 'blog-images'
+
+/** Uploads the cover picture of a blog post and returns its public web address. */
+export async function uploadBlogImage(userId: string, file: File): Promise<string> {
+  const ext = PROFILE_IMAGE_TYPES[file.type]
+  if (!ext) throw new Error('image-type')
+  if (file.size > PROFILE_IMAGE_MAX_BYTES) throw new Error('image-size')
+  const path = `${userId}/${crypto.randomUUID()}.${ext}`
+  const up = await supabase.storage.from(BLOG_BUCKET).upload(path, file, { contentType: file.type, upsert: false })
+  if (up.error) throw new Error(up.error.message)
+  return supabase.storage.from(BLOG_BUCKET).getPublicUrl(path).data.publicUrl
+}
+
+/** Deletes a picture uploaded with uploadBlogImage. A tidy-up only: if it fails, nothing is lost. */
+export async function removeBlogImage(url: string): Promise<void> {
+  const marker = `/${BLOG_BUCKET}/`
+  const i = url.indexOf(marker)
+  if (i < 0) return
+  await supabase.storage.from(BLOG_BUCKET).remove([decodeURIComponent(url.slice(i + marker.length).split('?')[0])])
+}
+
 // ---- Project demo link and cover ---------------------------------------------------------------------------
 const COVER_TYPES: Record<string, string> = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp' }
 

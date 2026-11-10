@@ -1,13 +1,18 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
+import { useAuth } from '../auth/AuthContext'
 import { fr } from '../i18n/fr'
 import { friendlyError } from '../lib/errors'
-import { createBlogPost, getMyBlogPost, publishBlogPost, updateBlogPost, type BlogDraft } from '../lib/api'
+import { createBlogPost, getMyBlogPost, publishBlogPost, removeBlogImage, updateBlogPost, uploadBlogImage, type BlogDraft } from '../lib/api'
 
 export function BlogEditor() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { member } = useAuth()
+  const me = member?.profile.id ?? ''
+  // The picture uploaded during this visit, so it can be tidied away if it is replaced or removed before saving.
+  const [fresh, setFresh] = useState<string | null>(null)
   const [title, setTitle] = useState('')
   const [summary, setSummary] = useState('')
   const [body, setBody] = useState('')
@@ -35,6 +40,29 @@ export function BlogEditor() {
     title, summary, body, cover_url: cover,
     tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
   })
+
+  async function pickCover(file: File | undefined) {
+    if (!file) return
+    setError(null)
+    setBusy(true)
+    try {
+      const url = await uploadBlogImage(me, file)
+      if (fresh) removeBlogImage(fresh).catch(() => undefined)
+      setCover(url)
+      setFresh(url)
+    } catch (err) {
+      const m = err instanceof Error ? err.message : ''
+      setError(m === 'image-type' ? fr.editProfile.imageType : m === 'image-size' ? fr.editProfile.imageSize : friendlyError(err))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  function dropCover() {
+    if (fresh && fresh === cover) removeBlogImage(fresh).catch(() => undefined)
+    setFresh(null)
+    setCover('')
+  }
 
   async function save(publish: boolean) {
     setError(null)
@@ -86,7 +114,16 @@ export function BlogEditor() {
             </div>
             <div className="field">
               <label htmlFor="b-cover">{fr.blog.fCover}</label>
-              <input id="b-cover" type="url" maxLength={500} value={cover} onChange={(e) => setCover(e.target.value)} />
+              {cover && <img className="blog-cover-preview" src={cover} alt={fr.blog.coverPreview} />}
+              <div className="picture-actions">
+                <label className="btn">
+                  {cover ? fr.blog.coverChange : fr.blog.coverChoose}
+                  <input id="b-cover" type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" disabled={busy}
+                    onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; void pickCover(f) }} />
+                </label>
+                {cover && <button type="button" className="btn" disabled={busy} onClick={dropCover}>{fr.blog.coverRemove}</button>}
+              </div>
+              <span className="hint">{fr.blog.coverHint}</span>
             </div>
             <div className="field">
               <label htmlFor="b-tags">{fr.blog.fTags}</label>

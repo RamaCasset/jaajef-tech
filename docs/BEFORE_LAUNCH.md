@@ -27,6 +27,12 @@ A checklist. Nothing here is done yet unless it says so. No platform can be prom
 8. A way to switch off risky features quickly: the Run button, uploads, sign-ups.
 9. A named person who reads the security alerts and the staff action log.
 
+## Sample (demo) data
+
+- The sample projects (`supabase/demo/demo_data.sql`) currently link to real open-source repositories owned by other people (for example `jakesgordon/javascript-racer`, `radix-ui/primitives`, `gitleaks/gitleaks`), shown under our own titles and texts and under a sample member as owner. That can look like misattribution.
+- Before the demo is shown to the jury or the public: either point the sample projects at small public repositories created on our own GitHub account, or clearly label them as examples with the real repository name and author. If any third-party repository stays, check its license.
+- Remove all sample data (`demo_data_remove.sql`) before real members arrive, unless it is clearly marked as sample.
+
 ## Run button safety plan (proposed, to confirm)
 
 - Each run happens in a sealed E2B machine with none of our keys inside it.
