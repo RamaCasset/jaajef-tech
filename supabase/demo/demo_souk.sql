@@ -15,7 +15,7 @@ with makers as (
     select username from public.profiles p join auth.users u on u.id = p.id where u.email like '%@demo.jaajef.invalid')
 ), counted as (select count(*) as c from makers),
 items (slug, kind, name, description, price, data, n) as (values
-  ('cyber-sahel-neon-demo', 'theme', 'Cyber-Sahel Neon', E'L''énergie de Dakar. La précision du code.', 100, '{"accent":"#3fb8f0","bg":"#060d1f","panel":"#0a1730","line":"#16406a"}'::jsonb, 1),
+  ('sahel-dore-demo', 'theme', 'Sahel Doré', E'L''or du Sahel au coucher du soleil. Chaleur et précision.', 100, '{"accent":"#f0b24a","bg":"#0d0905","glow":"#1f1608","panel":"#16100a","raised":"#201710","line":"#4a3818","lineStrong":"#8a6a24"}'::jsonb, 1),
   ('dakar-after-dark-demo', 'theme', 'Dakar After Dark', 'La ville la nuit, en violet profond.', 150, '{"accent":"#b79cf5","bg":"#0d0a1c","glow":"#1a1233","panel":"#150f2b","raised":"#1d1538","line":"#3a2a66","lineStrong":"#6a4fb5"}'::jsonb, 2),
   ('baobab-terminal-demo', 'theme', 'Baobab Terminal', 'Un terminal vert, enraciné comme un baobab.', 120, '{"accent":"#3ddba7","bg":"#06120f","glow":"#0b2119","panel":"#0b1d18","raised":"#102a22","line":"#1c4a3b","lineStrong":"#2a8a6c"}'::jsonb, 3),
   ('cercle-du-saltigue-demo', 'avatar_frame', 'Cercle du Saltigué', 'Un cercle qui veille sur votre avatar.', 80, '{"color":"#3fb8f0"}'::jsonb, 4),
