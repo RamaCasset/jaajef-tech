@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -58,12 +58,29 @@ describe('Quests page', () => {
   it('sends the chosen filters to the database', async () => {
     mount()
     await screen.findByText('Quête 1')
-    await userEvent.selectOptions(screen.getByLabelText('Clan'), 'saltigue')
+    await userEvent.click(within(screen.getByRole('group', { name: 'Clan' })).getByRole('button', { name: 'Saltigué' }))
     await waitFor(() => expect(lastFilters().clan).toBe('saltigue'))
     await userEvent.selectOptions(screen.getByLabelText('Langage'), 'javascript')
     await waitFor(() => expect(lastFilters().language).toBe('javascript'))
     await userEvent.selectOptions(screen.getByLabelText('Niveau'), 'bagne')
     await waitFor(() => expect(lastFilters().mastery).toBe('bagne'))
+  })
+
+  it('splits the list into all, in progress and completed, with counts', async () => {
+    mount()
+    await screen.findByText('Quête 1')
+    expect(screen.getByRole('tab', { name: /Toutes les quêtes\s*3/ })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('tab', { name: /En cours\s*1/ }))
+    expect(screen.getByText('Quête 3')).toBeInTheDocument()
+    expect(screen.queryByText('Quête 1')).toBeNull()
+    await userEvent.click(screen.getByRole('tab', { name: /Terminées\s*1/ }))
+    expect(screen.getByText('Quête 1')).toBeInTheDocument()
+    expect(screen.queryByText('Quête 3')).toBeNull()
+  })
+
+  it('greets the member by first name', async () => {
+    mount()
+    expect(await screen.findByRole('heading', { level: 1, name: 'Une petite quête, Moussa ?' })).toBeInTheDocument()
   })
 
   it('waits for the typing to pause before searching', async () => {
@@ -79,7 +96,7 @@ describe('Quests page', () => {
   it('clears the filters with the reset button', async () => {
     mount()
     await screen.findByText('Quête 1')
-    await userEvent.selectOptions(screen.getByLabelText('Clan'), 'forgeron')
+    await userEvent.click(within(screen.getByRole('group', { name: 'Clan' })).getByRole('button', { name: 'Forgeron' }))
     await userEvent.click(await screen.findByRole('button', { name: 'Réinitialiser' }))
     await waitFor(() => expect(lastFilters().clan).toBe(''))
     expect(screen.queryByRole('button', { name: 'Réinitialiser' })).toBeNull()

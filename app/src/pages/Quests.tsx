@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
+import { Icon } from '../components/Icon'
 import { useAuth } from '../auth/AuthContext'
 import { useDebounced } from '../hooks'
-import { getDailyQuest, getMyStreak, listMyQuestProgress, listQuests, type DailyQuest, type MyQuestProgress, type QuestFilters, type QuestSummary, type StreakInfo } from '../lib/api'
+import { getDailyQuest, getMyStreak, getXpPerLevel, listMyQuestProgress, listQuests, type DailyQuest, type MyQuestProgress, type QuestFilters, type QuestSummary, type StreakInfo } from '../lib/api'
 import { Companion } from '../components/Companion'
 import mascot from '../assets/art/mascot.png'
 import { fr, type ClanKey, type MasteryKey } from '../i18n/fr'
@@ -21,7 +22,7 @@ function QuestCard({ quest, progress }: { quest: QuestSummary; progress?: MyQues
           {solved ? fr.quests.solved : going ? fr.quests.inProgress(progress.tests_passed, progress.tests_total) : fr.quests.available}
         </span>
       </div>
-      <p className="quest-kind tiny">
+      <p className={`quest-kind tiny quest-kind-${quest.clan}`}>
         {fr.clans[quest.clan].name}{quest.language ? ` · ${fr.quests.languages[quest.language]}` : ''}
         {quest.daily_on ? ` · ${fr.quests.daily}` : ''}
       </p>
@@ -35,6 +36,51 @@ function QuestCard({ quest, progress }: { quest: QuestSummary; progress?: MyQues
         </Link>
       </div>
     </article>
+  )
+}
+
+/** The seven days of this week (Monday first): the ones inside the current streak are ticked. */
+function WeekDots({ streak }: { streak: StreakInfo }) {
+  const today = (new Date().getDay() + 6) % 7
+  const lastDone = streak.done_today ? today : today - 1
+  return (
+    <div className="week-dots" aria-hidden="true">
+      {fr.quests.weekDays.map((d, i) => {
+        const done = streak.current_streak > 0 && i <= lastDone && i > lastDone - streak.current_streak
+        return (
+          <span key={i} className="week-day">
+            <span className={`week-dot${done ? ' week-dot-on' : ''}${i === today ? ' week-dot-today' : ''}`}>{done ? <Icon name="check" size={14} /> : null}</span>
+            <span className="tiny muted">{d}</span>
+          </span>
+        )
+      })}
+    </div>
+  )
+}
+
+/** Level, mastery and XP of the member, top right of the page. */
+function LevelCard() {
+  const { member } = useAuth()
+  const [per, setPer] = useState(10000)
+  useEffect(() => {
+    let alive = true
+    // A bonus block: if the setting cannot be read, the usual 10 000 XP per level is used.
+    Promise.resolve().then(() => getXpPerLevel()).then((n) => { if (alive && n > 0) setPer(n) }).catch(() => undefined)
+    return () => { alive = false }
+  }, [])
+  const p = member?.profile
+  if (!p || typeof p.xp !== 'number') return null
+  const level = 1 + Math.floor(p.xp / per)
+  const inLevel = p.xp % per
+  const mastery = p.mastery ? fr.masteries[p.mastery]?.name : null
+  return (
+    <section className="panel level-card" aria-label={fr.profile.level(level, inLevel, per)}>
+      <p className="level-line"><strong>{fr.home.level(level)}</strong>{mastery ? <span className="level-mastery"> · {mastery}</span> : null}</p>
+      <div className="xp-track" role="progressbar" aria-valuemin={0} aria-valuemax={per} aria-valuenow={inLevel} aria-label={fr.profile.level(level, inLevel, per)}>
+        <div className="xp-fill" style={{ width: `${Math.min(100, (inLevel / per) * 100)}%` }} />
+      </div>
+      <p className="mono tiny muted level-xp">{inLevel} / {per} XP</p>
+    </section>
   )
 }
 
@@ -80,6 +126,7 @@ function Hero() {
         <section className="panel hero-streak" aria-label={st.title}>
           <h2>{st.days(streak.current_streak)}</h2>
           {streak.done_today ? <p>{st.doneToday}</p> : streak.at_risk ? <p>{st.atRisk}</p> : <p className="muted">{streak.current_streak === 0 ? st.none : ''}</p>}
+          <WeekDots streak={streak} />
           <p className="muted tiny">{st.longest(streak.longest_streak)}</p>
           {streak.next_chest_in !== null && streak.chest_kopeks > 0 ? <p className="muted tiny">{st.chest(streak.next_chest_in, streak.chest_kopeks)}</p> : null}
         </section>
@@ -88,10 +135,13 @@ function Hero() {
   )
 }
 
+type Tab = 'all' | 'going' | 'solved'
+
 export function Quests() {
   const { member } = useAuth()
   const userId = member?.profile.id
   const [filters, setFilters] = useState<QuestFilters>(EMPTY)
+  const [tab, setTab] = useState<Tab>('all')
   const query = useDebounced(filters.query)
   const [quests, setQuests] = useState<QuestSummary[] | null>(null)
   const [progress, setProgress] = useState<MyQuestProgress[]>([])
@@ -114,38 +164,69 @@ export function Quests() {
 
   const byQuest = new Map(progress.map((p) => [p.quest_id, p]))
   const filtersOn = filters.clan || filters.mastery || filters.language || filters.query
+  const statusOf = (q: QuestSummary) => byQuest.get(q.id)?.status
+  const going = (quests ?? []).filter((q) => statusOf(q) === 'in_progress').length
+  const done = (quests ?? []).filter((q) => statusOf(q) === 'solved').length
+  const shown = (quests ?? []).filter((q) => tab === 'all' || (tab === 'going' ? statusOf(q) === 'in_progress' : statusOf(q) === 'solved'))
+  const firstName = (member?.profile.display_name ?? '').split(/\s+/)[0]
+  const tabs: { key: Tab; label: string; n: number }[] = [
+    { key: 'all', label: fr.quests.tabAll, n: quests?.length ?? 0 },
+    { key: 'going', label: fr.quests.tabGoing, n: going },
+    { key: 'solved', label: fr.quests.tabDone, n: done },
+  ]
 
   return (
     <AppShell>
-      <main className="page quests">
-        <header className="page-head">
-          <h1 className="page-title">{fr.quests.title}</h1>
-          <p className="muted">{fr.quests.subtitle}</p>
+      <main className="page quests notices-page">
+        <header className="page-head-row">
+          <div>
+            <p className="eyebrow">{fr.quests.eyebrow}</p>
+            <h1 className="page-title">{firstName ? fr.quests.greeting(firstName) : fr.quests.title}</h1>
+            <p className="muted">{fr.quests.subtitle}</p>
+          </div>
+          <LevelCard />
         </header>
 
         <Hero />
 
+        <div className="quest-section-head">
+          <h2>{fr.quests.nextAdventure}</h2>
+          {quests ? <span className="muted tiny">{fr.quests.count(quests.length)}</span> : null}
+        </div>
+        <div className="quest-tabs" role="tablist" aria-label={fr.quests.nextAdventure}>
+          {tabs.map((x) => (
+            <button key={x.key} type="button" role="tab" aria-selected={tab === x.key} className={`quest-tab${tab === x.key ? ' quest-tab-on' : ''}`} onClick={() => setTab(x.key)}>
+              {x.label} <span className="quest-tab-n">{x.n}</span>
+            </button>
+          ))}
+        </div>
+
         <div className="quest-filters">
-          <input type="search" role="searchbox" aria-label={fr.quests.search} placeholder={fr.quests.search} value={filters.query} onChange={(e) => set('query', e.target.value)} />
-          <label>{fr.quests.clan}
-            <select value={filters.clan} onChange={(e) => set('clan', e.target.value as ClanKey | '')}>
-              <option value="">{fr.quests.any}</option>
-              {Object.entries(fr.clans).map(([k, v]) => <option key={k} value={k}>{v.name}</option>)}
-            </select>
+          <label className="notice-search">
+            <Icon name="search" size={16} />
+            <input type="search" role="searchbox" aria-label={fr.quests.search} placeholder={fr.quests.search} value={filters.query} onChange={(e) => set('query', e.target.value)} />
           </label>
-          <label>{fr.quests.mastery}
-            <select value={filters.mastery} onChange={(e) => set('mastery', e.target.value as MasteryKey | '')}>
-              <option value="">{fr.quests.any}</option>
+          <label className="quest-select">
+            <span className="sr-only">{fr.quests.mastery}</span>
+            <select aria-label={fr.quests.mastery} value={filters.mastery} onChange={(e) => set('mastery', e.target.value as MasteryKey | '')}>
+              <option value="">{fr.quests.anyMastery}</option>
               {Object.entries(fr.masteries).map(([k, v]) => <option key={k} value={k}>{v.name}</option>)}
             </select>
           </label>
-          <label>{fr.quests.language}
-            <select value={filters.language} onChange={(e) => set('language', e.target.value as QuestFilters['language'])}>
-              <option value="">{fr.quests.any}</option>
+          <label className="quest-select">
+            <span className="sr-only">{fr.quests.language}</span>
+            <select aria-label={fr.quests.language} value={filters.language} onChange={(e) => set('language', e.target.value as QuestFilters['language'])}>
+              <option value="">{fr.quests.anyLanguage}</option>
               {Object.entries(fr.quests.languages).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
             </select>
           </label>
-          {filtersOn ? <button type="button" className="btn" onClick={() => setFilters(EMPTY)}>{fr.quests.reset}</button> : null}
+        </div>
+        <div className="notice-filters" role="group" aria-label={fr.quests.clan}>
+          <button type="button" className="chip" aria-pressed={filters.clan === ''} onClick={() => set('clan', '')}>{fr.quests.allClans}</button>
+          {(Object.entries(fr.clans) as [ClanKey, { name: string }][]).map(([k, v]) => (
+            <button key={k} type="button" className="chip" aria-pressed={filters.clan === k} onClick={() => set('clan', filters.clan === k ? '' : k)}>{v.name}</button>
+          ))}
+          {filtersOn ? <button type="button" className="btn btn-small" onClick={() => setFilters(EMPTY)}>{fr.quests.reset}</button> : null}
         </div>
 
         {failed ? (
@@ -154,15 +235,13 @@ export function Quests() {
           </div>
         ) : null}
         {quests === null && !failed ? <p className="muted">{fr.common.loading}</p> : null}
-        {quests && quests.length === 0 ? <p className="muted">{fr.quests.empty}</p> : null}
-        {quests && quests.length > 0 ? (
-          <>
-            <p className="muted">{fr.quests.count(quests.length)}</p>
-            <div className="quest-list">
-              {quests.map((q) => <QuestCard key={q.id} quest={q} progress={byQuest.get(q.id)} />)}
-            </div>
-          </>
+        {quests && shown.length === 0 ? <p className="muted">{fr.quests.empty}</p> : null}
+        {quests && shown.length > 0 ? (
+          <div className="quest-list">
+            {shown.map((q) => <QuestCard key={q.id} quest={q} progress={byQuest.get(q.id)} />)}
+          </div>
         ) : null}
+        <p className="quest-foot-note muted tiny">{fr.quests.footNote} · <Link to="/guide">{fr.quests.guide}</Link></p>
       </main>
     </AppShell>
   )
