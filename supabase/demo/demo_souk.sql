@@ -1,13 +1,14 @@
 -- jaajef.tech - Sample Souk items, the nine creations of Marie's screen (3 themes, 3 frames, 3 badges).
 -- Run it in the Supabase SQL Editor after demo_data.sql and souk_creator_on_shop. Running it again resets them.
--- It also takes the old placeholder items ("... (exemple)") off sale. Their owners keep them.
+-- It also takes every other item off sale (the old "(exemple)" placeholders and any test items), so the shop shows
+-- exactly the nine creations. People who already bought them keep them. Use only for the demo.
 -- Each theme sets the colours of the whole app when a member equips it.
 
 delete from public.equipped_items where item_id in (select id from public.souk_items where slug like '%-demo');
 delete from public.member_items where item_id in (select id from public.souk_items where slug like '%-demo');
 delete from public.souk_items where slug like '%-demo';
 
-update public.souk_items set is_active = false where slug like 'exemple-%';
+update public.souk_items set is_active = false where slug not like '%-demo';
 
 with makers as (
   select id, row_number() over (order by username) as n from public.profiles where username in (
