@@ -322,6 +322,8 @@ export const frMessages = {
     searchHint: 'Rechercher dans la Cité',
     account: 'Menu du compte',
     profile: 'Mon profil',
+    myCommunities: 'Mes communautés',
+    myRooms: 'Mes salons',
     railOpen: 'Ouvrir le menu',
     railClose: 'Réduire le menu',
     railLabel: 'Espaces',

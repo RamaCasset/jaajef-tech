@@ -6,6 +6,7 @@ import { Icon } from './Icon'
 import { LanguageSwitch } from './LanguageSwitch'
 import { NotificationBell } from './NotificationBell'
 import { fr } from '../i18n/fr'
+import { initialsOf } from '../lib/initials'
 import { getMyStaffAccess, listMyChatInbox, listMyCommunities, listMyConversations } from '../lib/api'
 
 const rail = (): { to: string; icon: string; label: string }[] => [
@@ -16,13 +17,21 @@ const rail = (): { to: string; icon: string; label: string }[] => [
   { to: '/jobs', icon: 'jobs', label: fr.nav.jobs },
 ]
 
+// The left bar and the numbers are kept between pages, so they do not blink out and back in at every page change.
+type Space = { id: string; slug: string; name: string; project_id?: string | null }
+type Memo = { id?: string; spaces: Space[]; staff: boolean; unread: number }
+let memo: Memo = { spaces: [], staff: false, unread: 0 }
+const memoFor = (id?: string): Memo => (memo.id === id ? memo : (memo = { id, spaces: [], staff: false, unread: 0 }))
+
 export function AppShell({ children }: { children: ReactNode }) {
   const { member, signOut } = useAuth()
-  const [isStaff, setIsStaff] = useState(false)
-  const navigate = useNavigate()
+    const navigate = useNavigate()
   const myId = member?.profile.id
+  const [isStaff, setIsStaffState] = useState(() => memoFor(myId).staff)
+  const setIsStaff = (v: boolean) => { memoFor(myId).staff = v; setIsStaffState(v) }
   const { pathname } = useLocation()
-  const [chatUnread, setChatUnread] = useState(0)
+  const [chatUnread, setChatUnreadState] = useState(() => memoFor(myId).unread)
+  const setChatUnread = (n: number) => { memoFor(myId).unread = n; setChatUnreadState(n) }
   // The left bar is opened or closed with the 3-bar button; the choice is remembered on this device.
   const [railOpen, setRailOpen] = useState(() => {
     try { return localStorage.getItem('jaajef.rail') === 'open' } catch { return false }
@@ -46,7 +55,8 @@ export function AppShell({ children }: { children: ReactNode }) {
     const timer = setInterval(check, 60000)
     return () => { alive = false; clearInterval(timer) }
   }, [myId, pathname])
-  const [spaces, setSpaces] = useState<{ id: string; slug: string; name: string }[]>([])
+  const [spaces, setSpacesState] = useState(() => memoFor(myId).spaces)
+  const setSpaces = (l: Memo['spaces']) => { memoFor(myId).spaces = l; setSpacesState(l) }
   useEffect(() => {
     let alive = true
     // The staff link is a convenience: if it cannot be checked, the link simply does not show.
@@ -65,14 +75,21 @@ export function AppShell({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!myId) return
     let alive = true
-    Promise.resolve().then(() => listMyCommunities(myId)).then((l) => { if (alive && Array.isArray(l)) setSpaces(l.slice(0, 6)) }).catch(() => undefined)
+    Promise.resolve().then(() => listMyCommunities(myId)).then((l) => { if (alive && Array.isArray(l)) setSpaces(l.slice(0, 12).map((c) => ({ id: c.id, slug: c.slug, name: c.name, project_id: c.project_id ?? null }))) }).catch(() => undefined)
     return () => { alive = false }
   }, [myId])
+  const groups = [
+    { key: 'communities', title: fr.nav.myCommunities, items: spaces.filter((c) => !c.project_id) },
+    { key: 'rooms', title: fr.nav.myRooms, items: spaces.filter((c) => !!c.project_id) },
+  ].filter((g) => g.items.length > 0)
   const initial = (member?.profile.display_name ?? '?').slice(0, 1).toUpperCase()
   const username = member?.profile.username
   return (
     <div className="shell">
       <header className="topbar">
+        <button type="button" className="topbar-menu" aria-expanded={railOpen} aria-label={railOpen ? fr.nav.railClose : fr.nav.railOpen} title={railOpen ? fr.nav.railClose : fr.nav.railOpen} onClick={toggleRail}>
+          <Icon name="menu" size={24} />
+        </button>
         <NavLink to="/projets" aria-label={fr.appName}><Logo size={20} /></NavLink>
         <nav aria-label={fr.nav.main} className="topnav">
           <NavLink to="/projets" end>{fr.nav.city}</NavLink>
@@ -107,20 +124,21 @@ export function AppShell({ children }: { children: ReactNode }) {
       </header>
       <div className={`shell-frame ${railOpen ? 'rail-open' : ''}`}>
         <nav aria-label={fr.nav.railLabel} className={`rail ${railOpen ? 'rail-wide' : ''}`}>
-          <button type="button" className="rail-toggle" aria-expanded={railOpen} aria-label={railOpen ? fr.nav.railClose : fr.nav.railOpen} title={railOpen ? fr.nav.railClose : fr.nav.railOpen} onClick={toggleRail}>
-            <span className="rail-ico"><Icon name="menu" size={26} /></span>
-            <span className="rail-label">{fr.nav.railLabel}</span>
-          </button>
-          {spaces.map((c, i) => (
-            <NavLink key={c.id} to={`/communautes/${c.slug}`} className={`rail-item rail-space ${i === 0 ? 'rail-space-first' : `rail-space-${(i % 2) + 1}`}`} title={c.name} aria-label={c.name}>
-              <span className="rail-ico rail-letters">{c.name.split(/\s+/).slice(0, 2).map((w) => w.slice(0, 1)).join('').toUpperCase()}</span>
-              <span className="rail-label">{c.name}</span>
-            </NavLink>
-          ))}
           <NavLink to="/communautes" end className="rail-item rail-explore" title={fr.nav.communities} aria-label={fr.nav.communities}>
             <span className="rail-ico"><Icon name="compass" size={26} /></span>
             <span className="rail-label">{fr.nav.communities}</span>
           </NavLink>
+          {groups.map((g) => (
+            <div key={g.key} className="rail-group" role="group" aria-label={g.title}>
+              <p className="rail-group-title" aria-hidden="true">{g.title}</p>
+              {g.items.map((c, i) => (
+                <NavLink key={c.id} to={`/communautes/${c.slug}`} className={`rail-item rail-space ${i === 0 && g.key === 'communities' ? 'rail-space-first' : `rail-space-${(i % 2) + 1}`}`} title={c.name} aria-label={c.name}>
+                  <span className="rail-ico rail-letters">{initialsOf(c.name)}</span>
+                  <span className="rail-label">{c.name}</span>
+                </NavLink>
+              ))}
+            </div>
+          ))}
           <hr className="rail-sep" />
           {rail().map((r) => (
             <NavLink key={r.to} to={r.to} className="rail-item rail-link" title={r.label} aria-label={r.label}>

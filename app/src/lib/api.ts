@@ -856,10 +856,12 @@ export type Community = {
   is_private: boolean
   is_listed: boolean
   owner_id: string
+  /** Set for the room of a project (a "salon"). */
+  project_id?: string | null
 }
 export type CommunityRole = 'owner' | 'moderator' | 'member'
 
-const COMMUNITY_COLUMNS = 'id, slug, name, description, is_private, is_listed, owner_id'
+const COMMUNITY_COLUMNS = 'id, slug, name, description, is_private, is_listed, owner_id, project_id'
 
 /** Communities the member belongs to, with their role. */
 export async function listMyCommunities(userId: string): Promise<(Community & { role: CommunityRole })[]> {
