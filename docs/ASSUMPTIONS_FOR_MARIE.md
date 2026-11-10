@@ -45,3 +45,14 @@ Places where the screens did not say, or where the build had to choose. Each lin
 
 ## Still missing from Marie
 Job details, settings, employer side, staff side, the Kopeks checkout and the Souk sell flow screens.
+
+## Settings and Kopeks purchase (added later)
+- Settings is now a hub with five rows; the old long settings page lives at "Mon compte". Notifications and Supprimer mon compte jump to their section on that page.
+- Language has its own small page with the FR / EN switch.
+- Kopeks packs are 100, 500 and 1 000 at 10 F CFA per Kopek, as on her screen. Payment is not connected yet: the Pay button only says so.
+- The vertical bar (side rail) is shown on both screens, although her screens do not show it.
+
+## Splash and À propos (added later)
+- The splash mascot is cropped from the screenshot as a placeholder; the transparent original is needed.
+- À propos text is copied word for word from her screen; the English version is our translation.
+- The GitHub sign-in button sits under the email form on both sign in and sign up (no Figma screen for it).
