@@ -954,3 +954,11 @@ div.alert[data-dismissed], p.alert[data-dismissed], div.notice[data-dismissed], 
 @media (max-width: 860px) { .rail-group { display: flex; margin-top: 0; padding-top: 0; border-top: 0; } .rail-group-title { display: none; } }
 
 .blog-cover-preview { display: block; max-width: 100%; max-height: 220px; border-radius: 12px; border: 1px solid var(--line); margin-bottom: 10px; object-fit: cover; }
+/* Discover cards: the join buttons sit on the same line at the bottom of every card */
+.community-card:not(.community-card-link) { align-items: stretch; }
+.community-card:not(.community-card-link) .community-avatar { align-self: start; }
+.community-card:not(.community-card-link) .community-body { display: flex; flex-direction: column; align-content: normal; }
+.community-card:not(.community-card-link) .community-body > .btn,
+.community-card:not(.community-card-link) .community-body > .field { margin-top: auto; align-self: flex-start; }
+.community-card:not(.community-card-link) .community-body > .field { align-self: stretch; }
+.community-card:not(.community-card-link) .community-body > .tiny { margin-bottom: 12px; }
