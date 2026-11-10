@@ -9,6 +9,7 @@ import { ForgotPassword } from './pages/ForgotPassword'
 import { ResetPassword } from './pages/ResetPassword'
 import { ChooseClan } from './pages/ChooseClan'
 import { Home } from './pages/Home'
+import { LaCite } from './pages/LaCite'
 import { Quests } from './pages/Quests'
 import { QuestNotebook } from './pages/QuestNotebook'
 import { Quest } from './pages/Quest'
@@ -81,7 +82,7 @@ function RequireCharacter({ children }: { children: ReactNode }) {
 function PublicOnly({ children }: { children: ReactNode }) {
   const { loading, session } = useAuth()
   if (loading) return <Loading />
-  if (session) return <Navigate to="/projets" replace />
+  if (session) return <Navigate to="/la-cite" replace />
   return <>{children}</>
 }
 
@@ -109,6 +110,7 @@ export function AppRoutes() {
       <Route path="/projets/:id" element={<RequireAuth><RequireCharacter><ProjectPage /></RequireCharacter></RequireAuth>} />
       <Route path="/depots/etoiles" element={<RequireAuth><RequireCharacter><MyStars /></RequireCharacter></RequireAuth>} />
       <Route path="/depots" element={<RequireAuth><RequireCharacter><MyRepos /></RequireCharacter></RequireAuth>} />
+      <Route path="/la-cite" element={<RequireAuth><RequireCharacter><LaCite /></RequireCharacter></RequireAuth>} />
       <Route path="/projets" element={<RequireAuth><RequireCharacter><Projects /></RequireCharacter></RequireAuth>} />
       <Route path="/equipe" element={<RequireAuth><RequireCharacter><Staff /></RequireCharacter></RequireAuth>} />
       <Route path="/equipe/signalements" element={<RequireAuth><RequireCharacter><StaffReports /></RequireCharacter></RequireAuth>} />
@@ -145,7 +147,7 @@ export function AppRoutes() {
       <Route path="/souk" element={<RequireAuth><RequireCharacter><Souk /></RequireCharacter></RequireAuth>} />
       <Route path="/profil/:username" element={<RequireAuth><RequireCharacter><Profile /></RequireCharacter></RequireAuth>} />
       <Route path="/jobs" element={<RequireAuth><RequireCharacter><Jobs /></RequireCharacter></RequireAuth>} />
-      <Route path="*" element={<Navigate to="/projets" replace />} />
+      <Route path="*" element={<Navigate to="/la-cite" replace />} />
     </Routes>
   )
 }

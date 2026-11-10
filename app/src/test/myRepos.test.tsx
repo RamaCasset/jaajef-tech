@@ -62,6 +62,13 @@ describe('My repositories', () => {
     expect(within(others).getByText('1–6 sur 7 autres dépôts')).toBeInTheDocument()
   })
 
+  it('has the switch back to the community projects', async () => {
+    mount()
+    const toggle = await screen.findByRole('navigation', { name: 'Affichage des projets' })
+    expect(within(toggle).getByRole('link', { name: 'Communauté' })).toHaveAttribute('href', '/projets')
+    expect(within(toggle).getByRole('link', { name: 'Espace personnel' })).toHaveAttribute('aria-current', 'page')
+  })
+
   it('marks private and unconfirmed repositories', async () => {
     mount()
     await screen.findByText('7 publics')

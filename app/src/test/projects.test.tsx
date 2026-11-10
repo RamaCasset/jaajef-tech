@@ -192,9 +192,10 @@ describe('Projects page', () => {
     expect(screen.queryByRole('link', { name: /Tester la démo en live/ })).toBeNull()
   })
 
-  it('no longer has the community / personal switch: this page is La Cité', async () => {
+  it('has the switch to my personal space', async () => {
     mount()
-    await screen.findByRole('heading', { level: 1 })
-    expect(screen.queryByRole('navigation', { name: 'Affichage des projets' })).toBeNull()
+    const toggle = await screen.findByRole('navigation', { name: 'Affichage des projets' })
+    expect(within(toggle).getByRole('link', { name: 'Espace personnel' })).toHaveAttribute('href', '/depots')
+    expect(within(toggle).getByRole('link', { name: 'Communauté' })).toHaveAttribute('aria-current', 'page')
   })
 })

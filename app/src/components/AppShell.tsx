@@ -88,10 +88,10 @@ export function AppShell({ children }: { children: ReactNode }) {
         <button type="button" className="topbar-menu" aria-expanded={railOpen} aria-label={railOpen ? fr.nav.railClose : fr.nav.railOpen} title={railOpen ? fr.nav.railClose : fr.nav.railOpen} onClick={toggleRail}>
           <Icon name="menu" size={24} />
         </button>
-        <NavLink to="/projets" aria-label={fr.appName}><Logo size={20} /></NavLink>
+        <NavLink to="/la-cite" aria-label={fr.appName}><Logo size={20} /></NavLink>
         <nav aria-label={fr.nav.main} className="topnav">
-          <NavLink to="/projets" end>{fr.nav.city}</NavLink>
-          <NavLink to="/depots">{fr.nav.projects}</NavLink>
+          <NavLink to="/la-cite" end>{fr.nav.city}</NavLink>
+          <NavLink to="/projets">{fr.nav.projects}</NavLink>
           <NavLink to="/quetes">{fr.nav.quests}</NavLink>
           <NavLink to="/souk">{fr.nav.souk}</NavLink>
           <NavLink to="/jobs">{fr.nav.jobs}</NavLink>
