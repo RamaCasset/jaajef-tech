@@ -10,7 +10,7 @@ import { useAuth } from '../auth/AuthContext'
 import { fr } from '../i18n/fr'
 import { friendlyError } from '../lib/errors'
 import {
-  decideJoinRequest, deleteCommunity, deleteMessage, getCommunityBySlug, leaveCommunity, listChannelMessages, listChannels,
+  decideJoinRequest, deleteCommunity, deleteMessage, getCommunityBySlug, leaveCommunity, listChannelMessages, listChannels, markChannelRead,
   listCommunityMembers, listPendingJoinRequests, removeCommunityMember, sendMessage, setMemberRole, transferCommunity,
   type Channel, type ChatMessage, type Community as CommunityData, type CommunityMember, type JoinRequest,
 } from '../lib/api'
@@ -67,7 +67,11 @@ export function Community() {
 
   const loadMessages = useCallback(() => {
     if (!channelId || channelId === QUESTIONS_ROOM) return
-    listChannelMessages(channelId).then(setMessages).catch(() => undefined)
+    listChannelMessages(channelId).then((m) => {
+      setMessages(m)
+      // Opening a channel reads it, so the inbox unread count goes down. Not being a member just means nothing to mark.
+      markChannelRead(channelId).catch(() => undefined)
+    }).catch(() => undefined)
   }, [channelId])
   useEffect(() => {
     setMessages(null)

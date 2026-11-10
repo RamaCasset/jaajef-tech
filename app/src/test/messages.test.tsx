@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const api = vi.hoisted(() => ({
   listMyConversations: vi.fn(), startConversation: vi.fn(), listDirectMessages: vi.fn(), sendDirectMessage: vi.fn(),
   deleteDirectMessage: vi.fn(), markConversationRead: vi.fn(), blockUser: vi.fn(), unblockUser: vi.fn(), isBlockedByMe: vi.fn(),
-  loadProfile: vi.fn(),
+  loadProfile: vi.fn(), listMyChatInbox: vi.fn(),
 }))
 vi.mock('../lib/api', () => api)
 vi.mock('../auth/AuthContext', () => ({
@@ -26,6 +26,10 @@ const dm = (id: number, sender: string, body: string, extra = {}) => ({ id, send
 beforeEach(() => {
   for (const f of Object.values(api)) f.mockReset()
   api.listMyConversations.mockResolvedValue([conv()])
+  api.listMyChatInbox.mockResolvedValue([
+    { community_id: 'k1', slug: 'web-dev', name: 'Web Dev', avatar_url: null, project_id: null, last_message_preview: 'Bienvenue', last_author_name: 'Awa', last_message_at: '2026-11-05T10:00:00Z', unread_count: 3 },
+    { community_id: 'k2', slug: 'salon-pdf', name: 'Salon PDF', avatar_url: null, project_id: 'p1', last_message_preview: null, last_author_name: null, last_message_at: null, unread_count: 0 },
+  ])
   api.listDirectMessages.mockResolvedValue([dm(1, 'u2', 'Salut <i>toi</i>'), dm(2, 'me', 'Hello'), dm(3, 'u2', 'oups', { deleted_at: '2026-11-05T11:00:00Z' })])
   api.isBlockedByMe.mockResolvedValue(false)
   for (const f of [api.sendDirectMessage, api.deleteDirectMessage, api.markConversationRead, api.blockUser, api.unblockUser]) f.mockResolvedValue(undefined)
@@ -47,6 +51,28 @@ describe('Inbox', () => {
     render(<MemoryRouter><Messages /></MemoryRouter>)
     await userEvent.click(await screen.findByRole('button', { name: 'Réessayer' }))
     expect(await screen.findByRole('link', { name: 'Awa Diallo' })).toBeInTheDocument()
+  })
+})
+
+describe('Inbox tabs', () => {
+  it('splits communities from project rooms, with last message and unread counts', async () => {
+    render(<MemoryRouter><Messages /></MemoryRouter>)
+    await screen.findByRole('link', { name: 'Awa Diallo' })
+    await userEvent.click(screen.getByRole('tab', { name: /Communautés/ }))
+    expect(await screen.findByRole('link', { name: 'Web Dev' })).toHaveAttribute('href', '/communautes/web-dev')
+    expect(screen.getByText('Awa : Bienvenue')).toBeInTheDocument()
+    expect(screen.getAllByText('3')).toHaveLength(2)
+    expect(screen.queryByRole('link', { name: 'Salon PDF' })).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('tab', { name: /Projets/ }))
+    expect(await screen.findByRole('link', { name: 'Salon PDF' })).toHaveAttribute('href', '/communautes/salon-pdf')
+    expect(screen.getByText('Aucun message pour l\'instant')).toBeInTheDocument()
+  })
+  it('explains an empty communities tab and still shows private messages when rooms fail', async () => {
+    api.listMyChatInbox.mockRejectedValue(new Error('down'))
+    render(<MemoryRouter><Messages /></MemoryRouter>)
+    expect(await screen.findByRole('link', { name: 'Awa Diallo' })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('tab', { name: /Communautés/ }))
+    expect(await screen.findByText(/Vous ne faites partie d'aucune communauté/)).toBeInTheDocument()
   })
 })
 
