@@ -1,0 +1,15 @@
+path,position,title,lesson,mastery,minutes,quest
+bases-du-code,1,"Une variable, c'est une boîte","# Une variable
+
+Une variable garde une valeur sous un nom.
+
+```python
+age = 12
+```
+
+Vous pouvez la relire et la changer.",ndongo,5,
+bases-du-code,2,Parcourir une liste,"# Parcourir une liste
+
+Avec `for`, on traite chaque élément à son tour.
+
+À vous : additionnez les nombres pairs.",ndongo,8,somme-des-pairs

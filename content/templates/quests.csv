@@ -1,0 +1,14 @@
+slug,title,summary,statement,clan,mastery,language,topic,minutes,xp,kopeks,entry_point,starter_code,position,hint1,hint2,hint3,explanation,published
+somme-des-pairs,La somme des pairs,Additionne seulement les nombres pairs du marché.,"Le marchand note ses ventes dans une liste. Seuls les nombres pairs comptent.
+
+## Votre mission
+
+Complétez `sum_evens(values)`. Renvoyez la somme des nombres pairs de la liste, ou 0 s'il n'y en a pas.
+
+## Exemples
+
+- `[1, 2, 3, 4]` donne `6`
+- `[1, 3]` donne `0`",griot_du_code,ndongo,python,Boucles,5,100,20,sum_evens,"def sum_evens(values):
+    # votre code ici
+    pass
+",1,Un nombre est pair quand le reste de sa division par 2 est 0.,"En Python, le reste de la division s'écrit avec le signe %.","Gardez un total, parcourez la liste avec for, et ajoutez seulement si n % 2 == 0.","On parcourt la liste, on teste chaque nombre avec n % 2 == 0, et on ajoute au total. Un total qui commence à 0 donne 0 quand rien ne correspond.",non
