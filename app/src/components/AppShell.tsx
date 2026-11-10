@@ -23,6 +23,15 @@ export function AppShell({ children }: { children: ReactNode }) {
   const myId = member?.profile.id
   const { pathname } = useLocation()
   const [chatUnread, setChatUnread] = useState(0)
+  // The left bar is opened or closed with the 3-bar button; the choice is remembered on this device.
+  const [railOpen, setRailOpen] = useState(() => {
+    try { return localStorage.getItem('jaajef.rail') === 'open' } catch { return false }
+  })
+  const toggleRail = () => {
+    const next = !railOpen
+    setRailOpen(next)
+    try { localStorage.setItem('jaajef.rail', next ? 'open' : 'closed') } catch { /* the choice is just not remembered */ }
+  }
   // The number on the chat button: unread private messages plus unread community and project messages.
   // It is checked again on every page change and once a minute; if it cannot be read, no number shows.
   useEffect(() => {
@@ -96,19 +105,27 @@ export function AppShell({ children }: { children: ReactNode }) {
           </details>
         </div>
       </header>
-      <div className="shell-frame">
-        <nav aria-label={fr.nav.railLabel} className="rail">
+      <div className={`shell-frame ${railOpen ? 'rail-open' : ''}`}>
+        <nav aria-label={fr.nav.railLabel} className={`rail ${railOpen ? 'rail-wide' : ''}`}>
+          <button type="button" className="rail-toggle" aria-expanded={railOpen} aria-label={railOpen ? fr.nav.railClose : fr.nav.railOpen} title={railOpen ? fr.nav.railClose : fr.nav.railOpen} onClick={toggleRail}>
+            <span className="rail-ico"><Icon name="menu" size={26} /></span>
+            <span className="rail-label">{fr.nav.railLabel}</span>
+          </button>
           {spaces.map((c, i) => (
-            <NavLink key={c.id} to={`/communautes/${c.slug}`} className={`rail-space ${i === 0 ? 'rail-space-first' : `rail-space-${(i % 2) + 1}`}`} title={c.name} aria-label={c.name}>
-              {c.name.split(/\s+/).slice(0, 2).map((w) => w.slice(0, 1)).join('').toUpperCase()}
+            <NavLink key={c.id} to={`/communautes/${c.slug}`} className={`rail-item rail-space ${i === 0 ? 'rail-space-first' : `rail-space-${(i % 2) + 1}`}`} title={c.name} aria-label={c.name}>
+              <span className="rail-ico rail-letters">{c.name.split(/\s+/).slice(0, 2).map((w) => w.slice(0, 1)).join('').toUpperCase()}</span>
+              <span className="rail-label">{c.name}</span>
             </NavLink>
           ))}
-          <NavLink to="/communautes" end className="rail-explore" title={fr.nav.communities} aria-label={fr.nav.communities}><Icon name="compass" size={26} /></NavLink>
+          <NavLink to="/communautes" end className="rail-item rail-explore" title={fr.nav.communities} aria-label={fr.nav.communities}>
+            <span className="rail-ico"><Icon name="compass" size={26} /></span>
+            <span className="rail-label">{fr.nav.communities}</span>
+          </NavLink>
           <hr className="rail-sep" />
           {rail().map((r) => (
-            <NavLink key={r.to} to={r.to} className="rail-link" title={r.label}>
-              <Icon name={r.icon} size={26} />
-              <span>{r.label}</span>
+            <NavLink key={r.to} to={r.to} className="rail-item rail-link" title={r.label} aria-label={r.label}>
+              <span className="rail-ico"><Icon name={r.icon} size={26} /></span>
+              <span className="rail-label">{r.label}</span>
             </NavLink>
           ))}
         </nav>

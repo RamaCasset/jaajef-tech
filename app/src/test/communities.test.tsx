@@ -37,8 +37,8 @@ describe('Communities list', () => {
     mount()
     expect(await within(screen.getByRole('main')).findByRole('link', { name: 'Comm 1' })).toHaveAttribute('href', '/communautes/slug-1')
     expect(screen.getByText(/Propriétaire/)).toBeInTheDocument()
-    expect(screen.getByText('Comm 2')).toBeInTheDocument()
-    expect(screen.getAllByText('Comm 1')).toHaveLength(1)
+    expect(within(screen.getByRole('main')).getByText('Comm 2')).toBeInTheDocument()
+    expect(within(screen.getByRole('main')).getAllByText('Comm 1')).toHaveLength(1)
   })
 
   it('joins a public community directly, and asks to enter a private one with a message', async () => {
