@@ -45,6 +45,20 @@ describe('AppShell', () => {
     expect(hrefs).toEqual(['/communautes', '/blog', '/questions', '/quetes', '/souk', '/jobs'])
   })
 
+  it('opens and closes the side bar with the 3-bar button, and remembers the choice', async () => {
+    localStorage.removeItem('jaajef.rail')
+    mount()
+    const rail = screen.getByRole('navigation', { name: 'Espaces' })
+    const toggle = within(rail).getByRole('button', { name: 'Ouvrir le menu' })
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    expect(rail).not.toHaveClass('rail-wide')
+    await userEvent.click(toggle)
+    expect(within(rail).getByRole('button', { name: 'Réduire le menu' })).toHaveAttribute('aria-expanded', 'true')
+    expect(rail).toHaveClass('rail-wide')
+    expect(localStorage.getItem('jaajef.rail')).toBe('open')
+    localStorage.removeItem('jaajef.rail')
+  })
+
   it('keeps messages reachable outside the rail and has no arena entry', async () => {
     mount()
     expect(screen.getByRole('link', { name: 'Messages' })).toHaveAttribute('href', '/messages')
