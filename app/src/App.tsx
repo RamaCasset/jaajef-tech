@@ -1,5 +1,6 @@
 import { BrowserRouter } from 'react-router-dom'
 import { AuthProvider } from './auth/AuthContext'
+import { ThemeApplier } from './components/ThemeApplier'
 import { AppRoutes } from './routes'
 import { LangProvider } from './i18n/LangContext'
 import { LanguageSwitch } from './components/LanguageSwitch'
@@ -16,6 +17,7 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <LangProvider>
+          <ThemeApplier />
           <PublicLanguageSwitch />
           <AppRoutes />
         </LangProvider>

@@ -13,7 +13,6 @@ const rail = (): { to: string; icon: string; label: string }[] => [
   { to: '/blog', icon: 'blog', label: fr.nav.blog },
   { to: '/questions', icon: 'question', label: fr.nav.questions },
   { to: '/parcours', icon: 'book', label: fr.learning.navLabel },
-  { to: '/jobs', icon: 'jobs', label: fr.nav.jobs },
 ]
 
 // The left bar and the numbers are kept between pages, so they do not blink out and back in at every page change.
@@ -95,6 +94,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <NavLink to="/depots">{fr.nav.projects}</NavLink>
           <NavLink to="/quetes">{fr.nav.quests}</NavLink>
           <NavLink to="/souk">{fr.nav.souk}</NavLink>
+          <NavLink to="/jobs">{fr.nav.jobs}</NavLink>
         </nav>
         <NavLink to="/recherche" className="topsearch" aria-label={fr.nav.search}>
           <Icon name="search" size={16} />

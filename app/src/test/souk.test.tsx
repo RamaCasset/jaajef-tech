@@ -31,7 +31,7 @@ import { Souk } from '../pages/Souk'
 
 const item = (n: number, extra: Partial<SoukItem> = {}): SoukItem => ({
   id: `i${n}`, slug: `s${n}`, kind: 'theme', name: `Thème ${n}`, description: null, price_kopeks: 100 * n,
-  data: { accent: '#C9A227' }, avg_rating: null, rating_count: 0, owned: false, my_rating: null, created_at: '2026-01-01', ...extra,
+  data: { accent: '#C9A227' }, avg_rating: null, rating_count: 0, owned: false, my_rating: null, created_at: '2026-01-01', creator_name: null, creator_clan: null, ...extra,
 })
 
 const mount = () => render(<MemoryRouter><Souk /></MemoryRouter>)
@@ -53,7 +53,7 @@ describe('Souk page', () => {
     expect(screen.getByRole('button', { name: 'Équiper Thème 2' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Retirer Thème 3' })).toBeInTheDocument()
     expect(screen.getByText('★ 4.9')).toBeInTheDocument()
-    expect(screen.getByText('3 créations')).toBeInTheDocument()
+    expect(screen.getByText(/^3 créations · /)).toBeInTheDocument()
     expect(soukShop).toHaveBeenCalledWith('theme', 'new')
   })
 
@@ -100,5 +100,30 @@ describe('Souk page', () => {
     mount()
     await userEvent.click(await screen.findByRole('button', { name: 'Réessayer' }))
     expect(await screen.findByText('Thème 1')).toBeInTheDocument()
+  })
+})
+
+describe('Souk themes', () => {
+  it('puts an equipped theme on the whole app, and takes it off again', async () => {
+    soukShop.mockResolvedValue([item(2, { owned: true, data: { accent: '#C9A227', bg: '#101010' } }), item(3, { owned: true })])
+    myEquippedIds.mockResolvedValue(['i3'])
+    mount()
+    await userEvent.click(await screen.findByRole('button', { name: 'Équiper Thème 2' }))
+    await waitFor(() => expect(equipItem).toHaveBeenCalledWith('i2'))
+    expect(document.documentElement.style.getPropertyValue('--accent')).toBe('#C9A227')
+    expect(document.documentElement.style.getPropertyValue('--bg')).toBe('#101010')
+    await userEvent.click(screen.getByRole('button', { name: 'Retirer Thème 3' }))
+    await waitFor(() => expect(unequipItem).toHaveBeenCalledWith('theme'))
+    expect(document.documentElement.style.getPropertyValue('--accent')).toBe('')
+  })
+
+  it('shows the creator on a card and lists my purchases', async () => {
+    soukShop.mockResolvedValue([item(1, { creator_name: 'Awa Diallo', creator_clan: 'griot_du_code' }), item(2, { owned: true })])
+    mount()
+    expect(await screen.findByText('Awa Diallo')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /Mes achats et équipements/ }))
+    await waitFor(() => expect(soukShop).toHaveBeenLastCalledWith(null, 'new'))
+    await waitFor(() => expect(screen.queryByRole('button', { name: 'Acheter Thème 1' })).not.toBeInTheDocument())
+    expect(screen.getByRole('button', { name: 'Équiper Thème 2' })).toBeInTheDocument()
   })
 })
