@@ -8,6 +8,23 @@ export const frMessages = {
     loading: 'Chargement…',
     unknownError: 'Une erreur est survenue. Réessayez dans un instant.',
   },
+  splash: {
+    tagline: 'La tech entre nous !',
+    about: 'À propos',
+    signUp: "S'inscrire",
+    signIn: 'Se connecter',
+  },
+  about: {
+    title: "Bienvenue sur jaajef.tech, l'entre magique où la tech africaine forge son avenir.",
+    p1: "Au-delà des salons et groupes de discussion classiques et des dépôts de code solitaires, il manquait un espace à notre image. Un lieu où les développeurs, designers, experts IA et passionnés de tech d'Afrique et de sa diaspora peuvent se rassembler, collaborer sans filtre, et repousser les limites de leur art et de leurs compétences.",
+    p2: "jaajef.tech est né d'une conviction simple : la culture geek et l'excellence technique en Afrique méritent leur propre sanctuaire. Un endroit où dire « jaajëf » (merci en langue wolof) devient le moteur d'une communauté qui s'entraide, partage ses projets et célèbre chaque victoire technique.",
+    culturesTitle: 'Nos cultures dans notre tech !',
+    cultures: "Ici, nous avons fusionné l'esprit du Jeu de Rôle et le folklore sénégalais avec les outils les plus modernes de l'écosystème software.",
+    tiles: { communities: 'Trouvez ou créez votre communauté.', projects: 'Faites découvrir vos projets.', quests: 'Challengez vous dans les quests.', jobs: 'Trouvez les bonnes opportunités.' },
+    ready: 'Prêt à forger ton identité et à rejoindre la Cité ?',
+    signUp: "S'inscrire",
+    home: 'Retour à l’accueil',
+  },
   login: {
     eyebrow: 'Connexion / La Cité',
     title: 'Bon retour dans la Cité.',

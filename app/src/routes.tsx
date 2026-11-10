@@ -5,6 +5,8 @@ import { isConfigured } from './lib/supabase'
 import { fr } from './i18n/fr'
 import { Login } from './pages/Login'
 import { Signup } from './pages/Signup'
+import { Splash } from './pages/Splash'
+import { About } from './pages/About'
 import { ForgotPassword } from './pages/ForgotPassword'
 import { ResetPassword } from './pages/ResetPassword'
 import { ChooseClan } from './pages/ChooseClan'
@@ -90,6 +92,8 @@ export function AppRoutes() {
   if (!isConfigured) return <Setup />
   return (
     <Routes>
+      <Route path="/" element={<PublicOnly><Splash /></PublicOnly>} />
+      <Route path="/a-propos" element={<About />} />
       <Route path="/connexion" element={<PublicOnly><Login /></PublicOnly>} />
       <Route path="/mot-de-passe-oublie" element={<PublicOnly><ForgotPassword /></PublicOnly>} />
       <Route path="/nouveau-mot-de-passe" element={<ResetPassword />} />

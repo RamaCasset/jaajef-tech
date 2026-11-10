@@ -8,6 +8,23 @@ export const en: Messages = {
     loading: 'Loading…',
     unknownError: 'Something went wrong. Please try again in a moment.',
   },
+  splash: {
+    tagline: 'Tech, among us!',
+    about: 'About',
+    signUp: 'Sign up',
+    signIn: 'Sign in',
+  },
+  about: {
+    title: 'Welcome to jaajef.tech, the magic den where African tech forges its future.',
+    p1: 'Beyond the usual chat rooms and lonely code repositories, a space in our own image was missing. A place where developers, designers, AI experts and tech enthusiasts from Africa and its diaspora can gather, collaborate openly, and push the limits of their craft and skills.',
+    p2: 'jaajef.tech was born from a simple belief: geek culture and technical excellence in Africa deserve their own sanctuary. A place where saying "jaajëf" (thank you in Wolof) becomes the engine of a community that helps each other, shares its projects and celebrates every technical victory.',
+    culturesTitle: 'Our cultures in our tech!',
+    cultures: 'Here, we have blended the spirit of role-playing games and Senegalese folklore with the most modern tools of the software ecosystem.',
+    tiles: { communities: 'Find or create your community.', projects: 'Showcase your projects.', quests: 'Challenge yourself in quests.', jobs: 'Find the right opportunities.' },
+    ready: 'Ready to forge your identity and join La Cité?',
+    signUp: 'Sign up',
+    home: 'Back to the home page',
+  },
   login: {
     eyebrow: 'Sign in / La Cité',
     title: 'Welcome back to the City.',
