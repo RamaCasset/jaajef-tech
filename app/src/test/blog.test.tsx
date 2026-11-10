@@ -7,6 +7,7 @@ const api = vi.hoisted(() => ({
   listBlogPosts: vi.fn(), likeBlogPost: vi.fn(), unlikeBlogPost: vi.fn(), getBlogPostBySlug: vi.fn(), getMyBlogPost: vi.fn(),
   listMyBlogPosts: vi.fn(), listBlogComments: vi.fn(), postBlogComment: vi.fn(), deleteBlogComment: vi.fn(), createBlogPost: vi.fn(),
   updateBlogPost: vi.fn(), publishBlogPost: vi.fn(), unpublishBlogPost: vi.fn(), deleteBlogPost: vi.fn(),
+  uploadBlogImage: vi.fn(), removeBlogImage: vi.fn(),
 }))
 vi.mock('../lib/api', () => api)
 vi.mock('../auth/AuthContext', () => ({
@@ -165,6 +166,29 @@ describe('Blog editor', () => {
       </Routes>
     </MemoryRouter>,
   )
+  it('uploads a cover picture, shows it, saves its address, and tidies away a replaced one', async () => {
+    api.uploadBlogImage.mockResolvedValueOnce('https://x.supabase.co/storage/v1/object/public/blog-images/me/a.png')
+    api.uploadBlogImage.mockResolvedValueOnce('https://x.supabase.co/storage/v1/object/public/blog-images/me/b.png')
+    api.removeBlogImage.mockResolvedValue(undefined)
+    api.getMyBlogPost.mockResolvedValue(full({ id: 'new1' }))
+    mount('/blog/ecrire')
+    await userEvent.type(screen.getByLabelText('Titre'), 'Mon titre')
+    await userEvent.type(screen.getByLabelText('Texte'), 'Du texte')
+    const file = new File(['x'], 'a.png', { type: 'image/png' })
+    await userEvent.upload(screen.getByLabelText('Image de couverture (facultative)'), file)
+    expect(await screen.findByRole('img', { name: "Aperçu de l'image de couverture" })).toHaveAttribute('src', expect.stringContaining('/me/a.png'))
+    expect(api.uploadBlogImage).toHaveBeenCalledWith('me', file)
+    await userEvent.upload(screen.getByLabelText('Image de couverture (facultative)'), new File(['y'], 'b.png', { type: 'image/png' }))
+    await waitFor(() => expect(api.removeBlogImage).toHaveBeenCalledWith(expect.stringContaining('/me/a.png')))
+    await userEvent.click(screen.getByRole('button', { name: 'Enregistrer le brouillon' }))
+    await waitFor(() => expect(api.createBlogPost).toHaveBeenCalledWith(expect.objectContaining({ cover_url: expect.stringContaining('/me/b.png') }), false))
+  })
+  it('refuses a picture that is not allowed, with a clear message', async () => {
+    api.uploadBlogImage.mockRejectedValueOnce(new Error('image-size'))
+    mount('/blog/ecrire')
+    await userEvent.upload(screen.getByLabelText('Image de couverture (facultative)'), new File(['x'], 'big.png', { type: 'image/png' }))
+    expect(await screen.findByText(/trop lourde/)).toBeInTheDocument()
+  })
   it('buttons stay off until there is a title and a text', async () => {
     mount('/blog/ecrire')
     expect(screen.getByRole('button', { name: 'Publier' })).toBeDisabled()
