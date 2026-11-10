@@ -738,6 +738,11 @@ export type BlogCard = {
 }
 export const listBlogPosts = (tag: string, limit = 20, offset = 0) =>
   rpc<BlogCard[]>('list_blog_posts', { p_tag: tag.trim() || null, p_author: null, p_limit: limit, p_offset: offset })
+/** Published posts of one member, newest first, in the shape the profile list uses. */
+export async function listAuthorBlogPosts(authorId: string): Promise<MyBlogPost[]> {
+  const cards = await rpc<BlogCard[]>('list_blog_posts', { p_tag: null, p_author: authorId, p_limit: 50, p_offset: 0 })
+  return cards.map((c) => ({ id: c.id, slug: c.slug, title: c.title, status: 'published' as const, staff_hidden: false, updated_at: c.published_at }))
+}
 export const likeBlogPost = (id: string) => rpc<void>('like_blog_post', { p_post: id })
 export const unlikeBlogPost = (id: string) => rpc<void>('unlike_blog_post', { p_post: id })
 
