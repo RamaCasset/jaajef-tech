@@ -10,6 +10,7 @@ import { ResetPassword } from './pages/ResetPassword'
 import { ChooseClan } from './pages/ChooseClan'
 import { Home } from './pages/Home'
 import { Quests } from './pages/Quests'
+import { QuestNotebook } from './pages/QuestNotebook'
 import { Quest } from './pages/Quest'
 import { Projects } from './pages/Projects'
 import { MyRepos } from './pages/MyRepos'
@@ -94,6 +95,7 @@ export function AppRoutes() {
       <Route path="/cite" element={<RequireAuth><RequireCharacter><Profile own /></RequireCharacter></RequireAuth>} />
       <Route path="/accueil" element={<RequireAuth><RequireCharacter><Home /></RequireCharacter></RequireAuth>} />
       <Route path="/quetes" element={<RequireAuth><RequireCharacter><Quests /></RequireCharacter></RequireAuth>} />
+      <Route path="/quetes/carnet" element={<RequireAuth><RequireCharacter><QuestNotebook /></RequireCharacter></RequireAuth>} />
       <Route path="/quetes/:slug" element={<RequireAuth><RequireCharacter><Quest /></RequireCharacter></RequireAuth>} />
       <Route path="/projets/ajouter" element={<RequireAuth><RequireCharacter><ImportProject /></RequireCharacter></RequireAuth>} />
       <Route path="/projets/:id/modifier" element={<RequireAuth><RequireCharacter><RepoBrowser /></RequireCharacter></RequireAuth>} />

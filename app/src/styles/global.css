@@ -992,6 +992,19 @@ div.alert[data-dismissed], p.alert[data-dismissed], div.notice[data-dismissed], 
 .quests .quest-filters label.notice-search { display: flex; gap: 10px; font-size: inherit; color: var(--fg-muted); }
 .quests .quest-filters .notice-search input[type="search"] { color: var(--fg); font: inherit; outline: none; }
 
+/* Quest notebook */
+.quest-notebook-link { margin-left: auto; color: var(--accent); text-decoration: none; }
+.quest-notebook-link:hover { text-decoration: underline; }
+.notebook-total { margin: 22px 0 18px; max-width: 320px; }
+.notebook-number { font: 700 44px var(--font-display); color: var(--accent); line-height: 1; }
+.notebook-list { display: grid; }
+.notebook-row { position: relative; display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--line); }
+.notebook-row:last-child { border-bottom: 0; }
+.notebook-row:hover { background: rgba(255, 255, 255, 0.03); }
+.notebook-body { min-width: 0; display: grid; gap: 4px; }
+.notebook-title { margin: 0; font-size: 16px; }
+.notebook-body p { margin: 0; }
+
 /* Blog list: cards with a picture, the newest one larger */
 .blog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 22px; }
 .blog-card { position: relative; display: grid; grid-template-rows: auto 1fr; overflow: hidden; transition: border-color 0.15s, transform 0.15s; }
