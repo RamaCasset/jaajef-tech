@@ -41,27 +41,39 @@ describe('AppShell', () => {
   it('shows only the main spaces in the side rail', async () => {
     mount()
     const rail = screen.getByRole('navigation', { name: 'Espaces' })
+    await within(rail).findByRole('link', { name: 'GameDev Senegal' })
     const hrefs = within(rail).getAllByRole('link').map((a) => a.getAttribute('href'))
-    expect(hrefs).toEqual(['/communautes', '/blog', '/questions', '/quetes', '/souk', '/jobs'])
+    expect(hrefs).toEqual(['/communautes', '/communautes/gamedev', '/blog', '/questions', '/quetes', '/souk', '/jobs'])
   })
 
   it('opens and closes the side bar with the 3-bar button, and remembers the choice', async () => {
     localStorage.removeItem('jaajef.rail')
     mount()
     const rail = screen.getByRole('navigation', { name: 'Espaces' })
-    const toggle = within(rail).getByRole('button', { name: 'Ouvrir le menu' })
+    const toggle = screen.getByRole('button', { name: 'Ouvrir le menu' })
     expect(toggle).toHaveAttribute('aria-expanded', 'false')
     expect(rail).not.toHaveClass('rail-wide')
     await userEvent.click(toggle)
-    expect(within(rail).getByRole('button', { name: 'Réduire le menu' })).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByRole('button', { name: 'Réduire le menu' })).toHaveAttribute('aria-expanded', 'true')
     expect(rail).toHaveClass('rail-wide')
     expect(localStorage.getItem('jaajef.rail')).toBe('open')
     localStorage.removeItem('jaajef.rail')
   })
 
+  it('keeps the rail and the unread number between pages, so they do not blink at every page change', async () => {
+    const first = mount()
+    await screen.findByRole('link', { name: 'GameDev Senegal' })
+    await screen.findByRole('link', { name: 'Messages, 5 non lus' })
+    first.unmount()
+    mount()
+    // Right away, before anything is loaded again:
+    expect(screen.getByRole('link', { name: 'GameDev Senegal' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Messages, 5 non lus' })).toBeInTheDocument()
+  })
+
   it('keeps messages reachable outside the rail and has no arena entry', async () => {
     mount()
-    expect(screen.getByRole('link', { name: 'Messages' })).toHaveAttribute('href', '/messages')
+    expect(await screen.findByRole('link', { name: /^Messages/ })).toHaveAttribute('href', '/messages')
     await userEvent.click(screen.getByLabelText('Menu du compte'))
     expect(screen.queryByRole('link', { name: 'Arène' })).toBeNull()
   })

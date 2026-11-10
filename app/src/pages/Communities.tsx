@@ -4,6 +4,7 @@ import { AppShell } from '../components/AppShell'
 import { Icon } from '../components/Icon'
 import { useAuth } from '../auth/AuthContext'
 import { fr } from '../i18n/fr'
+import { initialsOf } from '../lib/initials'
 import { friendlyError } from '../lib/errors'
 import {
   communityMemberCount, createCommunity, joinCommunity, listDiscoverCommunities, listMyCommunities, requestToJoin,
@@ -83,7 +84,6 @@ export function Communities() {
 
   const needle = query.trim().toLowerCase()
   const matches = (c: Community) => !needle || `${c.name} ${c.description ?? ''}`.toLowerCase().includes(needle)
-  const initials = (n: string) => n.split(/\s+/).slice(0, 2).map((w) => w.slice(0, 1)).join('').toUpperCase()
   const mineShown = (mine ?? []).filter(matches)
   const othersShown = (others ?? []).filter(matches)
 
@@ -150,7 +150,7 @@ export function Communities() {
             <div className="community-grid">
               {mineShown.map((c) => (
                 <article key={c.id} className="panel community-card community-card-link">
-                  <span className="community-avatar" aria-hidden="true">{initials(c.name)}</span>
+                  <span className="community-avatar" aria-hidden="true">{initialsOf(c.name)}</span>
                   <div className="community-body">
                     <h3 className="community-name"><Link className="community-stretch" to={`/communautes/${c.slug}`}>{c.name}</Link></h3>
                     <span className="tiny muted">
@@ -170,7 +170,7 @@ export function Communities() {
             <div className="community-grid">
               {othersShown.map((c) => (
                 <article key={c.id} className="panel community-card">
-                  <span className="community-avatar" aria-hidden="true">{initials(c.name)}</span>
+                  <span className="community-avatar" aria-hidden="true">{initialsOf(c.name)}</span>
                   <div className="community-body">
                     <h3 className="community-name">{c.name}</h3>
                     {c.description && <p className="muted community-desc">{c.description}</p>}

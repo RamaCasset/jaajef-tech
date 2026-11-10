@@ -322,6 +322,8 @@ export const en: Messages = {
     searchHint: 'Search the City',
     account: 'Account menu',
     profile: 'My profile',
+    myCommunities: 'My communities',
+    myRooms: 'My rooms',
     railOpen: 'Open the menu',
     railClose: 'Collapse the menu',
     railLabel: 'Spaces',
