@@ -1,0 +1,52 @@
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { MemoryRouter } from 'react-router-dom'
+import { describe, expect, it, vi } from 'vitest'
+
+vi.mock('../auth/AuthContext', () => ({
+  useAuth: () => ({ member: { kopeks: 2450, profile: { id: 'me', display_name: 'Moussa Diop' } }, signOut: vi.fn() }),
+}))
+vi.mock('../components/AppShell', () => ({ AppShell: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }))
+
+import { SettingsHub } from '../pages/SettingsHub'
+import { BuyKopeks } from '../pages/BuyKopeks'
+
+describe('Settings hub', () => {
+  it('lists the five areas with their links', () => {
+    render(<MemoryRouter><SettingsHub /></MemoryRouter>)
+    expect(screen.getByRole('heading', { level: 1, name: 'Paramètres' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Profil/ })).toHaveAttribute('href', '/parametres/profil')
+    expect(screen.getByRole('link', { name: /Mon compte/ })).toHaveAttribute('href', '/parametres/compte')
+    expect(screen.getByRole('link', { name: /Langue/ })).toHaveAttribute('href', '/parametres/langue')
+    expect(screen.getByRole('link', { name: /Notifications/ })).toHaveAttribute('href', '/parametres/compte#notifications')
+    expect(screen.getByRole('link', { name: /Supprimer mon compte/ })).toHaveAttribute('href', '/parametres/compte#suppression')
+  })
+})
+
+describe('Buy Kopeks', () => {
+  it('starts on the 500 pack with the new balance worked out', () => {
+    render(<MemoryRouter><BuyKopeks /></MemoryRouter>)
+    expect(screen.getByRole('radio', { name: /500/ })).toHaveAttribute('aria-checked', 'true')
+    expect(screen.getAllByText('5 000 F CFA').length).toBeGreaterThan(1)
+    expect(screen.getByText('2 950 Kopeks')).toBeInTheDocument()
+  })
+
+  it('updates the summary when another pack is chosen', async () => {
+    render(<MemoryRouter><BuyKopeks /></MemoryRouter>)
+    await userEvent.click(screen.getByRole('radio', { name: /1 000 Kopeks 10 000/ }))
+    expect(screen.getByRole('button', { name: 'Payer 10 000 F CFA' })).toBeInTheDocument()
+    expect(screen.getByText('3 450 Kopeks')).toBeInTheDocument()
+  })
+
+  it('needs a 9-digit number for Wave and none for a card, and says payment is not open', async () => {
+    render(<MemoryRouter><BuyKopeks /></MemoryRouter>)
+    const pay = screen.getByRole('button', { name: /^Payer/ })
+    expect(pay).toBeDisabled()
+    await userEvent.type(screen.getByLabelText('Numéro de téléphone Wave'), '77 123 45 67')
+    expect(pay).toBeEnabled()
+    await userEvent.click(screen.getByRole('radio', { name: 'Carte bancaire' }))
+    expect(screen.queryByLabelText('Numéro de téléphone Wave')).toBeNull()
+    await userEvent.click(screen.getByRole('button', { name: /^Payer/ }))
+    expect(screen.getByRole('status')).toHaveTextContent("Le paiement n'est pas encore ouvert")
+  })
+})

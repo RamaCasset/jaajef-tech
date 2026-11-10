@@ -29,8 +29,11 @@ export function Settings() {
     myAccountDeletion().then(setState).catch(() => setLoadFailed(true))
   }, [])
   useEffect(load, [load])
-  // A link such as /parametres#notifications jumps to that section.
-  useEffect(() => { if (window.location.hash === '#notifications') document.getElementById('notifications')?.scrollIntoView() }, [])
+  // A link such as /parametres/compte#notifications jumps to that section.
+  useEffect(() => {
+    const id = window.location.hash.slice(1)
+    if (id) document.getElementById(id)?.scrollIntoView?.()
+  }, [])
 
   async function download() {
     setError(null)
@@ -105,7 +108,7 @@ export function Settings() {
           <button className="btn" type="button" onClick={() => void download()} disabled={busy}>{fr.settings.exportButton}</button>
         </section>
 
-        <section className="panel panel-pad">
+        <section id="suppression" className="panel panel-pad">
           <h2>{fr.settings.deleteTitle}</h2>
           {loadFailed && (
             <>
