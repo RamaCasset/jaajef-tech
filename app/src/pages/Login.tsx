@@ -22,7 +22,7 @@ export function Login() {
     setBusy(true)
     try {
       await signIn(email.trim(), password)
-      navigate('/projets', { replace: true })
+      navigate('/la-cite', { replace: true })
     } catch (err) {
       setError(friendlyError(err))
     } finally {
