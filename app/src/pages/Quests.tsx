@@ -192,6 +192,7 @@ export function Quests() {
         <div className="quest-section-head">
           <h2>{fr.quests.nextAdventure}</h2>
           {quests ? <span className="muted tiny">{fr.quests.count(quests.length)}</span> : null}
+          <Link className="quest-notebook-link tiny" to="/quetes/carnet">{fr.quests.notebookLink(progress.filter((x) => x.status === 'solved').length)}</Link>
         </div>
         <div className="quest-tabs" role="tablist" aria-label={fr.quests.nextAdventure}>
           {tabs.map((x) => (

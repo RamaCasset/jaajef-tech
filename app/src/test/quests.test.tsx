@@ -6,16 +6,19 @@ import type { QuestSummary } from '../lib/api'
 
 const listQuests = vi.fn()
 const listMyQuestProgress = vi.fn()
+const listMyNotebook = vi.fn()
 
 vi.mock('../lib/api', () => ({
   listQuests: (...a: unknown[]) => listQuests(...a),
   listMyQuestProgress: (...a: unknown[]) => listMyQuestProgress(...a),
+  listMyNotebook: (...a: unknown[]) => listMyNotebook(...a),
 }))
 vi.mock('../auth/AuthContext', () => ({
   useAuth: () => ({ member: { kopeks: 1, profile: { id: 'u1', display_name: 'Moussa' } }, signOut: vi.fn() }),
 }))
 
 import { Quests } from '../pages/Quests'
+import { QuestNotebook } from '../pages/QuestNotebook'
 
 const quest = (n: number, extra: Partial<QuestSummary> = {}): QuestSummary => ({
   id: `q${n}`, slug: `quete-${n}`, title: `Quête ${n}`, summary: `Résumé ${n}`, clan: 'griot_du_code', mastery: 'ndongo',
@@ -27,6 +30,7 @@ const mount = () => render(<MemoryRouter><Quests /></MemoryRouter>)
 beforeEach(() => {
   listQuests.mockReset()
   listMyQuestProgress.mockReset()
+  listMyNotebook.mockReset()
   listQuests.mockResolvedValue([quest(1), quest(2, { daily_on: '2026-11-06', kopek_reward: 0, language: 'javascript' }), quest(3)])
   listMyQuestProgress.mockResolvedValue([
     { quest_id: 'q1', status: 'solved', tests_passed: 3, tests_total: 3 },
@@ -78,6 +82,11 @@ describe('Quests page', () => {
     expect(screen.queryByText('Quête 3')).toBeNull()
   })
 
+  it('links to the notebook with the number of quests passed', async () => {
+    mount()
+    expect(await screen.findByRole('link', { name: 'Mon carnet · 1 réussite' })).toHaveAttribute('href', '/quetes/carnet')
+  })
+
   it('greets the member by first name', async () => {
     mount()
     expect(await screen.findByRole('heading', { level: 1, name: 'Une petite quête, Moussa ?' })).toBeInTheDocument()
@@ -120,5 +129,31 @@ describe('Quests page', () => {
     mount()
     await screen.findByText('Quête 1')
     expect(screen.getByRole('link', { name: 'Ouvrir : Quête 2' })).toHaveAttribute('href', '/quetes/quete-2')
+  })
+})
+
+describe('Quest notebook', () => {
+  const entry = (n: number, extra = {}) => ({
+    quest_id: `q${n}`, solved_at: '2026-11-08T10:00:00Z', duration_ms: 600000,
+    quests: { slug: `quete-${n}`, title: `Quête ${n}`, clan: 'saltigue', mastery: 'bagne', language: 'python' }, ...extra,
+  })
+  it('lists the passed quests with the total, linking each to its page', async () => {
+    listMyNotebook.mockResolvedValue([entry(1), entry(2, { duration_ms: null })])
+    render(<MemoryRouter><QuestNotebook /></MemoryRouter>)
+    expect(await screen.findByRole('link', { name: 'Quête 1' })).toHaveAttribute('href', '/quetes/quete-1')
+    expect(screen.getByText('2 quêtes réussies')).toBeInTheDocument()
+    expect(screen.getByText('10 min')).toBeInTheDocument()
+    expect(listMyNotebook).toHaveBeenCalledWith('u1')
+  })
+  it('says so when empty, and offers a retry on failure', async () => {
+    listMyNotebook.mockResolvedValueOnce([])
+    const first = render(<MemoryRouter><QuestNotebook /></MemoryRouter>)
+    expect(await screen.findByText(/Votre carnet est vide/)).toBeInTheDocument()
+    first.unmount()
+    listMyNotebook.mockRejectedValueOnce(new Error('x'))
+    listMyNotebook.mockResolvedValueOnce([entry(1)])
+    render(<MemoryRouter><QuestNotebook /></MemoryRouter>)
+    await userEvent.click(await screen.findByRole('button', { name: 'Réessayer' }))
+    expect(await screen.findByRole('link', { name: 'Quête 1' })).toBeInTheDocument()
   })
 })

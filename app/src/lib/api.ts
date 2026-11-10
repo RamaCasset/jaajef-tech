@@ -378,6 +378,25 @@ export async function listMyQuestProgress(userId: string): Promise<MyQuestProgre
   return (data ?? []) as MyQuestProgress[]
 }
 
+export type NotebookEntry = {
+  quest_id: string
+  solved_at: string | null
+  duration_ms: number | null
+  quests: Pick<QuestSummary, 'slug' | 'title' | 'clan' | 'mastery' | 'language'>
+}
+
+/** The quests the member has passed, the latest first (the database only returns their own). */
+export async function listMyNotebook(userId: string): Promise<NotebookEntry[]> {
+  const { data, error } = await supabase
+    .from('quest_attempts')
+    .select('quest_id, solved_at, duration_ms, quests!inner(slug, title, clan, mastery, language)')
+    .eq('user_id', userId)
+    .eq('status', 'solved')
+    .order('solved_at', { ascending: false })
+  if (error) throw new Error(error.message)
+  return (data ?? []) as unknown as NotebookEntry[]
+}
+
 // ---------------------------------------------------------------------
 // One quest: reading it, starting it, hints, running code
 // ---------------------------------------------------------------------
