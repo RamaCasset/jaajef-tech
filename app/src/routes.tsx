@@ -12,6 +12,8 @@ import { Home } from './pages/Home'
 import { Quests } from './pages/Quests'
 import { QuestNotebook } from './pages/QuestNotebook'
 import { Quest } from './pages/Quest'
+import { LearningPaths } from './pages/LearningPaths'
+import { LearningPath } from './pages/LearningPath'
 import { Projects } from './pages/Projects'
 import { MyRepos } from './pages/MyRepos'
 import { MyStars } from './pages/MyStars'
@@ -96,6 +98,8 @@ export function AppRoutes() {
       <Route path="/accueil" element={<RequireAuth><RequireCharacter><Home /></RequireCharacter></RequireAuth>} />
       <Route path="/quetes" element={<RequireAuth><RequireCharacter><Quests /></RequireCharacter></RequireAuth>} />
       <Route path="/quetes/carnet" element={<RequireAuth><RequireCharacter><QuestNotebook /></RequireCharacter></RequireAuth>} />
+      <Route path="/parcours" element={<RequireAuth><RequireCharacter><LearningPaths /></RequireCharacter></RequireAuth>} />
+      <Route path="/parcours/:slug" element={<RequireAuth><RequireCharacter><LearningPath /></RequireCharacter></RequireAuth>} />
       <Route path="/quetes/:slug" element={<RequireAuth><RequireCharacter><Quest /></RequireCharacter></RequireAuth>} />
       <Route path="/projets/ajouter" element={<RequireAuth><RequireCharacter><ImportProject /></RequireCharacter></RequireAuth>} />
       <Route path="/projets/:id/modifier" element={<RequireAuth><RequireCharacter><RepoBrowser /></RequireCharacter></RequireAuth>} />

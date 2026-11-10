@@ -2,6 +2,7 @@
 
 - `demo_data.sql` adds 10 sample members, 5 starter communities with a little chat, 8 questions with answers, 6 projects and 4 blog posts. Run it in the Supabase SQL Editor. Running it again resets it to the same set.
 - `demo_inbox.sql` adds sample messages to the chat inbox of every real member: 3 sample communities and a project room with unread messages, and 3 private conversations. Run it after `demo_data.sql`; running it again resets it.
+- `demo_paths.sql` adds one sample learning path per clan (3 short placeholder lessons each). Run it after `learning_paths`; running it again resets it. `demo_data_remove.sql` does not remove it; to remove it run `delete from public.learning_paths where slug like '%-demo';`.
 - `demo_data_remove.sql` removes all of it. Real members and their content are never touched.
 
 Every sample member has an e-mail ending in `@demo.jaajef.invalid` (an address that cannot exist), has no password and cannot sign in.

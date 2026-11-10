@@ -43,7 +43,7 @@ describe('AppShell', () => {
     const rail = screen.getByRole('navigation', { name: 'Espaces' })
     await within(rail).findByRole('link', { name: 'GameDev Senegal' })
     const hrefs = within(rail).getAllByRole('link').map((a) => a.getAttribute('href'))
-    expect(hrefs).toEqual(['/communautes', '/communautes/gamedev', '/blog', '/questions', '/jobs'])
+    expect(hrefs).toEqual(['/communautes', '/communautes/gamedev', '/blog', '/questions', '/parcours', '/jobs'])
   })
 
   it('opens and closes the side bar with the 3-bar button, and remembers the choice', async () => {
