@@ -315,6 +315,7 @@ export const en: Messages = {
     kopeks: 'Kopeks',
     communities: 'Communities',
     messages: 'Messages',
+    messagesUnread: (n: number): string => `Messages, ${n} unread`,
     blog: 'Blog',
     questions: 'Questions',
     search: 'Search',

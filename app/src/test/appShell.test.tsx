@@ -11,6 +11,8 @@ vi.mock('../lib/api', () => ({
   getMyStaffAccess: vi.fn().mockResolvedValue({ role: null, shopManager: false, shopOwner: false, questWriter: false }),
   unreadNotificationCount: vi.fn().mockResolvedValue(3),
   listMyCommunities: vi.fn().mockResolvedValue([{ id: 'c1', slug: 'gamedev', name: 'GameDev Senegal', role: 'member' }]),
+  listMyConversations: vi.fn().mockResolvedValue([{ unread_count: 2 }, { unread_count: 0 }]),
+  listMyChatInbox: vi.fn().mockResolvedValue([{ unread_count: 3 }]),
 }))
 import { AppShell } from '../components/AppShell'
 
@@ -19,6 +21,13 @@ function mount() {
 }
 
 describe('AppShell', () => {
+  it('shows the total of unread private and room messages on the chat button', async () => {
+    mount()
+    const link = await screen.findByRole('link', { name: 'Messages, 5 non lus' })
+    expect(link).toHaveAttribute('href', '/messages')
+    expect(within(link).getByText('5')).toBeInTheDocument()
+  })
+
   it('shows the main links in the top bar', async () => {
     mount()
     const nav = screen.getByRole('navigation', { name: 'Navigation principale' })
