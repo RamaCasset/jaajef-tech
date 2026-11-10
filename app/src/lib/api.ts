@@ -836,6 +836,33 @@ export type ChatInboxRow = {
 /** Every community and project room I am in, with the last message and the unread count. */
 export const listMyChatInbox = () => rpc<ChatInboxRow[]>('list_my_chat_inbox')
 export const markChannelRead = (channelId: string) => rpc<void>('mark_channel_read', { p_channel: channelId })
+export type LearningPath = {
+  id: string
+  slug: string
+  clan: ClanKey
+  title: string
+  summary: string | null
+  steps_total: number
+  steps_done: number
+}
+export type LearningStep = {
+  id: string
+  step_no: number
+  title: string
+  lesson_md: string
+  mastery: MasteryKey | null
+  est_minutes: number | null
+  quest_slug: string | null
+  quest_title: string | null
+  quest_xp: number | null
+  quest_kopeks: number | null
+  quest_status: 'in_progress' | 'solved' | null
+  done: boolean
+}
+/** The published learning paths, with how many steps I have done in each. */
+export const listLearningPaths = () => rpc<LearningPath[]>('list_learning_paths')
+export const listLearningSteps = (path: string) => rpc<LearningStep[]>('list_learning_steps', { p_path: path })
+export const markStepRead = (stepId: string) => rpc<void>('mark_step_read', { p_step: stepId })
 export const startConversation = (userId: string) => rpc<string>('start_conversation', { p_user: userId })
 
 export type DirectMessage = {

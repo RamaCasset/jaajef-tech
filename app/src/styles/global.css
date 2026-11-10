@@ -1139,3 +1139,35 @@ div.alert[data-dismissed], p.alert[data-dismissed], div.notice[data-dismissed], 
 }
 .quest-editor-box { flex: 1; min-height: 0; height: 380px; }
 @media (min-width: 1200px) { .quest-editor-box { height: auto; } }
+
+/* Learning paths */
+.path-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+.path-card { padding: 22px; display: grid; gap: 12px; align-content: start; }
+.path-card-top { display: flex; align-items: center; gap: 14px; }
+.path-card-top p { margin: 0; }
+.path-title { margin: 0; font-size: 22px; }
+.path-card > p { margin: 0; }
+.path-card .btn { justify-self: start; }
+.path-progress { display: grid; gap: 6px; margin-top: 6px; }
+.path-bar { height: 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+.path-bar span { display: block; height: 100%; border-radius: 999px; background: var(--accent); }
+.path-layout { display: grid; grid-template-columns: minmax(220px, 300px) minmax(0, 1fr); gap: 18px; align-items: start; }
+.path-steps { padding: 16px; position: sticky; top: 84px; }
+.path-steps ol { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
+.path-steps-count { margin: 0; }
+.path-step { width: 100%; display: flex; align-items: center; gap: 12px; text-align: left; padding: 10px 12px; border-radius: 12px; border: 1px solid transparent; background: none; color: var(--fg-muted); cursor: pointer; font: inherit; }
+.path-step:hover { background: rgba(255, 255, 255, 0.04); }
+.path-step-on { background: var(--accent-soft); border-color: var(--line-strong); color: var(--fg); }
+.path-step-mark { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; border: 1px solid var(--line-strong); font: 600 12px var(--font-mono); }
+.path-step-done .path-step-mark { background: rgba(240, 178, 74, 0.14); border-color: rgba(240, 178, 74, 0.6); color: #f0b24a; }
+.path-step-name { min-width: 0; overflow-wrap: anywhere; }
+.path-lesson { overflow: hidden; }
+.path-lesson-body { padding: 22px; }
+.path-lesson-foot { display: grid; gap: 14px; padding: 16px 22px; border-top: 1px solid var(--line); }
+.path-quest { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.path-quest > div { flex: 1; min-width: 160px; }
+.path-quest p { margin: 0; }
+.path-quest .btn svg { vertical-align: -3px; }
+.path-pager { display: flex; justify-content: space-between; gap: 10px; }
+.path-complete { margin: 0; color: #f0b24a; font-weight: 700; }
+@media (max-width: 900px) { .path-layout { grid-template-columns: 1fr; } .path-steps { position: static; } }

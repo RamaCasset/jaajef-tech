@@ -12,6 +12,7 @@ import { getMyStaffAccess, listMyChatInbox, listMyCommunities, listMyConversatio
 const rail = (): { to: string; icon: string; label: string }[] => [
   { to: '/blog', icon: 'blog', label: fr.nav.blog },
   { to: '/questions', icon: 'question', label: fr.nav.questions },
+  { to: '/parcours', icon: 'book', label: fr.learning.navLabel },
   { to: '/jobs', icon: 'jobs', label: fr.nav.jobs },
 ]
 
