@@ -92,7 +92,6 @@ export function AppShell({ children }: { children: ReactNode }) {
         <nav aria-label={fr.nav.main} className="topnav">
           <NavLink to="/la-cite" end>{fr.nav.city}</NavLink>
           <NavLink to="/projets">{fr.nav.projects}</NavLink>
-          <NavLink to="/depots">{fr.nav.projects}</NavLink>
           <NavLink to="/quetes">{fr.nav.quests}</NavLink>
           <NavLink to="/souk">{fr.nav.souk}</NavLink>
           <NavLink to="/jobs">{fr.nav.jobs}</NavLink>

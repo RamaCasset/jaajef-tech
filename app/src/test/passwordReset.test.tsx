@@ -23,7 +23,7 @@ function at(path: string, ui: JSX.Element) {
       <Routes>
         <Route path={path} element={ui} />
         <Route path="/mot-de-passe-oublie" element={<p>forgot page</p>} />
-        <Route path="/projets" element={<p>arrived</p>} />
+        <Route path="/la-cite" element={<p>arrived</p>} />
       </Routes>
     </MemoryRouter>,
   )

@@ -30,7 +30,7 @@ beforeEach(() => { signIn.mockReset(); signUp.mockReset() })
 describe('Login', () => {
   it('signs in and goes to the city', async () => {
     signIn.mockResolvedValue(undefined)
-    at('/connexion', <Login />, '/projets')
+    at('/connexion', <Login />, '/la-cite')
     await userEvent.type(screen.getByLabelText('Adresse e-mail'), ' moussa@exemple.sn ')
     await userEvent.type(screen.getByLabelText('Mot de passe'), 'secret-pass')
     await userEvent.click(screen.getByRole('button', { name: /Se connecter/ }))
@@ -40,7 +40,7 @@ describe('Login', () => {
 
   it('shows a French message when the password is wrong, and stays', async () => {
     signIn.mockRejectedValue(new Error('Invalid login credentials'))
-    at('/connexion', <Login />, '/projets')
+    at('/connexion', <Login />, '/la-cite')
     await userEvent.type(screen.getByLabelText('Adresse e-mail'), 'a@b.sn')
     await userEvent.type(screen.getByLabelText('Mot de passe'), 'wrong')
     await userEvent.click(screen.getByRole('button', { name: /Se connecter/ }))
@@ -49,7 +49,7 @@ describe('Login', () => {
   })
 
   it('keeps the button off until both fields are filled', async () => {
-    at('/connexion', <Login />, '/projets')
+    at('/connexion', <Login />, '/la-cite')
     expect(screen.getByRole('button', { name: /Se connecter/ })).toBeDisabled()
   })
 })

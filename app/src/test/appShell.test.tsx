@@ -31,8 +31,8 @@ describe('AppShell', () => {
   it('shows the main links in the top bar', async () => {
     mount()
     const nav = screen.getByRole('navigation', { name: 'Navigation principale' })
-    expect(within(nav).getByRole('link', { name: 'La Cité' })).toHaveAttribute('href', '/projets')
-    expect(within(nav).getByRole('link', { name: 'Projets' })).toHaveAttribute('href', '/depots')
+    expect(within(nav).getByRole('link', { name: 'La Cité' })).toHaveAttribute('href', '/la-cite')
+    expect(within(nav).getByRole('link', { name: 'Projets' })).toHaveAttribute('href', '/projets')
     expect(within(nav).getByRole('link', { name: 'Quêtes' })).toHaveAttribute('href', '/quetes')
     expect(within(nav).getByRole('link', { name: 'Le Souk' })).toHaveAttribute('href', '/souk')
     expect(await screen.findByRole('button', { name: 'Notifications (3)' })).toBeInTheDocument()
