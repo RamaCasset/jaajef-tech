@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -31,6 +31,10 @@ vi.mock('../auth/AuthContext', () => ({
 }))
 
 import { RunError } from '../lib/api'
+vi.mock('../components/CodeEditor', () => ({
+  // Monaco needs a real browser, so a plain text box stands in for it.
+  CodeEditor: ({ value, onChange, readOnly }: { value: string; onChange: (v: string) => void; readOnly?: boolean }) => <textarea aria-label="Votre code" value={value} readOnly={readOnly} onChange={(e) => onChange(e.target.value)} />,
+}))
 import { Quest } from '../pages/Quest'
 
 const quest: QuestDetail = {
@@ -117,7 +121,7 @@ describe('Quest page', () => {
     await screen.findByText('Somme d’une liste')
     await userEvent.click(screen.getByRole('button', { name: 'Lancer les tests' }))
     expect(await screen.findByText(/ne rapporte ni XP ni Kopeks/)).toBeInTheDocument()
-    expect(screen.queryByText(/^\+\d+ XP/)).toBeNull()
+    expect(within(screen.getByRole('region', { name: 'Quête résolue !' })).queryByText(/^\+\d+ XP/)).toBeNull()
   })
 
   it('shows the daily bonus only when the quest was the quest of the day', async () => {

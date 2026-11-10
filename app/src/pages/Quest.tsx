@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
+import { ArticleBody } from '../components/ArticleBody'
+import { CodeEditor } from '../components/CodeEditor'
+import { Icon } from '../components/Icon'
 import { useAuth } from '../auth/AuthContext'
 import {
   getExplanation, getQuest, getUnlockedHints, RunError, runQuest, saveDraft, startQuest, revealHint,
@@ -32,6 +35,8 @@ export function Quest() {
   const [hintBusy, setHintBusy] = useState(false)
   const [noMoreHints, setNoMoreHints] = useState(false)
   const [reload, setReload] = useState(0)
+  const [saved, setSaved] = useState('')
+  const [cursor, setCursor] = useState<{ line: number; col: number }>({ line: 1, col: 1 })
 
   useEffect(() => {
     let alive = true
@@ -52,6 +57,7 @@ export function Quest() {
       if (!alive) return
       setData({ quest, attempt, hints, explanation })
       setCode(attempt.code ?? quest.starter_code ?? '')
+      setSaved(attempt.code ?? quest.starter_code ?? '')
       setState('ready')
     })().catch((e: unknown) => {
       if (!alive) return
@@ -90,6 +96,7 @@ export function Quest() {
     setNote(null)
     try {
       await saveDraft(data.quest.id, code, data.attempt.tests_passed)
+      setSaved(code)
       setNote(fr.quests.page.draftSaved)
     } catch (e) {
       setError(friendlyError(e))
@@ -135,19 +142,26 @@ export function Quest() {
 
   const { quest, hints, explanation } = data
   const p = fr.quests.page
+  const ext = quest.language === 'python' ? 'py' : quest.language === 'javascript' ? 'js' : 'txt'
+  const file = `solution.${ext}`
+  const changed = !solved && code !== saved
+  const shown = outcome ?? null
 
   return (
     <AppShell>
-      <main className="page quest-page">
-        {back}
-        <header className="page-head">
-          <div className="project-tags">
-            <span className="tag">{fr.clans[quest.clan].name}</span>
-            <span className="tag">{fr.masteries[quest.mastery].name}</span>
-            {quest.language ? <span className="tag">{fr.quests.languages[quest.language]}</span> : null}
-          </div>
+      <main className="page quest-page quest-ws">
+        <header className="quest-ws-head">
+          <p className="eyebrow">
+            <Link to="/quetes" aria-label={p.back}>{p.crumb}</Link> / {fr.clans[quest.clan].name}
+          </p>
           <h1 className="page-title">{quest.title}</h1>
-          <p className="mono tiny">{fr.quests.minutes(quest.est_minutes)} · {fr.quests.reward(quest.xp_reward, quest.kopek_reward)}</p>
+          <div className="quest-ws-badges">
+            <span className="badge-xp">+{quest.xp_reward} XP</span>
+            {quest.kopek_reward > 0 ? <span className="badge-kopek">+{quest.kopek_reward} Kopeks</span> : null}
+            <span className="muted tiny">
+              {fr.masteries[quest.mastery].name}{quest.language ? ` · ${fr.quests.languages[quest.language]}` : ''} · {fr.quests.minutes(quest.est_minutes)}
+            </span>
+          </div>
         </header>
 
         {error ? <p role="alert" className="alert">{error}</p> : null}
@@ -164,58 +178,80 @@ export function Quest() {
         ) : null}
         {solved && !(outcome?.solved && !outcome.already_solved) ? <p className="muted">{p.alreadySolved}</p> : null}
 
-        <div className="quest-cols">
-          <section>
-            <h2>{p.statement}</h2>
-            <div className="panel quest-statement">{quest.statement_md ?? p.noStatement}</div>
+        <div className="quest-grid">
+          <section className="panel quest-pane" aria-label={p.statement}>
+            <header className="quest-pane-head"><Icon name="blog" size={18} /> <h2>{p.statementTitle}</h2></header>
+            <div className="quest-pane-body">
+              <span className="quest-level-chip">{fr.masteries[quest.mastery].name}</span>
+              <div className="quest-md">{quest.statement_md ? <ArticleBody text={quest.statement_md} /> : <p className="muted">{p.noStatement}</p>}</div>
+            </div>
           </section>
 
-          <section className="quest-editor">
-            <label htmlFor="quest-code"><h2>{p.editor}</h2></label>
-            <textarea id="quest-code" className="quest-code" spellCheck={false} value={code} readOnly={solved} onChange={(e) => setCode(e.target.value)} />
-            {solved ? <p className="muted">{p.solvedLocked}</p> : (
-              <div className="quest-actions">
-                <button type="button" className="btn btn-cta" disabled={running || code.trim() === ''} onClick={() => void run()}>{running ? p.running : p.run}</button>
-                <button type="button" className="btn" disabled={running} onClick={() => void save()}>{p.saveDraft}</button>
-                {note ? <span role="status" className="muted">{note}</span> : null}
-              </div>
-            )}
-          </section>
-        </div>
-
-        {outcome ? (
-          <section aria-label={p.results}>
-            <h2>{p.results}</h2>
-            <p>{p.testsPassed(outcome.tests_passed, outcome.tests_total)}</p>
-            {outcome.reason === 'too_fast' ? <p role="status" className="muted">{p.tooFast(outcome.min_seconds ?? 0)}</p> : null}
-            <ul className="test-list">
-              {outcome.tests.map((t) => (
-                <li key={t.name}>
-                  <span className={t.passed ? 'test-ok' : 'test-ko'}>{t.passed ? p.passed : p.failed}</span>
-                  <span className="mono">{t.name}</span>
-                  {t.message ? <span className="muted tiny">{t.message}</span> : null}
-                </li>
-              ))}
-            </ul>
-          </section>
-        ) : null}
-
-        <div className="quest-cols">
-          <section className="quest-side">
-            <h2>{p.hints}</h2>
-            <p className="muted">{p.hintsUsed(hints.length)}</p>
-            {hints.length > 0 ? (
-              <ol className="hint-list">{hints.map((h) => <li key={h.level}>{h.body}</li>)}</ol>
-            ) : null}
-            {noMoreHints ? <p className="muted">{p.noMoreHints}</p> : null}
-            {!solved ? <div><button type="button" className="btn" disabled={hintBusy || noMoreHints} onClick={() => void moreHint()}>{p.askHint}</button></div> : null}
-          </section>
-          {solved && explanation ? (
-            <section>
-              <h2>{p.explanation}</h2>
-              <div className="panel quest-statement">{explanation}</div>
+          <div className="quest-center">
+            <section className="panel quest-pane quest-editor-pane" aria-label={file}>
+              <header className="quest-pane-head quest-file-head">
+                <Icon name="file" size={16} />
+                <span className="mono">{file}</span>
+                {changed ? <span className="quest-dirty" role="img" aria-label={p.unsaved} title={p.unsaved} /> : null}
+                <span className="quest-lang mono tiny muted">{quest.language ? fr.quests.languages[quest.language] : ''}</span>
+              </header>
+              <CodeEditor path={file} value={code} onChange={setCode} readOnly={solved} height="380px" onCursor={(line, col) => setCursor({ line, col })} />
+              <footer className="quest-statusbar">
+                <span className="mono tiny muted">{p.cursor(cursor.line, cursor.col)} · UTF-8</span>
+                {solved ? <span className="muted tiny">{p.solvedLocked}</span> : (
+                  <span className="quest-actions">
+                    {note ? <span role="status" className="muted tiny">{note}</span> : null}
+                    <button type="button" className="btn" disabled={running} onClick={() => void save()}>{p.saveDraft}</button>
+                    <button type="button" className="btn btn-cta" disabled={running || code.trim() === ''} onClick={() => void run()}>
+                      <Icon name="play" size={14} /> {running ? p.running : p.run}
+                    </button>
+                  </span>
+                )}
+              </footer>
             </section>
-          ) : null}
+
+            <section className="panel quest-pane quest-results" aria-label={p.results}>
+              <header className="quest-pane-head">
+                <Icon name="terminal" size={16} /> <h2>{p.resultsTitle}</h2>
+                {shown ? <span className={`quest-chip ${shown.tests_passed === shown.tests_total ? 'quest-chip-ok' : ''}`}>{p.passedChip(shown.tests_passed, shown.tests_total)}</span> : null}
+              </header>
+              <div className="quest-pane-body">
+                {!shown ? <p className="muted tiny">{p.noResultsYet}</p> : (
+                  <>
+                    <p className="tiny muted">{p.testsPassed(shown.tests_passed, shown.tests_total)}</p>
+                    {shown.reason === 'too_fast' ? <p role="status" className="muted">{p.tooFast(shown.min_seconds ?? 0)}</p> : null}
+                    <ul className="test-list">
+                      {shown.tests.map((t) => (
+                        <li key={t.name}>
+                          <span className={t.passed ? 'test-ok' : 'test-ko'}>{t.passed ? p.passed : p.failed}</span>
+                          <span className="mono">{t.name}</span>
+                          {t.message ? <span className="muted tiny">{t.message}</span> : null}
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+              </div>
+            </section>
+          </div>
+
+          <aside className="quest-side-col">
+            <section className="panel quest-pane" aria-label={p.hints}>
+              <header className="quest-pane-head"><Icon name="question" size={16} /> <h2>{p.hints}</h2></header>
+              <div className="quest-pane-body">
+                <p className="muted tiny">{p.hintsUsed(hints.length)}</p>
+                {hints.length > 0 ? <ol className="hint-list">{hints.map((h) => <li key={h.level}>{h.body}</li>)}</ol> : null}
+                {noMoreHints ? <p className="muted tiny">{p.noMoreHints}</p> : null}
+                {!solved ? <div><button type="button" className="btn" disabled={hintBusy || noMoreHints} onClick={() => void moreHint()}>{p.askHint}</button></div> : null}
+              </div>
+            </section>
+            {solved && explanation ? (
+              <section className="panel quest-pane" aria-label={p.explanation}>
+                <header className="quest-pane-head"><Icon name="blog" size={16} /> <h2>{p.explanation}</h2></header>
+                <div className="quest-pane-body quest-md"><ArticleBody text={explanation} /></div>
+              </section>
+            ) : null}
+          </aside>
         </div>
       </main>
     </AppShell>
