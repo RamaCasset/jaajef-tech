@@ -1,12 +1,12 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
+import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { Logo } from './Logo'
 import { Icon } from './Icon'
 import { LanguageSwitch } from './LanguageSwitch'
 import { NotificationBell } from './NotificationBell'
 import { fr } from '../i18n/fr'
-import { getMyStaffAccess, listMyCommunities } from '../lib/api'
+import { getMyStaffAccess, listMyChatInbox, listMyCommunities, listMyConversations } from '../lib/api'
 
 const rail = (): { to: string; icon: string; label: string }[] => [
   { to: '/blog', icon: 'blog', label: fr.nav.blog },
@@ -21,6 +21,22 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [isStaff, setIsStaff] = useState(false)
   const navigate = useNavigate()
   const myId = member?.profile.id
+  const { pathname } = useLocation()
+  const [chatUnread, setChatUnread] = useState(0)
+  // The number on the chat button: unread private messages plus unread community and project messages.
+  // It is checked again on every page change and once a minute; if it cannot be read, no number shows.
+  useEffect(() => {
+    if (!myId) return
+    let alive = true
+    const sum = (rows: { unread_count: number }[] | null | undefined) => (rows ?? []).reduce((n, r) => n + (Number(r.unread_count) || 0), 0)
+    const check = () => {
+      const part = (f: () => Promise<{ unread_count: number }[]>) => Promise.resolve().then(f).then(sum).catch(() => 0)
+      Promise.all([part(() => listMyConversations()), part(() => listMyChatInbox())]).then(([a, b]) => { if (alive) setChatUnread(a + b) })
+    }
+    check()
+    const timer = setInterval(check, 60000)
+    return () => { alive = false; clearInterval(timer) }
+  }, [myId, pathname])
   const [spaces, setSpaces] = useState<{ id: string; slug: string; name: string }[]>([])
   useEffect(() => {
     let alive = true
@@ -61,8 +77,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           <kbd className="kbd-hint" aria-hidden="true">{typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘ K' : 'Ctrl K'}</kbd>
         </NavLink>
         <div className="topbar-right">
-          <NavLink to="/messages" className="bell" aria-label={fr.nav.messages}>
+          <NavLink to="/messages" className="bell" aria-label={chatUnread > 0 ? fr.nav.messagesUnread(chatUnread) : fr.nav.messages}>
             <Icon name="messages" />
+            {chatUnread > 0 && <span className="bell-count" aria-hidden="true">{chatUnread > 99 ? '99+' : chatUnread}</span>}
           </NavLink>
           <NotificationBell />
           <span className="kopeks-pill" aria-label={fr.nav.kopeks}>{member?.kopeks ?? 0} {fr.nav.kopeks}</span>

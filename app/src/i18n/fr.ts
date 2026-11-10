@@ -315,6 +315,7 @@ export const frMessages = {
     kopeks: 'Kopeks',
     communities: 'Communautés',
     messages: 'Messages',
+    messagesUnread: (n: number): string => (n === 1 ? 'Messages, 1 non lu' : `Messages, ${n} non lus`),
     blog: 'Blog',
     questions: 'Questions',
     search: 'Recherche',
