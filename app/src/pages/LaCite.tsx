@@ -4,7 +4,7 @@ import { AppShell } from '../components/AppShell'
 import { Icon } from '../components/Icon'
 import { useAuth } from '../auth/AuthContext'
 import { fr } from '../i18n/fr'
-import { listDiscoverCommunities, listMyCommunities, listMyQuestProgress, type Community, type CommunityTopic } from '../lib/api'
+import { listDiscoverCommunities, listMyCommunities, listMyQuestProgress, loadMyProfileFields, type Community, type CommunityTopic } from '../lib/api'
 
 const TOPIC_ICON: Record<CommunityTopic, string> = { web: 'repo', ia_data: 'fork', gaming: 'arena', design: 'souk', mobile: 'repo', open_source: 'fork' }
 
@@ -13,6 +13,7 @@ export function LaCite() {
   const { member } = useAuth()
   const me = member?.profile
   const t = fr.laCite
+  const [introduced, setIntroduced] = useState<boolean | null>(null)
   const [joined, setJoined] = useState<boolean | null>(null)
   const [started, setStarted] = useState<boolean | null>(null)
   const [communities, setCommunities] = useState<Community[] | null>(null)
@@ -21,13 +22,14 @@ export function LaCite() {
   useEffect(() => {
     if (!myId) return
     let alive = true
+    Promise.resolve().then(() => loadMyProfileFields(myId)).then((p) => { if (alive) setIntroduced(Boolean(p?.bio && p.bio.trim())) }).catch(() => { if (alive) setIntroduced(false) })
     Promise.resolve().then(() => listMyCommunities(myId)).then((l) => { if (alive) setJoined((l ?? []).some((c) => !c.project_id)) }).catch(() => { if (alive) setJoined(false) })
     Promise.resolve().then(() => listMyQuestProgress(myId)).then((l) => { if (alive) setStarted((l ?? []).length > 0) }).catch(() => { if (alive) setStarted(false) })
     Promise.resolve().then(() => listDiscoverCommunities()).then((l) => { if (alive) setCommunities(l ?? []) }).catch(() => { if (alive) setCommunities([]) })
     return () => { alive = false }
   }, [myId])
 
-  const done = [Boolean(me?.bio && me.bio.trim()), joined === true, started === true]
+  const done = [introduced === true, joined === true, started === true]
   const doneCount = done.filter(Boolean).length
   const stepLinks = ['/parametres', '/communautes', '/quetes']
   const company = (communities ?? []).filter((c) => !c.project_id).slice(0, 3)

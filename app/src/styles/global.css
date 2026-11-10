@@ -1177,6 +1177,54 @@ div.alert[data-dismissed], p.alert[data-dismissed], div.notice[data-dismissed], 
 .page-deco { display: none; }
 @media (min-width: 1360px) {
   .souk { padding-right: 76px; }
+/* Communautés, like Marie's design */
+.communities-page { position: relative; }
+.communities-hero { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; }
+.communities-title { font-size: 44px; line-height: 1.1; margin: 10px 0 14px; }
+.communities-lead { margin: 0 0 18px; max-width: 640px; font-size: 16px; }
+.communities-tabs { display: flex; flex-wrap: wrap; gap: 10px; }
+.communities-tabs .pill { padding: 11px 22px; background: var(--panel); border-radius: 999px; }
+.communities-tabs .pill-on { background: var(--accent-soft); color: var(--accent); }
+.communities-art { position: relative; width: 300px; height: 190px; flex: none; margin-right: 60px; }
+.communities-art img { position: absolute; width: 62px; height: auto; }
+.communities-art .art-a { left: 40px; top: 8px; }
+.communities-art .art-b { right: 20px; top: 0; width: 46px; }
+.communities-art .art-c { left: 150px; top: 70px; width: 64px; }
+.communities-art .art-d { right: 0; top: 110px; width: 50px; }
+.communities-art .mono { position: absolute; right: 0; bottom: -20px; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; }
+.communities-search { display: flex; gap: 12px; margin: 22px 0 14px; }
+.communities-search .notice-search { flex: 1; }
+.communities-section-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 14px; }
+.communities-section-head .community-heading { margin: 0; font-size: 24px; }
+.community-grid-wide { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; }
+.community-card-big { display: flex; flex-direction: column; gap: 10px; padding: 22px; border-radius: 16px; grid-template-columns: none; }
+.community-card-top { display: flex; align-items: center; gap: 14px; }
+.community-tile { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); font: 700 15px var(--font-display); flex: none; }
+.community-kind { margin: 0; font: 11px var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
+.community-topic-ia_data { --tc: #b79cf5; }
+.community-topic-gaming { --tc: #3ddba7; }
+.community-topic-design, .community-topic-open_source { --tc: #f0b24a; }
+.community-topic-ia_data .community-tile, .community-topic-gaming .community-tile, .community-topic-design .community-tile, .community-topic-open_source .community-tile { background: color-mix(in srgb, var(--tc) 16%, transparent); color: var(--tc); }
+.community-topic-ia_data .community-kind, .community-topic-gaming .community-kind, .community-topic-design .community-kind, .community-topic-open_source .community-kind,
+.community-topic-ia_data .community-more, .community-topic-gaming .community-more, .community-topic-design .community-more, .community-topic-open_source .community-more { color: var(--tc); }
+.community-card-big .community-name { font-size: 24px; margin: 4px 0 0; }
+.community-tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; }
+.community-now { margin: 0; }
+.community-card-foot { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 10px; }
+.community-more { color: var(--accent); text-decoration: none; font-size: 14px; }
+.community-more:hover { text-decoration: underline; }
+.community-more svg { vertical-align: -2px; }
+.communities-niche { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; padding: 24px 28px; border-radius: 18px; margin-top: 28px; background: linear-gradient(135deg, #14284a, #0f1d38); }
+.communities-niche h2 { margin: 0 0 6px; font-size: 24px; }
+.communities-niche p { margin: 0; }
+.communities-foot { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 18px; }
+.communities-foot a { color: var(--accent); text-decoration: none; }
+@media (min-width: 1360px) { .communities-page { padding-right: 76px; } }
+@media (max-width: 1000px) { .communities-art { display: none; } .communities-title { font-size: 34px; } }
+
+/* Small line icons in the right margin (shared by the pages that have them) */
+.page-deco { display: none; }
+@media (min-width: 1360px) {
   .page-deco { display: block; position: absolute; top: 0; right: 14px; width: 40px; height: 100%; pointer-events: none; }
   .page-deco img { position: absolute; left: 0; width: 34px; height: auto; }
   .page-deco img:nth-child(1) { top: 30px; }

@@ -914,10 +914,14 @@ export type Community = {
   owner_id: string
   /** Set for the room of a project (a "salon"). */
   project_id?: string | null
+  topic?: CommunityTopic | null
+  tags?: string[]
+  activity?: string | null
 }
+export type CommunityTopic = 'web' | 'ia_data' | 'gaming' | 'design' | 'mobile' | 'open_source'
 export type CommunityRole = 'owner' | 'moderator' | 'member'
 
-const COMMUNITY_COLUMNS = 'id, slug, name, description, is_private, is_listed, owner_id, project_id'
+const COMMUNITY_COLUMNS = 'id, slug, name, description, is_private, is_listed, owner_id, project_id, topic, tags, activity'
 
 /** Communities the member belongs to, with their role. */
 export async function listMyCommunities(userId: string): Promise<(Community & { role: CommunityRole })[]> {
@@ -948,6 +952,8 @@ export async function listDiscoverCommunities(): Promise<Community[]> {
 export const communityMemberCount = (id: string) => rpc<number | null>('community_member_count', { p_community: id })
 export const createCommunity = (slug: string, name: string, description: string, isPrivate: boolean, isListed: boolean) =>
   rpc<string>('create_community', { p_slug: slug, p_name: name, p_description: description.trim() || null, p_is_private: isPrivate, p_is_listed: isListed })
+export const setCommunityDetails = (id: string, topic: CommunityTopic | '' | null, tags: string[] | null, activity: string | null) =>
+  rpc<void>('set_community_details', { p_community: id, p_topic: topic, p_tags: tags, p_activity: activity })
 /** The chat room of a project: its slug when the signed-in member is in the team (the owner or a collaborator), otherwise null. */
 export async function getProjectRoom(projectId: string): Promise<string | null> {
   const { data, error } = await supabase.from('communities').select('slug').eq('project_id', projectId).maybeSingle()
