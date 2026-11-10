@@ -1217,9 +1217,6 @@ div.alert[data-dismissed], p.alert[data-dismissed], div.notice[data-dismissed], 
 @media (min-width: 1360px) { .communities-page { padding-right: 76px; } }
 @media (max-width: 1000px) { .communities-art { display: none; } .communities-title { font-size: 34px; } }
 
-/* Small line icons in the right margin (shared by the pages that have them) */
-.page-deco { display: none; }
-@media (min-width: 1360px) {
 /* Souk, like Marie's design */
 .souk, .quests { position: relative; }
 .page-deco { display: none; }
