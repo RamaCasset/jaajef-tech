@@ -1126,6 +1126,7 @@ export const en: Messages = {
     heroCaption: 'We grow better together',
     searchButton: 'Search',
     searchLong: 'Search for a community, a subject, a passion…',
+    filterLabel: 'Filter by topic',
     topicAll: 'All',
     topics: { web: 'Web', ia_data: 'AI & Data', gaming: 'Gaming', design: 'Design', mobile: 'Mobile', open_source: 'Open source' },
     topicNames: { web: 'Web development', ia_data: 'Artificial intelligence', gaming: 'Games & creativity', design: 'Design & experiences', mobile: 'Mobile apps', open_source: 'Build together' },

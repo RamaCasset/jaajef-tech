@@ -1126,6 +1126,7 @@ export const frMessages = {
     heroCaption: 'On grandit mieux ensemble',
     searchButton: 'Rechercher',
     searchLong: 'Rechercher une communauté, un sujet, une passion…',
+    filterLabel: 'Filtrer par thème',
     topicAll: 'Tout',
     topics: { web: 'Web', ia_data: 'IA & Data', gaming: 'Gaming', design: 'Design', mobile: 'Mobile', open_source: 'Open source' },
     topicNames: { web: 'Développement web', ia_data: 'Intelligence artificielle', gaming: 'Jeux & créativité', design: 'Design & expériences', mobile: 'Applications mobiles', open_source: 'Construire ensemble' },

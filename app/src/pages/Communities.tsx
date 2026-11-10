@@ -154,7 +154,7 @@ export function Communities() {
           </label>
           <button type="submit" className="btn">{t.searchButton}</button>
         </form>
-        <div className="notice-filters" role="group" aria-label={t.createTopic}>
+        <div className="notice-filters" role="group" aria-label={t.filterLabel}>
           <button type="button" className="chip" aria-pressed={topic === ''} onClick={() => setTopic('')}>{t.topicAll}</button>
           {TOPICS.map((k) => (
             <button key={k} type="button" className="chip" aria-pressed={topic === k} onClick={() => setTopic(topic === k ? '' : k)}>{t.topics[k]}</button>
