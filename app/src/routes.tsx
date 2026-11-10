@@ -59,6 +59,7 @@ import { Settings } from './pages/Settings'
 import { SettingsHub } from './pages/SettingsHub'
 import { LanguageSettings } from './pages/LanguageSettings'
 import { BuyKopeks } from './pages/BuyKopeks'
+import { KopeksReturn } from './pages/KopeksReturn'
 import { Setup } from './pages/Setup'
 
 function Loading() {
@@ -149,6 +150,7 @@ export function AppRoutes() {
       <Route path="/parametres" element={<RequireAuth><RequireCharacter><SettingsHub /></RequireCharacter></RequireAuth>} />
       <Route path="/parametres/compte" element={<RequireAuth><RequireCharacter><Settings /></RequireCharacter></RequireAuth>} />
       <Route path="/parametres/langue" element={<RequireAuth><RequireCharacter><LanguageSettings /></RequireCharacter></RequireAuth>} />
+      <Route path="/kopeks/retour" element={<RequireAuth><RequireCharacter><KopeksReturn /></RequireCharacter></RequireAuth>} />
       <Route path="/kopeks" element={<RequireAuth><RequireCharacter><BuyKopeks /></RequireCharacter></RequireAuth>} />
       <Route path="/souk" element={<RequireAuth><RequireCharacter><Souk /></RequireCharacter></RequireAuth>} />
       <Route path="/profil/:username" element={<RequireAuth><RequireCharacter><Profile /></RequireCharacter></RequireAuth>} />

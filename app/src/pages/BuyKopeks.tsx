@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { AppShell } from '../components/AppShell'
 import { Icon } from '../components/Icon'
+import { startKopekPurchase } from '../lib/api'
 import { fr } from '../i18n/fr'
 
 const PACKS = [100, 500, 1000]
@@ -12,7 +13,7 @@ const METHODS: Method[] = ['wave', 'orange', 'card']
 
 const nf = (n: number) => n.toLocaleString('fr-FR').replace(/[  ]/g, ' ')
 
-/** Buying Kopeks. The screen is complete; the payment itself is not connected yet. */
+/** Buying Kopeks: pick a pack and a way to pay, then go to the PayDunya payment page. */
 export function BuyKopeks() {
   const t = fr.kopeks
   const { member } = useAuth()
@@ -20,12 +21,25 @@ export function BuyKopeks() {
   const [pack, setPack] = useState(500)
   const [method, setMethod] = useState<Method>('wave')
   const [phone, setPhone] = useState('')
-  const [notice, setNotice] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
 
   const price = `${nf(pack * CFA_PER_KOPEK)} F CFA`
   const methodName = t.methods[method]
   const needsPhone = method !== 'card'
   const phoneOk = !needsPhone || phone.replace(/\D/g, '').length === 9
+
+  async function pay() {
+    setError(null)
+    setBusy(true)
+    try {
+      const { url } = await startKopekPurchase(pack, method, phone)
+      window.location.assign(url)
+    } catch (err) {
+      setError((err as Error).message === 'not_configured' ? t.notYet : t.failed)
+      setBusy(false)
+    }
+  }
 
   return (
     <AppShell>
@@ -61,7 +75,7 @@ export function BuyKopeks() {
               <h2 className="buy-step">{t.payTitle}</h2>
               <div className="buy-methods" role="radiogroup" aria-label={t.payTitle}>
                 {METHODS.map((m) => (
-                  <button key={m} type="button" role="radio" aria-checked={method === m} className={`buy-method ${method === m ? 'buy-method-on' : ''}`} onClick={() => { setMethod(m); setNotice(null) }}>
+                  <button key={m} type="button" role="radio" aria-checked={method === m} className={`buy-method ${method === m ? 'buy-method-on' : ''}`} onClick={() => { setMethod(m); setError(null) }}>
                     <span className="buy-dot" aria-hidden="true" /> {t.methods[m]}
                   </button>
                 ))}
@@ -99,8 +113,8 @@ export function BuyKopeks() {
                 <div><dt>{t.bought}</dt><dd className="buy-plus">+ {nf(pack)}</dd></div>
                 <div className="buy-new"><dt>{t.newBalance}</dt><dd>{nf(balance + pack)} {fr.nav.kopeks}</dd></div>
               </dl>
-              {notice && <div className="notice" role="status">{notice}</div>}
-              <button type="button" className="btn btn-cta buy-submit" disabled={!phoneOk} onClick={() => setNotice(t.notYet)}>{t.pay(price)}</button>
+              {error && <div className="alert" role="alert">{error}</div>}
+              <button type="button" className="btn btn-cta buy-submit" disabled={!phoneOk || busy} onClick={() => void pay()}>{t.pay(price)}</button>
               <p className="muted tiny">{t.terms}</p>
             </section>
             <p className="buy-wallet"><strong>{t.walletTitle}</strong><span className="muted">{t.walletText}</span></p>

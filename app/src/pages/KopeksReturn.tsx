@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { AppShell } from '../components/AppShell'
@@ -11,15 +11,18 @@ export function KopeksReturn() {
   const [params] = useSearchParams()
   const token = params.get('token') ?? ''
   const { refreshMember } = useAuth()
+  // Kept in a ref: refreshing the member changes this function, which must not trigger another check.
+  const refresh = useRef(refreshMember)
+  refresh.current = refreshMember
   const [state, setState] = useState<{ outcome: KopekPaymentOutcome | 'error'; kopeks: number } | null>(null)
 
   const check = useCallback(() => {
     setState(null)
     if (!token) { setState({ outcome: 'error', kopeks: 0 }); return }
     confirmKopekPurchase(token)
-      .then((r) => { setState({ outcome: r.outcome, kopeks: r.kopeks }); if (r.outcome === 'credited' || r.outcome === 'already') void refreshMember() })
+      .then((r) => { setState({ outcome: r.outcome, kopeks: r.kopeks }); if (r.outcome === 'credited' || r.outcome === 'already') void refresh.current() })
       .catch(() => setState({ outcome: 'error', kopeks: 0 }))
-  }, [token, refreshMember])
+  }, [token])
   useEffect(check, [check])
 
   const done = state?.outcome === 'credited' || state?.outcome === 'already'
