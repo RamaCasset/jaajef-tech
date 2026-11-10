@@ -553,6 +553,13 @@ export const en: Messages = {
     error: 'Could not load the quests.',
     retry: 'Try again',
     page: {
+      crumb: 'Quests',
+      statementTitle: 'Quest statement',
+      resultsTitle: 'Test results',
+      noResultsYet: 'Run the tests to see the result here.',
+      passedChip: (done: number, total: number): string => `${done} / ${total} passed`,
+      cursor: (line: number, col: number): string => `Ln ${line}, Col ${col}`,
+      unsaved: 'Unsaved changes',
       back: 'All quests',
       notFound: 'This quest does not exist or is no longer available.',
       loadError: 'Could not load this quest.',

@@ -553,6 +553,13 @@ export const frMessages = {
     error: 'Impossible de charger les quêtes.',
     retry: 'Réessayer',
     page: {
+      crumb: 'Quêtes',
+      statementTitle: 'Énoncé de la quête',
+      resultsTitle: 'Résultats des tests',
+      noResultsYet: 'Lancez les tests pour voir le résultat ici.',
+      passedChip: (done: number, total: number): string => `${done} / ${total} réussis`,
+      cursor: (line: number, col: number): string => `Ln ${line}, Col ${col}`,
+      unsaved: 'Modifications non enregistrées',
       back: 'Toutes les quêtes',
       notFound: "Cette quête n'existe pas ou n'est plus disponible.",
       loadError: 'Impossible de charger cette quête.',

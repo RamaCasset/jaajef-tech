@@ -30,7 +30,7 @@ const defineTheme = (monaco: { editor: { defineTheme: (name: string, theme: unkn
   },
 })
 
-export function CodeEditor({ path, value, onChange, readOnly = false, height = 'max(460px, calc(100vh - 320px))' }: { path: string; value: string; onChange: (value: string) => void; readOnly?: boolean; height?: string }) {
+export function CodeEditor({ path, value, onChange, readOnly = false, height = 'max(460px, calc(100vh - 320px))', onCursor }: { path: string; value: string; onChange: (value: string) => void; readOnly?: boolean; height?: string; onCursor?: (line: number, column: number) => void }) {
   return (
     <Suspense fallback={<p className="muted">…</p>}>
       <Monaco
@@ -40,6 +40,7 @@ export function CodeEditor({ path, value, onChange, readOnly = false, height = '
         value={value}
         theme={THEME}
         beforeMount={defineTheme}
+        onMount={(editor) => { if (onCursor) editor.onDidChangeCursorPosition((e) => onCursor(e.position.lineNumber, e.position.column)) }}
         onChange={(v) => onChange(v ?? '')}
         options={{ readOnly, minimap: { enabled: false }, fontSize: 14, tabSize: 2, scrollBeyondLastLine: false, automaticLayout: true }}
       />
