@@ -5,9 +5,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const signIn = vi.fn()
 const signUp = vi.fn()
+const signInWithGithub = vi.fn()
 
 vi.mock('../auth/AuthContext', () => ({
-  useAuth: () => ({ signIn, signUp, loading: false, session: null, member: null, signOut: vi.fn(), refreshMember: vi.fn() }),
+  useAuth: () => ({ signIn, signUp, signInWithGithub, loading: false, session: null, member: null, signOut: vi.fn(), refreshMember: vi.fn() }),
 }))
 
 import { Login } from '../pages/Login'
@@ -25,7 +26,7 @@ function at(path: string, ui: JSX.Element, target: string) {
   )
 }
 
-beforeEach(() => { signIn.mockReset(); signUp.mockReset() })
+beforeEach(() => { signIn.mockReset(); signUp.mockReset(); signInWithGithub.mockReset() })
 
 describe('Login', () => {
   it('signs in and goes to the city', async () => {
@@ -33,7 +34,7 @@ describe('Login', () => {
     at('/connexion', <Login />, '/la-cite')
     await userEvent.type(screen.getByLabelText('Adresse e-mail'), ' moussa@exemple.sn ')
     await userEvent.type(screen.getByLabelText('Mot de passe'), 'secret-pass')
-    await userEvent.click(screen.getByRole('button', { name: /Se connecter/ }))
+    await userEvent.click(screen.getByRole('button', { name: /^Se connecter →/ }))
     await waitFor(() => expect(screen.getByText('arrived')).toBeInTheDocument())
     expect(signIn).toHaveBeenCalledWith('moussa@exemple.sn', 'secret-pass')
   })
@@ -43,14 +44,30 @@ describe('Login', () => {
     at('/connexion', <Login />, '/la-cite')
     await userEvent.type(screen.getByLabelText('Adresse e-mail'), 'a@b.sn')
     await userEvent.type(screen.getByLabelText('Mot de passe'), 'wrong')
-    await userEvent.click(screen.getByRole('button', { name: /Se connecter/ }))
+    await userEvent.click(screen.getByRole('button', { name: /^Se connecter →/ }))
     expect(await screen.findByRole('alert')).toHaveTextContent('Adresse e-mail ou mot de passe incorrect.')
     expect(screen.queryByText('arrived')).not.toBeInTheDocument()
   })
 
   it('keeps the button off until both fields are filled', async () => {
     at('/connexion', <Login />, '/la-cite')
-    expect(screen.getByRole('button', { name: /Se connecter/ })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /^Se connecter →/ })).toBeDisabled()
+  })
+})
+
+describe('GitHub button', () => {
+  it('is on the sign in page and starts the GitHub sign in', async () => {
+    signInWithGithub.mockResolvedValue(undefined)
+    at('/connexion', <Login />, '/la-cite')
+    await userEvent.click(screen.getByRole('button', { name: 'Se connecter avec GitHub' }))
+    expect(signInWithGithub).toHaveBeenCalledTimes(1)
+  })
+
+  it('is on the sign up page too, and shows a message if it fails', async () => {
+    signInWithGithub.mockRejectedValue(new Error('boom'))
+    at('/inscription', <Signup />, '/inscription/clan')
+    await userEvent.click(screen.getByRole('button', { name: "S'inscrire avec GitHub" }))
+    expect(await screen.findByRole('alert')).toBeInTheDocument()
   })
 })
 
