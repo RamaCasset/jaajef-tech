@@ -1,0 +1,222 @@
+slug,title,summary,statement,clan,mastery,language,topic,minutes,xp,kopeks,entry_point,starter_code,position,hint1,hint2,hint3,explanation,published
+somme-des-pairs,La somme des pairs,Additionne seulement les nombres pairs du marché.,"Le marchand note ses ventes dans une liste. Seuls les nombres pairs comptent.
+
+## Votre mission
+
+Complétez `sum_evens(values)`. Renvoyez la somme des nombres pairs de la liste, ou 0 s'il n'y en a pas.
+
+## Exemples
+
+- `[1, 2, 3, 4]` donne `6`
+- `[1, 3]` donne `0`",griot_du_code,ndongo,python,Boucles,5,100,20,sum_evens,"def sum_evens(values):
+    # votre code ici
+    pass
+",1,Un nombre est pair quand le reste de sa division par 2 est 0.,"En Python, le reste de la division s'écrit avec le signe %.","Gardez un total, parcourez la liste avec for, et ajoutez seulement si n % 2 == 0.",On parcourt la liste et on teste chaque nombre avec n % 2 == 0. Un total qui commence à 0 donne 0 quand rien ne correspond.,non
+salutation-du-marche,Salutation du marché,Accueille chaque visiteur par son prénom.,"À l'entrée du marché, chaque visiteur est salué par son prénom.
+
+## Votre mission
+
+Complétez `greet(name)`. Renvoyez `Salam, <prénom> !`. Si le prénom est vide (ou fait seulement d'espaces), renvoyez `Salam, étranger !`.
+
+## Exemples
+
+- `""Awa""` donne `""Salam, Awa !""`
+- `""  ""` donne `""Salam, étranger !""`",griot_du_code,ndongo,python,Texte,5,100,20,greet,"def greet(name):
+    # votre code ici
+    pass
+",2,Une chaîne a une méthode qui enlève les espaces autour : strip().,Testez si la chaîne nettoyée est vide avec une condition if.,"Pour insérer le prénom, utilisez une f-string : f""Salam, {n} !"".","strip() enlève les espaces au début et à la fin. Une chaîne vide est « fausse » dans un if, ce qui permet de traiter le cas du prénom manquant.",non
+compter-les-voyelles,Compter les voyelles,Combien de voyelles dans un proverbe ?,"Le Griot compte les voyelles de chaque proverbe pour trouver son rythme.
+
+## Votre mission
+
+Complétez `count_vowels(text)`. Comptez les voyelles `a e i o u y`, avec ou sans accent, majuscules comprises.
+
+## Exemples
+
+- `""Teranga""` donne `3`
+- `""Été""` donne `2`",griot_du_code,ndongo,python,Texte,6,100,20,count_vowels,"def count_vowels(text):
+    # votre code ici
+    pass
+",3,Passez le texte en minuscules avec lower() pour ne pas gérer deux cas.,Gardez les voyelles dans une chaîne et testez avec `c in voyelles`.,Pensez aux accents : à â é è ê ë î ï ô ù û ü doivent compter aussi.,"On met tout en minuscules, puis on compte chaque caractère présent dans la chaîne des voyelles. Y compris les voyelles accentuées.",non
+le-plus-grand-ecart,Le plus grand écart,L'écart entre la plus haute et la plus basse vente.,"Le marchand veut connaître l'écart entre sa meilleure et sa pire journée.
+
+## Votre mission
+
+Complétez `max_gap(values)`. Renvoyez la différence entre la plus grande et la plus petite valeur de la liste, ou 0 si la liste est vide.
+
+## Exemples
+
+- `[4, 9, 2]` donne `7`
+- `[]` donne `0`",griot_du_code,ndongo,python,Listes,5,100,20,max_gap,"def max_gap(values):
+    # votre code ici
+    pass
+",4,Python sait trouver la plus grande valeur avec max() et la plus petite avec min().,Attention : max([]) provoque une erreur. Traitez la liste vide d'abord.,Renvoyez max(values) - min(values) quand la liste n'est pas vide.,"max() et min() parcourent la liste pour vous. Le seul piège est la liste vide, à traiter avant.",non
+mot-palindrome,Mot palindrome,Se lit pareil dans les deux sens ?,"Un palindrome se lit de la même façon à l'endroit et à l'envers.
+
+## Votre mission
+
+Complétez `is_palindrome(text)`. Renvoyez `True` si le texte est un palindrome, sinon `False`. Ignorez les majuscules, les espaces et la ponctuation.
+
+## Exemples
+
+- `""Kayak""` donne `True`
+- `""Esope reste ici et se repose""` donne `True`
+- `""Dakar""` donne `False`",griot_du_code,ndongo,python,Texte,7,120,25,is_palindrome,"def is_palindrome(text):
+    # votre code ici
+    pass
+",5,Gardez seulement les lettres et les chiffres : c.isalnum().,Mettez tout en minuscules avant de comparer.,Une liste ou une chaîne à l'envers s'obtient avec [::-1].,"On nettoie le texte (lettres et chiffres en minuscules), puis on le compare à lui-même à l'envers.",non
+grouper-par-longueur,Grouper par longueur,Range les mots selon leur nombre de lettres.,"Le Griot range les mots du jour par taille.
+
+## Votre mission
+
+Complétez `group_by_length(words)`. Renvoyez un dictionnaire dont les clés sont les longueurs (en texte : `""3""`) et les valeurs la liste des mots de cette longueur, dans l'ordre où ils apparaissent.
+
+## Exemple
+
+`[""sol"", ""mer"", ""vent""]` donne `{""3"": [""sol"", ""mer""], ""4"": [""vent""]}`",griot_du_code,bagne,python,Dictionnaires,9,150,30,group_by_length,"def group_by_length(words):
+    # votre code ici
+    pass
+",6,Un dictionnaire vide se crée avec {}.,La longueur d'un mot : len(mot). Transformez-la en texte avec str().,"d.setdefault(cle, []) donne la liste de la clé, en la créant si besoin.",On construit un dictionnaire au fur et à mesure. setdefault évite de tester si la clé existe déjà.,non
+fizzbuzz-de-la-cite,FizzBuzz de la Cité,"Le classique, version Cité.","Le tambour de la Cité joue un jeu de comptage.
+
+## Votre mission
+
+Complétez `fizzbuzz(n)`. Renvoyez la liste des nombres de 1 à n, en texte, sauf : multiples de 3 → `""Fizz""`, multiples de 5 → `""Buzz""`, multiples de 3 et 5 → `""FizzBuzz""`.
+
+## Exemple
+
+`5` donne `[""1"", ""2"", ""Fizz"", ""4"", ""Buzz""]`",griot_du_code,bagne,python,Boucles,8,150,30,fizzbuzz,"def fizzbuzz(n):
+    # votre code ici
+    pass
+",7,"Parcourez range(1, n + 1).","Testez d'abord le cas « multiple de 15 », sinon il serait avalé par les autres.",Les nombres normaux doivent être renvoyés en texte : str(i).,L'ordre des tests compte : le cas le plus précis (3 et 5) passe avant les autres.,non
+inverser-les-mots,Inverser les mots,"Lis la phrase à rebours, mot par mot.","Un message arrive dans le désordre.
+
+## Votre mission
+
+Complétez `reverseWords(sentence)`. Renvoyez la phrase avec les mots dans l'ordre inverse, séparés par un seul espace. Les espaces en trop sont ignorés.
+
+## Exemple
+
+`""la tech entre nous""` donne `""nous entre tech la""`",griot_du_code,ndongo,javascript,Texte,6,100,20,reverseWords,"function reverseWords(sentence) {
+  // votre code ici
+}
+",8,"split(' ') coupe en mots, mais les espaces doubles créent des mots vides.",Essayez .trim().split(/\s+/) pour découper proprement.,"reverse() renverse un tableau, join(' ') le recolle.","On découpe en mots, on renverse le tableau, on recolle avec un espace.",non
+doublons-du-marche,Doublons du marché,Retire les doublons et trie.,"Le marchand a noté deux fois les mêmes prix.
+
+## Votre mission
+
+Complétez `uniqueSorted(values)`. Renvoyez un tableau sans doublons, trié du plus petit au plus grand.
+
+## Exemple
+
+`[3, 1, 3, 2, 1]` donne `[1, 2, 3]`",griot_du_code,ndongo,javascript,Tableaux,7,100,20,uniqueSorted,"function uniqueSorted(values) {
+  // votre code ici
+}
+",9,Un Set garde chaque valeur une seule fois.,Transformez le Set en tableau avec [...new Set(values)].,"Attention : sort() trie en texte par défaut. Donnez-lui (a, b) => a - b.","Set supprime les doublons. Le tri doit être numérique : sans fonction de comparaison, 10 passerait avant 2.",non
+total-du-panier,Total du panier,Additionne prix fois quantité.,"Au Souk, chaque article a un prix (en entier) et une quantité.
+
+## Votre mission
+
+Complétez `cartTotal(items)`. `items` est un tableau d'objets `{ price, qty }`. Renvoyez le total de `price * qty`.
+
+## Exemple
+
+`[{price: 10, qty: 2}, {price: 5, qty: 1}]` donne `25`",griot_du_code,bagne,javascript,Objets,8,150,30,cartTotal,"function cartTotal(items) {
+  // votre code ici
+}
+",10,Gardez un total qui commence à 0.,Parcourez avec for...of ou avec reduce.,À chaque tour : total += item.price * item.qty.,reduce (ou une boucle) accumule un total. Un panier vide donne 0 sans cas particulier.,non
+moyenne-des-ventes,Moyenne des ventes,"La moyenne, arrondie à deux décimales.","Le Saltigué lit les chiffres de la semaine.
+
+## Votre mission
+
+Complétez `mean(values)`. Renvoyez la moyenne arrondie à 2 décimales, ou 0 si la liste est vide.
+
+## Exemple
+
+`[2, 3, 6]` donne `3.67`",saltigue,ndongo,python,Statistiques,5,100,20,mean,"def mean(values):
+    # votre code ici
+    pass
+",1,"La moyenne, c'est la somme divisée par le nombre de valeurs : sum() et len().",Traitez la liste vide avant de diviser.,"round(x, 2) arrondit à deux décimales.","sum / len, arrondi. Diviser par zéro est le piège de la liste vide.",non
+valeur-mediane,Valeur médiane,Le chiffre du milieu.,"La médiane est plus juste que la moyenne quand une valeur est extrême.
+
+## Votre mission
+
+Complétez `median(values)`. Triez les valeurs. S'il y en a un nombre impair, renvoyez celle du milieu. S'il y en a un nombre pair, renvoyez la moyenne des deux du milieu. Liste vide : 0.
+
+## Exemples
+
+- `[5, 1, 3]` donne `3`
+- `[4, 1, 3, 2]` donne `2.5`",saltigue,bagne,python,Statistiques,8,150,30,median,"def median(values):
+    # votre code ici
+    pass
+",2,sorted(values) renvoie une copie triée.,Le milieu est à l'indice len(s) // 2.,"Pour un nombre pair, prenez les indices m - 1 et m, et faites leur moyenne.","Trier d'abord, puis choisir selon la parité du nombre de valeurs.",non
+valeur-la-plus-frequente,Valeur la plus fréquente,Qui apparaît le plus souvent ?,"Quel plat revient le plus souvent dans les commandes ?
+
+## Votre mission
+
+Complétez `most_common(values)`. Renvoyez la valeur qui apparaît le plus de fois. En cas d'égalité, renvoyez la plus petite. On suppose la liste non vide.
+
+## Exemples
+
+- `[1, 2, 2, 3]` donne `2`
+- `[4, 4, 1, 1]` donne `1`",saltigue,bagne,python,Statistiques,8,150,30,most_common,"def most_common(values):
+    # votre code ici
+    pass
+",3,Comptez chaque valeur dans un dictionnaire.,Trouvez le plus grand nombre d'apparitions avec max(compteurs.values()).,"Parmi les valeurs qui ont ce compte, prenez min().","On compte, on repère le meilleur score, puis on départage les égalités avec min().",non
+normaliser-les-scores,Normaliser les scores,Ramène tout entre 0 et 1.,"Pour comparer des notes sur des échelles différentes, on les ramène entre 0 et 1.
+
+## Votre mission
+
+Complétez `normalize(values)`. Chaque valeur devient `(x - min) / (max - min)`, arrondie à 2 décimales. Si toutes les valeurs sont égales, renvoyez des 0. Liste vide : liste vide.
+
+## Exemple
+
+`[10, 20, 30]` donne `[0.0, 0.5, 1.0]`",saltigue,bagne,python,Données,9,150,30,normalize,"def normalize(values):
+    # votre code ici
+    pass
+",4,"Calculez min et max une seule fois, avant la boucle.","Si max == min, la division serait par zéro : renvoyez des 0.","Une liste en compréhension : [round((x - lo) / (hi - lo), 2) for x in values].",Le min devient 0 et le max devient 1. Le cas où tout est égal est à traiter avant de diviser.,non
+mot-de-passe-solide,Mot de passe solide,Note la force d'un mot de passe.,"Le gardien de la Cité juge la force des mots de passe.
+
+## Votre mission
+
+Complétez `password_strength(password)`. Comptez un point pour chaque règle respectée : au moins 8 caractères ; au moins 12 caractères ; des lettres et des chiffres ; une majuscule et une minuscule ; un caractère spécial (ni lettre ni chiffre). Renvoyez `""faible""` pour 0 à 2 points, `""moyen""` pour 3, `""fort""` pour 4 ou 5.",buur_linguere,ndongo,python,Sécurité,8,120,25,password_strength,"def password_strength(password):
+    # votre code ici
+    pass
+",1,Calculez un score qui commence à 0 et augmente à chaque règle.,"Pour tester « il existe un chiffre », utilisez any(c.isdigit() for c in password).",c.isalnum() est faux pour un caractère spécial.,Chaque règle est un test indépendant qui ajoute un point. Le résultat dépend ensuite du total.,non
+chiffre-de-cesar,Chiffre de César,Décale chaque lettre de l'alphabet.,"Un message codé circule dans la Cité.
+
+## Votre mission
+
+Complétez `caesar(data)`. `data` est un dictionnaire `{""text"": ..., ""shift"": ...}`. Décalez chaque lettre de `shift` places dans l'alphabet (a-z, A-Z), en revenant au début après z. Les autres caractères ne changent pas. Le décalage peut être négatif.
+
+## Exemple
+
+`{""text"": ""abc xyz"", ""shift"": 3}` donne `""def abc""`",buur_linguere,bagne,python,Cryptographie,10,150,30,caesar,"def caesar(data):
+    # votre code ici
+    pass
+",2,"ord(c) donne le numéro d'un caractère, chr(n) fait l'inverse.",Pour une minuscule : (ord(c) - ord('a') + shift) % 26 + ord('a').,Faites la même chose pour les majuscules avec ord('A').,"Le modulo 26 fait revenir au début de l'alphabet, y compris pour un décalage négatif en Python.",non
+masquer-l-email,Masquer l'e-mail,Cache l'identifiant d'une adresse.,"Pour protéger les membres, on ne montre pas leur adresse en entier.
+
+## Votre mission
+
+Complétez `mask_email(email)`. Gardez la première lettre avant le `@`, remplacez le reste de l'identifiant par des `*`, et gardez le domaine.
+
+## Exemple
+
+`""moussa@exemple.sn""` donne `""m*****@exemple.sn""`",buur_linguere,ndongo,python,Vie privée,6,100,20,mask_email,"def mask_email(email):
+    # votre code ici
+    pass
+",3,split('@') coupe l'adresse en deux morceaux.,Le nombre d'étoiles est la longueur de l'identifiant moins 1.,Une chaîne se répète avec '*' * n.,"On sépare identifiant et domaine, on garde une lettre, on remplace le reste.",non
+adresse-ip-valide,Adresse IP valide,Vérifie une adresse IPv4.,"Le pare-feu de la Cité n'accepte que des adresses valides.
+
+## Votre mission
+
+Complétez `is_valid_ipv4(text)`. Une adresse IPv4 valide a 4 nombres séparés par des points, chacun entre 0 et 255, sans zéro inutile au début (`""01""` est refusé, `""0""` est accepté). Renvoyez `True` ou `False`.
+
+## Exemples
+
+- `""192.168.0.1""` donne `True`
+- `""256.1.1.1""` donne `False`",buur_linguere,bagne,python,Réseau,10,150,30,is_valid_ipv4,"def is_valid_ipv4(text):
+    # votre code ici
+    pass
+",4,split('.') doit donner exactement 4 morceaux.,Chaque morceau doit être fait de chiffres : x.isdigit().,"Refusez un morceau de plus d'un caractère qui commence par '0', et tout nombre au-dessus de 255.","On valide morceau par morceau : nombre de morceaux, chiffres seulement, pas de zéro de tête, valeur au plus 255.",non

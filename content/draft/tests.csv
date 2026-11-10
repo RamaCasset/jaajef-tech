@@ -1,0 +1,85 @@
+quest,name,input,expected
+somme-des-pairs,Mélange,"[1, 2, 3, 4]",6
+somme-des-pairs,Aucun pair,"[1, 3]",0
+somme-des-pairs,Liste vide,[],0
+somme-des-pairs,Négatifs,"[-2, -3, 4]",2
+salutation-du-marche,Prénom simple,"""Awa""","""Salam, Awa !"""
+salutation-du-marche,Espaces autour,"""  Moussa ""","""Salam, Moussa !"""
+salutation-du-marche,Vide,"""""","""Salam, étranger !"""
+salutation-du-marche,Seulement des espaces,"""   ""","""Salam, étranger !"""
+compter-les-voyelles,Simple,"""Teranga""",3
+compter-les-voyelles,Accents,"""Été""",2
+compter-les-voyelles,Majuscules,"""DAKAR""",2
+compter-les-voyelles,Vide,"""""",0
+compter-les-voyelles,Phrase,"""La parole est un bien commun, y compris l'été""",15
+le-plus-grand-ecart,Trois valeurs,"[4, 9, 2]",7
+le-plus-grand-ecart,Une seule,[5],0
+le-plus-grand-ecart,Vide,[],0
+le-plus-grand-ecart,Négatifs,"[-3, -10, 6]",16
+mot-palindrome,Mot simple,"""Kayak""",true
+mot-palindrome,Phrase,"""Esope reste ici et se repose""",true
+mot-palindrome,Pas un palindrome,"""Dakar""",false
+mot-palindrome,Ponctuation,"""A man, a plan, a canal: Panama""",true
+mot-palindrome,Vide,"""""",true
+grouper-par-longueur,Exemple,"[""sol"", ""mer"", ""vent""]","{""3"": [""sol"", ""mer""], ""4"": [""vent""]}"
+grouper-par-longueur,Même longueur,"[""ab"", ""cd"", ""ef""]","{""2"": [""ab"", ""cd"", ""ef""]}"
+grouper-par-longueur,Vide,[],{}
+grouper-par-longueur,Variés,"[""thieb"", ""mafe"", ""yassa"", ""dibi"", ""ndambe""]","{""5"": [""thieb"", ""yassa""], ""4"": [""mafe"", ""dibi""], ""6"": [""ndambe""]}"
+fizzbuzz-de-la-cite,Cinq,5,"[""1"", ""2"", ""Fizz"", ""4"", ""Buzz""]"
+fizzbuzz-de-la-cite,Quinze,15,"[""1"", ""2"", ""Fizz"", ""4"", ""Buzz"", ""Fizz"", ""7"", ""8"", ""Fizz"", ""Buzz"", ""11"", ""Fizz"", ""13"", ""14"", ""FizzBuzz""]"
+fizzbuzz-de-la-cite,Un,1,"[""1""]"
+fizzbuzz-de-la-cite,Zéro,0,[]
+inverser-les-mots,Phrase,"""la tech entre nous""","""nous entre tech la"""
+inverser-les-mots,Espaces en trop,"""  salam   Dakar ""","""Dakar salam"""
+inverser-les-mots,Un seul mot,"""baobab""","""baobab"""
+inverser-les-mots,Vide,"""""",""""""
+doublons-du-marche,Doublons,"[3, 1, 3, 2, 1]","[1, 2, 3]"
+doublons-du-marche,Déjà unique,"[1, 2, 3]","[1, 2, 3]"
+doublons-du-marche,Dix et deux,"[10, 2, 10]","[2, 10]"
+doublons-du-marche,Vide,[],[]
+total-du-panier,Deux articles,"[{""price"": 10, ""qty"": 2}, {""price"": 5, ""qty"": 1}]",25
+total-du-panier,Panier vide,[],0
+total-du-panier,Quantité zéro,"[{""price"": 99, ""qty"": 0}]",0
+total-du-panier,Trois,"[{""price"": 3, ""qty"": 3}, {""price"": 7, ""qty"": 2}, {""price"": 1, ""qty"": 10}]",33
+moyenne-des-ventes,Exemple,"[2, 3, 6]",3.67
+moyenne-des-ventes,Entiers exacts,"[2, 4, 6]",4.0
+moyenne-des-ventes,Vide,[],0
+moyenne-des-ventes,Une valeur,[7],7.0
+moyenne-des-ventes,Décimales,"[1, 2]",1.5
+valeur-mediane,Impair,"[5, 1, 3]",3
+valeur-mediane,Pair,"[4, 1, 3, 2]",2.5
+valeur-mediane,Vide,[],0
+valeur-mediane,Valeur extrême,"[1, 2, 3, 1000]",2.5
+valeur-mediane,Une valeur,[9],9
+valeur-la-plus-frequente,Simple,"[1, 2, 2, 3]",2
+valeur-la-plus-frequente,Égalité,"[4, 4, 1, 1]",1
+valeur-la-plus-frequente,Une valeur,[8],8
+valeur-la-plus-frequente,Tous différents,"[5, 3, 9]",3
+valeur-la-plus-frequente,Négatifs,"[-1, -1, 2, 2, -5]",-1
+normaliser-les-scores,Exemple,"[10, 20, 30]","[0.0, 0.5, 1.0]"
+normaliser-les-scores,Désordre,"[5, 1, 3]","[1.0, 0.0, 0.5]"
+normaliser-les-scores,Tous égaux,"[4, 4, 4]","[0, 0, 0]"
+normaliser-les-scores,Vide,[],[]
+normaliser-les-scores,Décimales,"[0, 1, 3]","[0.0, 0.33, 1.0]"
+mot-de-passe-solide,Très court,"""abc""","""faible"""
+mot-de-passe-solide,Moyen,"""abcd1234""","""faible"""
+mot-de-passe-solide,Fort,"""Dakar-2026-Teranga!""","""fort"""
+mot-de-passe-solide,Longs mais simples,"""abcdefghijklmnop""","""faible"""
+mot-de-passe-solide,"Lettres, chiffres, majuscule","""Abcd1234""","""moyen"""
+mot-de-passe-solide,Vide,"""""","""faible"""
+chiffre-de-cesar,Exemple,"{""text"": ""abc xyz"", ""shift"": 3}","""def abc"""
+chiffre-de-cesar,Majuscules,"{""text"": ""Salam, Dakar !"", ""shift"": 1}","""Tbmbn, Eblbs !"""
+chiffre-de-cesar,Décalage négatif,"{""text"": ""def"", ""shift"": -3}","""abc"""
+chiffre-de-cesar,Grand décalage,"{""text"": ""abc"", ""shift"": 29}","""def"""
+chiffre-de-cesar,Rien à décaler,"{""text"": ""123 !"", ""shift"": 5}","""123 !"""
+masquer-l-email,Exemple,"""moussa@exemple.sn""","""m*****@exemple.sn"""
+masquer-l-email,Court,"""a@b.sn""","""a@b.sn"""
+masquer-l-email,Deux lettres,"""ab@jaajef.tech""","""a*@jaajef.tech"""
+masquer-l-email,Long,"""amadou.diallo@exemple.org""","""a************@exemple.org"""
+adresse-ip-valide,Valide,"""192.168.0.1""",true
+adresse-ip-valide,Trop grand,"""256.1.1.1""",false
+adresse-ip-valide,Trois morceaux,"""1.2.3""",false
+adresse-ip-valide,Zéro de tête,"""01.2.3.4""",false
+adresse-ip-valide,Zéros seuls,"""0.0.0.0""",true
+adresse-ip-valide,Lettres,"""a.b.c.d""",false
+adresse-ip-valide,Vide,"""""",false
