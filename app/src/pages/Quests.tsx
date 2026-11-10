@@ -2,11 +2,15 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
 import { Icon } from '../components/Icon'
+import { FlameTile, StreakDay } from '../components/StreakIcons'
 import { useAuth } from '../auth/AuthContext'
 import { useDebounced } from '../hooks'
 import { getDailyQuest, getMyStreak, getXpPerLevel, listMyQuestProgress, listQuests, type DailyQuest, type MyQuestProgress, type QuestFilters, type QuestSummary, type StreakInfo } from '../lib/api'
 import { Companion } from '../components/Companion'
 import mascot from '../assets/art/mascot.png'
+import baobabArt from '../assets/art/baobab.svg'
+import fruitArt from '../assets/art/fruit.svg'
+import singeArt from '../assets/art/singe.svg'
 import { fr, type ClanKey, type MasteryKey } from '../i18n/fr'
 
 const EMPTY: QuestFilters = { clan: '', mastery: '', language: '', query: '' }
@@ -19,6 +23,7 @@ function QuestCard({ quest, progress }: { quest: QuestSummary; progress?: MyQues
       <div className="quest-top">
         <Companion clan={quest.clan} />
         <span className={`quest-status${solved ? ' quest-status-done' : going ? ' quest-status-going' : ''}`}>
+          <span className="quest-status-dot" aria-hidden="true" />
           {solved ? fr.quests.solved : going ? fr.quests.inProgress(progress.tests_passed, progress.tests_total) : fr.quests.available}
         </span>
       </div>
@@ -28,11 +33,11 @@ function QuestCard({ quest, progress }: { quest: QuestSummary; progress?: MyQues
       </p>
       <h3>{quest.title}</h3>
       {quest.summary ? <p className="muted">{quest.summary}</p> : null}
-      <p className="muted tiny">{fr.masteries[quest.mastery].name} · {fr.quests.minutes(quest.est_minutes)}</p>
+      <p className="muted tiny quest-meta"><span>{fr.masteries[quest.mastery].name}</span><span className="quest-time"><Icon name="clock" size={14} /> {fr.quests.minutes(quest.est_minutes)}</span></p>
       <div className="quest-foot">
         <span className="mono tiny quest-reward">{fr.quests.reward(quest.xp_reward, quest.kopek_reward)}</span>
-        <Link className={`btn${solved ? '' : going ? ' btn-cta' : ''}`} to={`/quetes/${quest.slug}`} aria-label={`${fr.quests.open} : ${quest.title}`}>
-          {solved ? fr.quests.review : going ? fr.quests.resume : fr.quests.launch}
+        <Link className={`btn${going ? ' btn-cta' : ''}`} to={`/quetes/${quest.slug}`} aria-label={`${fr.quests.open} : ${quest.title}`}>
+          {solved || going ? fr.quests.resume : fr.quests.launch} <Icon name="forward" size={16} />
         </Link>
       </div>
     </article>
@@ -47,9 +52,10 @@ function WeekDots({ streak }: { streak: StreakInfo }) {
     <div className="week-dots" aria-hidden="true">
       {fr.quests.weekDays.map((d, i) => {
         const done = streak.current_streak > 0 && i <= lastDone && i > lastDone - streak.current_streak
+        const state = done ? 'done' : i === today ? 'today' : 'later'
         return (
           <span key={i} className="week-day">
-            <span className={`week-dot${done ? ' week-dot-on' : ''}${i === today ? ' week-dot-today' : ''}`}>{done ? <Icon name="check" size={14} /> : null}</span>
+            <StreakDay state={state} />
             <span className="tiny muted">{d}</span>
           </span>
         )
@@ -102,29 +108,35 @@ function Hero() {
         {daily ? (() => {
           const hours = Math.floor(daily.seconds_left / 3600)
           const minutes = Math.floor((daily.seconds_left % 3600) / 60)
+          const label = daily.status === 'in_progress' || daily.status === 'solved' ? fr.quests.resume : fr.quests.launch
           return (
             <>
-              <p className="eyebrow">{t.title} · {t.timeLeft(hours, minutes)}</p>
+              <p className="hero-eyebrow"><Icon name="sun" size={16} /> <strong>{fr.quests.dailyEyebrow}</strong> <span className="muted"> · {fr.quests.dailyLeft(hours, minutes)}</span></p>
               <h2>{daily.title}</h2>
-              {daily.summary ? <p className="muted">{daily.summary}</p> : null}
+              {daily.summary ? <p className="hero-summary">{daily.summary}</p> : null}
               <p className="muted tiny">{fr.clans[daily.clan].name} · {fr.masteries[daily.mastery].name} · {fr.quests.minutes(daily.est_minutes)}</p>
-              <p className="mono quest-reward">{fr.quests.reward(daily.xp_reward, daily.kopek_reward)}</p>
-              <p>
-                <Link className={daily.status === 'solved' ? 'btn' : 'btn btn-cta'} to={`/quetes/${daily.slug}`}>
-                  {daily.status === 'solved' ? t.review : daily.status === 'in_progress' ? t.resume : t.start}
-                </Link>
+              <p className="hero-reward">
+                <span className="hero-xp">+{daily.xp_reward} XP</span>
+                {daily.kopek_reward > 0 ? <span className="hero-kopeks"><span className="coin" aria-hidden="true" /> +{daily.kopek_reward} Kopeks</span> : null}
+              </p>
+              <p className="hero-go">
+                <Link className="btn btn-cta" to={`/quetes/${daily.slug}`}>{label} <Icon name="forward" size={16} /></Link>
+                <span className="muted tiny">{fr.quests.dailyHint}</span>
               </p>
             </>
           )
         })() : <p className="muted">{t.none}</p>}
         <div className="hero-mascot" aria-hidden="true">
-          <img src={mascot} alt="" />
+          <div className="hero-mascot-circle"><img src={mascot} alt="" /></div>
           <span>{fr.quests.mascotSays}</span>
         </div>
       </section>
       {streak ? (
         <section className="panel hero-streak" aria-label={st.title}>
-          <h2>{st.days(streak.current_streak)}</h2>
+          <div className="hero-streak-top">
+            <FlameTile />
+            <h2>{st.days(streak.current_streak)}</h2>
+          </div>
           {streak.done_today ? <p>{st.doneToday}</p> : streak.at_risk ? <p>{st.atRisk}</p> : <p className="muted">{streak.current_streak === 0 ? st.none : ''}</p>}
           <WeekDots streak={streak} />
           <p className="muted tiny">{st.longest(streak.longest_streak)}</p>
@@ -178,6 +190,11 @@ export function Quests() {
   return (
     <AppShell>
       <main className="page quests notices-page">
+        <div className="quest-deco" aria-hidden="true">
+          <img src={baobabArt} alt="" />
+          <img src={fruitArt} alt="" />
+          <img src={singeArt} alt="" />
+        </div>
         <header className="page-head-row">
           <div>
             <p className="eyebrow">{fr.quests.eyebrow}</p>

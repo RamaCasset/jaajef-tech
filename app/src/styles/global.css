@@ -1036,6 +1036,33 @@ div.alert[data-dismissed], p.alert[data-dismissed], div.notice[data-dismissed], 
 .blog-like:hover { background: rgba(255, 255, 255, 0.08); }
 @media (max-width: 820px) { .blog-card-featured { grid-template-columns: 1fr; grid-template-rows: auto 1fr; } .blog-card-featured .blog-cover { min-height: 170px; height: 170px; } }
 
+/* Quest of the day and streak, like Marie's design */
+.quests .hero-daily { padding: 28px 340px 28px 32px; min-height: 0; gap: 10px; border-radius: 18px; background: linear-gradient(135deg, #14284a, #0f1d38); }
+.hero-eyebrow { display: flex; align-items: center; gap: 8px; font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: #f0b24a; }
+.hero-eyebrow strong { font-weight: 700; }
+.hero-eyebrow .muted { text-transform: none; letter-spacing: 0; font-size: 12px; }
+.quests .hero-daily h2 { font-size: 32px; line-height: 1.15; margin: 4px 0; }
+.hero-summary { color: var(--fg-muted); max-width: 560px; }
+.hero-reward { display: flex; align-items: center; gap: 18px; font-weight: 700; font-size: 15px; }
+.hero-xp { color: var(--accent); }
+.hero-kopeks { color: #f0b24a; display: inline-flex; align-items: center; gap: 8px; }
+.coin { width: 14px; height: 14px; border-radius: 50%; border: 2px solid #f0b24a; display: inline-block; }
+.hero-go { display: flex; align-items: center; gap: 16px; margin-top: 6px !important; }
+.hero-go .btn svg, .quest-foot .btn svg { vertical-align: -3px; }
+.quests .hero-mascot { right: 56px; width: 220px; gap: 10px; }
+.quests .hero-mascot::before { display: none; }
+.hero-mascot-circle { width: 190px; height: 190px; border-radius: 50%; background: rgba(63, 184, 240, 0.1); display: grid; place-items: center; }
+.quests .hero-mascot img { width: 125px; }
+.quests .hero-mascot span { margin-top: 0; }
+.hero-streak-top { display: flex; align-items: center; gap: 14px; }
+.hero-streak-top h2 { margin: 0; }
+.quests .week-dots { gap: 8px; }
+.quest-status { display: inline-flex; align-items: center; gap: 7px; }
+.quest-status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.quest-meta { display: flex; justify-content: space-between; align-items: center; }
+.quest-time { display: inline-flex; align-items: center; gap: 6px; }
+@media (max-width: 1100px) { .quests .hero-daily { padding-right: 32px; } .quests .hero-mascot { display: none; } }
+
 /* Quest page: statement, editor and results side by side */
 .quest-ws { max-width: none; }
 .quest-ws-head { margin-bottom: 18px; }
@@ -1071,3 +1098,15 @@ div.alert[data-dismissed], p.alert[data-dismissed], div.notice[data-dismissed], 
 .quest-results .test-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; font-size: 13px; }
 .quest-results .test-list li { display: flex; flex-wrap: wrap; gap: 10px; align-items: baseline; }
 @media (max-width: 1200px) { .quest-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* Small line icons in the right margin of the quests page */
+.quests { position: relative; }
+.quest-deco { display: none; }
+@media (min-width: 1360px) {
+  .quests { padding-right: 76px; }
+  .quest-deco { display: block; position: absolute; top: 0; right: 14px; width: 40px; height: 100%; pointer-events: none; }
+  .quest-deco img { position: absolute; left: 0; width: 34px; height: auto; }
+  .quest-deco img:nth-child(1) { top: 30px; }
+  .quest-deco img:nth-child(2) { top: 330px; }
+  .quest-deco img:nth-child(3) { top: 760px; }
+}
