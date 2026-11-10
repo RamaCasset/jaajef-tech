@@ -8,6 +8,9 @@ import { useDebounced } from '../hooks'
 import { getDailyQuest, getMyStreak, getXpPerLevel, listMyQuestProgress, listQuests, type DailyQuest, type MyQuestProgress, type QuestFilters, type QuestSummary, type StreakInfo } from '../lib/api'
 import { Companion } from '../components/Companion'
 import mascot from '../assets/art/mascot.png'
+import baobabArt from '../assets/art/baobab.svg'
+import fruitArt from '../assets/art/fruit.svg'
+import singeArt from '../assets/art/singe.svg'
 import { fr, type ClanKey, type MasteryKey } from '../i18n/fr'
 
 const EMPTY: QuestFilters = { clan: '', mastery: '', language: '', query: '' }
@@ -187,6 +190,11 @@ export function Quests() {
   return (
     <AppShell>
       <main className="page quests notices-page">
+        <div className="quest-deco" aria-hidden="true">
+          <img src={baobabArt} alt="" />
+          <img src={fruitArt} alt="" />
+          <img src={singeArt} alt="" />
+        </div>
         <header className="page-head-row">
           <div>
             <p className="eyebrow">{fr.quests.eyebrow}</p>

@@ -1098,3 +1098,15 @@ div.alert[data-dismissed], p.alert[data-dismissed], div.notice[data-dismissed], 
 .quest-results .test-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; font-size: 13px; }
 .quest-results .test-list li { display: flex; flex-wrap: wrap; gap: 10px; align-items: baseline; }
 @media (max-width: 1200px) { .quest-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* Small line icons in the right margin of the quests page */
+.quests { position: relative; }
+.quest-deco { display: none; }
+@media (min-width: 1360px) {
+  .quests { padding-right: 76px; }
+  .quest-deco { display: block; position: absolute; top: 0; right: 14px; width: 40px; height: 100%; pointer-events: none; }
+  .quest-deco img { position: absolute; left: 0; width: 34px; height: auto; }
+  .quest-deco img:nth-child(1) { top: 30px; }
+  .quest-deco img:nth-child(2) { top: 330px; }
+  .quest-deco img:nth-child(3) { top: 760px; }
+}
