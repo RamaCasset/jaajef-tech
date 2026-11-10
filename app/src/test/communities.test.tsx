@@ -54,6 +54,7 @@ describe('Communities list', () => {
   it('creates a community with the chosen options and shows French errors', async () => {
     api.createCommunity.mockRejectedValueOnce(new Error('duplicate key value violates unique constraint "communities_slug_key"'))
     mount()
+    await userEvent.click(await screen.findByRole('button', { name: 'Créer une communauté' }))
     await userEvent.type(await screen.findByLabelText('Nom'), 'Les Dev')
     await userEvent.type(screen.getByLabelText(/Adresse/), 'Les-Dev')
     await userEvent.click(screen.getByRole('button', { name: 'Créer' }))
