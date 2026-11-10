@@ -8,7 +8,7 @@ const api = vi.hoisted(() => ({
   listMyCommunities: vi.fn(), listDiscoverCommunities: vi.fn(), communityMemberCount: vi.fn(), createCommunity: vi.fn(),
   joinCommunity: vi.fn(), requestToJoin: vi.fn(), leaveCommunity: vi.fn(), getCommunityBySlug: vi.fn(), listChannels: vi.fn(),
   listChannelMessages: vi.fn(), markChannelRead: vi.fn(), sendMessage: vi.fn(), deleteMessage: vi.fn(), listCommunityMembers: vi.fn(),
-  listPendingJoinRequests: vi.fn(), decideJoinRequest: vi.fn(), removeCommunityMember: vi.fn(), setMemberRole: vi.fn(),
+  listPendingJoinRequests: vi.fn(), decideJoinRequest: vi.fn(), setCommunityDetails: vi.fn(), removeCommunityMember: vi.fn(), setMemberRole: vi.fn(),
   transferCommunity: vi.fn(), deleteCommunity: vi.fn(), listQuestions: vi.fn(),
 }))
 vi.mock('../lib/api', () => api)
@@ -33,12 +33,28 @@ beforeEach(() => {
 describe('Communities list', () => {
   const mount = () => render(<MemoryRouter><Communities /></MemoryRouter>)
 
-  it('shows mine with my role and link, and only others under "discover"', async () => {
+  it('shows only the others under "discover", and mine with my role and link under "my communities"', async () => {
     mount()
+    expect(await within(screen.getByRole('main')).findByText('Comm 2')).toBeInTheDocument()
+    expect(within(screen.getByRole('main')).queryByText('Comm 1')).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('tab', { name: 'Mes communautés' }))
     expect(await within(screen.getByRole('main')).findByRole('link', { name: 'Comm 1' })).toHaveAttribute('href', '/communautes/slug-1')
     expect(screen.getByText(/Propriétaire/)).toBeInTheDocument()
-    expect(within(screen.getByRole('main')).getByText('Comm 2')).toBeInTheDocument()
-    expect(within(screen.getByRole('main')).getAllByText('Comm 1')).toHaveLength(1)
+    expect(within(screen.getByRole('main')).queryByText('Comm 2')).not.toBeInTheDocument()
+  })
+
+  it('filters by topic, shows tags and the right-now line', async () => {
+    api.listDiscoverCommunities.mockResolvedValue([
+      comm('2', { topic: 'web', tags: ['React', 'Web'], activity: 'entraide front-end' }),
+      comm('4', { topic: 'gaming', tags: ['Unity'] }),
+    ])
+    mount()
+    expect(await screen.findByText('Comm 2')).toBeInTheDocument()
+    expect(screen.getByText('React')).toBeInTheDocument()
+    expect(screen.getByText('En ce moment · entraide front-end')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Gaming' }))
+    expect(screen.queryByText('Comm 2')).not.toBeInTheDocument()
+    expect(screen.getByText('Comm 4')).toBeInTheDocument()
   })
 
   it('joins a public community directly, and asks to enter a private one with a message', async () => {
@@ -55,7 +71,7 @@ describe('Communities list', () => {
   it('creates a community with the chosen options and shows French errors', async () => {
     api.createCommunity.mockRejectedValueOnce(new Error('duplicate key value violates unique constraint "communities_slug_key"'))
     mount()
-    await userEvent.click(await screen.findByRole('button', { name: 'Créer une communauté' }))
+    await userEvent.click(await screen.findByRole('button', { name: /Créer une communauté/ }))
     await userEvent.type(await screen.findByLabelText('Nom'), 'Les Dev')
     await userEvent.type(screen.getByLabelText(/Adresse/), 'Les-Dev')
     await userEvent.click(screen.getByRole('button', { name: 'Créer' }))
@@ -66,11 +82,24 @@ describe('Communities list', () => {
     await waitFor(() => expect(api.createCommunity).toHaveBeenLastCalledWith('les-dev', 'Les Dev', '', true, false))
   })
 
+  it('saves the topic, tags and right-now line of a new community', async () => {
+    api.createCommunity.mockResolvedValue('new-id')
+    mount()
+    await userEvent.click(await screen.findByRole('button', { name: /Créer une communauté/ }))
+    await userEvent.type(await screen.findByLabelText('Nom'), 'Web Dakar')
+    await userEvent.type(screen.getByLabelText(/Adresse/), 'web-dakar')
+    await userEvent.selectOptions(screen.getByLabelText('Thème'), 'web')
+    await userEvent.type(screen.getByLabelText(/Mots-clés/), 'React, JavaScript')
+    await userEvent.type(screen.getByLabelText(/En ce moment/), 'entraide')
+    await userEvent.click(screen.getByRole('button', { name: 'Créer' }))
+    await waitFor(() => expect(api.setCommunityDetails).toHaveBeenCalledWith('new-id', 'web', ['React', 'JavaScript'], 'entraide'))
+  })
+
   it('offers a retry when loading fails', async () => {
     api.listMyCommunities.mockRejectedValueOnce(new Error('down'))
     mount()
     await userEvent.click(await screen.findByRole('button', { name: 'Réessayer' }))
-    expect(await within(screen.getByRole('main')).findByRole('link', { name: 'Comm 1' })).toBeInTheDocument()
+    expect(await within(screen.getByRole('main')).findByText('Comm 2')).toBeInTheDocument()
   })
 })
 
