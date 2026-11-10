@@ -519,6 +519,11 @@ export const frMessages = {
     dailyEyebrow: 'La quête du jour',
     dailyLeft: (h: number, m: number): string => (h > 0 ? `encore ${h} h` : `encore ${m} min`),
     dailyHint: "Un petit pas pour aujourd'hui.",
+    streakTagline: 'Ta curiosité prend racine.',
+    streakDaysRow: (n: number): string => (n === 1 ? '1 jour de suite !' : `${n} jours de suite !`),
+    chestTitle: (every: number): string => `À ${every} jours, un petit trésor.`,
+    chestLeft: (n: number): string => `Encore ${n === 1 ? '1 jour' : `${n} jours`} pour débloquer ton coffre de récompenses.`,
+    chestReward: (k: number): string => `+${k} Kopeks`,
     notebookLink: (n: number): string => (n === 1 ? 'Mon carnet · 1 réussite' : `Mon carnet · ${n} réussites`),
     notebook: {
       eyebrow: 'LA CITÉ / QUÊTES / MON CARNET',

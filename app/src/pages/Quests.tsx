@@ -52,11 +52,11 @@ function WeekDots({ streak }: { streak: StreakInfo }) {
     <div className="week-dots" aria-hidden="true">
       {fr.quests.weekDays.map((d, i) => {
         const done = streak.current_streak > 0 && i <= lastDone && i > lastDone - streak.current_streak
-        const state = done ? 'done' : i === today ? 'today' : 'later'
+        const state = i === today && streak.current_streak > 0 && streak.done_today ? 'today' : done ? 'done' : i === today ? 'today' : 'later'
         return (
           <span key={i} className="week-day">
             <StreakDay state={state} />
-            <span className="tiny muted">{d}</span>
+            <span className={`tiny muted${i === today ? ' week-today' : ''}`}>{d}</span>
           </span>
         )
       })}
@@ -135,12 +135,19 @@ function Hero() {
         <section className="panel hero-streak" aria-label={st.title}>
           <div className="hero-streak-top">
             <FlameTile />
-            <h2>{st.days(streak.current_streak)}</h2>
+            <div>
+              <h2>{fr.quests.streakDaysRow(streak.current_streak)}</h2>
+              <p className="muted">{streak.at_risk && !streak.done_today ? st.atRisk : streak.current_streak === 0 ? st.none : fr.quests.streakTagline}</p>
+            </div>
           </div>
-          {streak.done_today ? <p>{st.doneToday}</p> : streak.at_risk ? <p>{st.atRisk}</p> : <p className="muted">{streak.current_streak === 0 ? st.none : ''}</p>}
           <WeekDots streak={streak} />
-          <p className="muted tiny">{st.longest(streak.longest_streak)}</p>
-          {streak.next_chest_in !== null && streak.chest_kopeks > 0 ? <p className="muted tiny">{st.chest(streak.next_chest_in, streak.chest_kopeks)}</p> : null}
+          {streak.next_chest_in !== null && streak.chest_kopeks > 0 ? (
+            <div className="hero-chest">
+              <h3>{fr.quests.chestTitle(streak.chest_every)}</h3>
+              <p className="muted">{fr.quests.chestLeft(streak.next_chest_in)}</p>
+              <p className="hero-chest-reward">{fr.quests.chestReward(streak.chest_kopeks)} <span aria-hidden="true">✧</span></p>
+            </div>
+          ) : null}
         </section>
       ) : null}
     </div>
