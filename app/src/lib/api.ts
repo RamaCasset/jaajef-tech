@@ -161,6 +161,8 @@ export type SoukItem = {
   owned: boolean
   my_rating: number | null
   created_at: string
+  creator_name: string | null
+  creator_clan: ClanKey | null
 }
 
 export const soukShop = (kind: SoukKind | null, sort: SoukSort) =>
@@ -175,6 +177,14 @@ export async function myEquippedIds(userId: string): Promise<string[]> {
   const { data, error } = await supabase.from('equipped_items').select('item_id').eq('user_id', userId)
   if (error) throw new Error(error.message)
   return (data ?? []).map((r) => r.item_id as string)
+}
+
+/** The data of the theme the member wears, or null when they wear none. */
+export async function myEquippedTheme(userId: string): Promise<Record<string, unknown> | null> {
+  const { data, error } = await supabase.from('equipped_items').select('souk_items(data)').eq('user_id', userId).eq('kind', 'theme').maybeSingle()
+  if (error) throw new Error(error.message)
+  const item = (data as { souk_items?: { data?: Record<string, unknown> } | null } | null)?.souk_items
+  return item?.data ?? null
 }
 
 // ---------------------------------------------------------------------
