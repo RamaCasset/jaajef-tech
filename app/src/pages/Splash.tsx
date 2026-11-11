@@ -17,6 +17,9 @@ export function Splash() {
         <Link className="btn btn-cta" to="/inscription">{t.signUp}</Link>
         <Link className="btn" to="/connexion">{t.signIn}</Link>
       </div>
+      <p className="tiny splash-legal">
+        <Link to="/conditions">{t.terms}</Link> · <Link to="/confidentialite">{t.privacy}</Link> · <Link to="/regles">{t.rules}</Link>
+      </p>
     </main>
   )
 }

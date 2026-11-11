@@ -62,6 +62,9 @@ export function Signup() {
           {fr.signup.submit} →
         </button>
         <GithubButton label={fr.signup.github} onError={setError} />
+        <p className="tiny muted" style={{ marginTop: 12 }}>
+          {fr.signup.agreeBefore}<Link to="/conditions">{fr.signup.terms}</Link>{fr.signup.agreeMiddle}<Link to="/confidentialite">{fr.signup.privacy}</Link>{fr.signup.agreeAfter}
+        </p>
       </form>
     </main>
   )

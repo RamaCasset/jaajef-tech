@@ -41,6 +41,9 @@ export function About() {
         <p>{t.ready}</p>
         <Link className="btn btn-cta" to="/inscription">{t.signUp}</Link>
       </section>
+      <p className="tiny muted about-legal">
+        <Link to="/conditions">{t.terms}</Link> · <Link to="/confidentialite">{t.privacy}</Link> · <Link to="/regles">{t.rules}</Link> · <Link to="/regles-offres">{t.jobRules}</Link>
+      </p>
     </main>
   )
 }

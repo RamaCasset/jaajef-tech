@@ -1435,3 +1435,12 @@ div.alert[data-dismissed], p.alert[data-dismissed], div.notice[data-dismissed], 
 @media (max-width: 700px) { .form-row { grid-template-columns: minmax(0, 1fr); gap: 10px; } }
 .app-status-shortlisted { border-color: #3ddba7; color: #3ddba7; }
 .app-status-declined { border-color: var(--danger); color: var(--danger); }
+
+/* Legal pages */
+.legal-nav { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 20px; }
+.legal-body { max-width: 760px; }
+.legal-body p { line-height: 1.65; }
+.legal-section { margin-top: 24px; }
+.legal-section h2 { font-size: 1.1rem; margin: 0 0 8px; }
+.splash-legal, .about-legal { margin-top: 16px; text-align: center; }
+.splash-legal a, .about-legal a { color: inherit; opacity: 0.8; }
