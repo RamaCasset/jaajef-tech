@@ -1302,3 +1302,86 @@ div.alert[data-dismissed], p.alert[data-dismissed], div.notice[data-dismissed], 
 .lacite-gfi { justify-self: start; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ok); border: 1px solid rgba(61, 219, 167, 0.4); background: rgba(61, 219, 167, 0.1); border-radius: 8px; padding: 5px 10px; }
 .accent { color: var(--accent); }
 @media (max-width: 1000px) { .lacite-top, .lacite-bottom { grid-template-columns: 1fr; } .lacite-title { font-size: 38px; } }
+
+/* Settings hub */
+.settings-hub { max-width: 820px; }
+.settings-list { list-style: none; margin: 8px 0 0; padding: 0; overflow: hidden; }
+.settings-row + .settings-row { border-top: 1px solid var(--line); }
+.settings-row a { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 22px 24px; color: inherit; text-decoration: none; }
+.settings-row a:hover { background: var(--accent-soft); }
+.settings-row strong { display: block; margin-bottom: 6px; font-size: 17px; }
+.settings-action { color: var(--accent); font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.settings-row-danger { background: rgba(160, 50, 60, 0.1); }
+.settings-row-danger strong, .settings-row-danger .settings-action { color: #f08a8f; }
+
+/* Buy Kopeks */
+.buy { max-width: 1100px; }
+.buy-back { display: inline-flex; align-items: center; gap: 6px; color: var(--fg-muted); text-decoration: none; }
+.buy-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+.buy-balance { background: rgba(240, 178, 74, 0.1); border: 1px solid rgba(240, 178, 74, 0.35); border-radius: 12px; padding: 12px 16px; display: grid; gap: 4px; }
+.buy-balance strong { color: #f0b24a; font-size: 20px; }
+.buy-grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 28px; align-items: start; }
+.buy-step { font-size: 18px; margin: 0 0 14px; }
+.buy-packs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 10px; }
+.buy-pack { text-align: left; padding: 18px; display: grid; gap: 6px; cursor: pointer; color: inherit; font: inherit; }
+.buy-pack-on { border-color: var(--accent); background: var(--accent-soft); }
+.buy-amount { font-size: 32px; color: #f0b24a; font-family: var(--font-display); }
+.buy-price { font-weight: 600; margin-top: 6px; }
+.buy-pay { margin-top: 24px; }
+.buy-methods { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 18px; }
+.buy-method { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.buy-method-on { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+.buy-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid currentColor; }
+.buy-method-on .buy-dot { background: currentColor; }
+.buy-phone { display: flex; align-items: center; gap: 12px; border: 1px solid var(--line); border-radius: 10px; padding: 0 14px; background: rgba(0, 0, 0, 0.25); }
+.buy-phone input { border: 0; background: transparent; flex: 1; padding: 14px 0; outline: none; color: inherit; font: inherit; }
+.buy-info { margin-top: 14px; padding: 14px 16px; border-radius: 10px; background: var(--accent-soft); }
+.buy-info p { margin: 4px 0 0; }
+.buy-big { font-size: 28px; color: #f0b24a; font-family: var(--font-display); margin: 8px 0 4px; }
+.buy-lines { margin: 18px 0 0; padding-top: 14px; border-top: 1px solid var(--line); display: grid; gap: 10px; }
+.buy-lines div { display: flex; justify-content: space-between; gap: 12px; }
+.buy-lines dt { color: var(--fg-muted); }
+.buy-lines dd { margin: 0; font-weight: 600; }
+.buy-total dt, .buy-total dd { font-size: 17px; }
+.buy-after { background: var(--accent-soft); border-radius: 10px; padding: 14px; border-top: 0; }
+.buy-plus { color: var(--accent); }
+.buy-new { border-top: 1px solid var(--line); padding-top: 10px; }
+.buy-new dd { color: #f0b24a; }
+.buy-submit { width: 100%; margin: 18px 0 12px; }
+.buy-wallet { display: grid; gap: 4px; margin: 16px 4px; font-size: 14px; }
+@media (max-width: 900px) { .buy-grid { grid-template-columns: 1fr; } .buy-packs, .buy-methods { grid-template-columns: 1fr; } }
+
+/* Splash and À propos */
+.splash { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 32px 16px; position: relative; }
+.splash > :not(.corner-art) { position: relative; z-index: 1; }
+.splash-about { position: absolute !important; top: 16px; right: 150px; padding: 8px 18px; border: 1px solid var(--line); border-radius: 999px; background: var(--panel); color: var(--fg-muted); font-size: 13px; text-decoration: none; }
+.splash-about:hover { color: var(--fg); border-color: var(--line-strong); }
+.splash-mascot { width: min(380px, 70vw); height: auto; -webkit-mask-image: radial-gradient(closest-side, #000 62%, transparent 100%); mask-image: radial-gradient(closest-side, #000 62%, transparent 100%); }
+.splash-name { font-family: var(--font-display); font-size: clamp(44px, 8vw, 68px); font-weight: 700; margin: 8px 0 0; letter-spacing: -0.02em; }
+.splash-name span { color: var(--accent); }
+.splash-tagline { color: var(--fg-muted); font-size: 20px; margin: 8px 0 24px; }
+.splash-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+
+.about { min-height: 100vh; padding: 24px 16px 72px; position: relative; }
+.about > :not(.corner-art) { position: relative; z-index: 1; }
+.about-top { max-width: 1160px; margin: 0 auto 48px; }
+.about-top a { color: inherit; text-decoration: none; }
+.about-intro { max-width: 720px; margin: 0 auto 40px; }
+.about-intro h1 { font-size: clamp(24px, 4vw, 32px); line-height: 1.2; margin: 0 0 28px; }
+.about-intro p { color: var(--fg-muted); font-size: 17px; line-height: 1.6; margin: 0 0 12px; }
+.about-cultures { max-width: 1160px; margin: 0 auto 40px; padding: 32px 24px; text-align: center; }
+.about-cultures h2 { margin: 0 0 12px; font-size: 24px; }
+.about-cultures p { color: var(--fg-muted); font-size: 17px; max-width: 760px; margin: 0 auto; }
+.about-tiles { list-style: none; padding: 0; margin: 0 auto 56px; max-width: 1160px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+.about-tile { padding: 24px 16px; text-align: center; }
+.about-tile img { width: 100%; max-width: 180px; height: auto; }
+.about-tile p { font-weight: 600; font-size: 18px; margin: 12px 0 0; }
+.about-ready { text-align: center; }
+.about-ready p { color: var(--fg-muted); font-size: 18px; margin: 0 0 20px; }
+@media (max-width: 900px) { .about-tiles { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 520px) { .about-tiles { grid-template-columns: 1fr; } .splash-about { right: 16px; top: 16px; } }
+.about .art-tl { left: 4%; top: 190px; }
+.about .art-tr { right: 4%; top: 180px; }
+.about .art-bl { left: 2%; bottom: 14%; }
+.about .art-br { right: 3%; bottom: 10%; }
+@media (max-width: 1300px) { .about .corner-art { display: none; } }

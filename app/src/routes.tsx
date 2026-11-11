@@ -5,6 +5,8 @@ import { isConfigured } from './lib/supabase'
 import { fr } from './i18n/fr'
 import { Login } from './pages/Login'
 import { Signup } from './pages/Signup'
+import { Splash } from './pages/Splash'
+import { About } from './pages/About'
 import { ForgotPassword } from './pages/ForgotPassword'
 import { ResetPassword } from './pages/ResetPassword'
 import { ChooseClan } from './pages/ChooseClan'
@@ -56,6 +58,10 @@ import { Communities } from './pages/Communities'
 import { Community } from './pages/Community'
 import { Notifications } from './pages/Notifications'
 import { Settings } from './pages/Settings'
+import { SettingsHub } from './pages/SettingsHub'
+import { LanguageSettings } from './pages/LanguageSettings'
+import { BuyKopeks } from './pages/BuyKopeks'
+import { KopeksReturn } from './pages/KopeksReturn'
 import { Setup } from './pages/Setup'
 
 function Loading() {
@@ -90,6 +96,8 @@ export function AppRoutes() {
   if (!isConfigured) return <Setup />
   return (
     <Routes>
+      <Route path="/" element={<PublicOnly><Splash /></PublicOnly>} />
+      <Route path="/a-propos" element={<About />} />
       <Route path="/connexion" element={<PublicOnly><Login /></PublicOnly>} />
       <Route path="/mot-de-passe-oublie" element={<PublicOnly><ForgotPassword /></PublicOnly>} />
       <Route path="/nouveau-mot-de-passe" element={<ResetPassword />} />
@@ -143,7 +151,11 @@ export function AppRoutes() {
       <Route path="/dossier/cv-portfolio" element={<RequireAuth><RequireCharacter><CvPortfolio /></RequireCharacter></RequireAuth>} />
       <Route path="/dossier" element={<RequireAuth><RequireCharacter><ApplicationFile /></RequireCharacter></RequireAuth>} />
       <Route path="/notifications" element={<RequireAuth><RequireCharacter><Notifications /></RequireCharacter></RequireAuth>} />
-      <Route path="/parametres" element={<RequireAuth><RequireCharacter><Settings /></RequireCharacter></RequireAuth>} />
+      <Route path="/parametres" element={<RequireAuth><RequireCharacter><SettingsHub /></RequireCharacter></RequireAuth>} />
+      <Route path="/parametres/compte" element={<RequireAuth><RequireCharacter><Settings /></RequireCharacter></RequireAuth>} />
+      <Route path="/parametres/langue" element={<RequireAuth><RequireCharacter><LanguageSettings /></RequireCharacter></RequireAuth>} />
+      <Route path="/kopeks/retour" element={<RequireAuth><RequireCharacter><KopeksReturn /></RequireCharacter></RequireAuth>} />
+      <Route path="/kopeks" element={<RequireAuth><RequireCharacter><BuyKopeks /></RequireCharacter></RequireAuth>} />
       <Route path="/souk" element={<RequireAuth><RequireCharacter><Souk /></RequireCharacter></RequireAuth>} />
       <Route path="/profil/:username" element={<RequireAuth><RequireCharacter><Profile /></RequireCharacter></RequireAuth>} />
       <Route path="/jobs" element={<RequireAuth><RequireCharacter><Jobs /></RequireCharacter></RequireAuth>} />
