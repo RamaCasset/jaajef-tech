@@ -93,7 +93,7 @@ export function Jobs() {
             <p className="muted">{fr.jobs.subtitle}</p>
             <p className="tiny"><Link to="/dossier">{fr.jobs.myFile}</Link> · <Link to="/talents">{fr.jobs.talentLink}</Link></p>
           </div>
-          <Link className="btn btn-cta" to="/employeur">{fr.jobs.employerLink}</Link>
+          <Link className="btn btn-cta" to="/jobs/nouvelle">{fr.jobs.employerLink}</Link>
         </header>
 
         <div role="tablist" className="souk-tabs">

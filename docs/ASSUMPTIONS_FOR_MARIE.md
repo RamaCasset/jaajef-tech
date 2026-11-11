@@ -44,7 +44,7 @@ Places where the screens did not say, or where the build had to choose. Each lin
 - The Blog tab shows on every profile ("Mes blogs" on your own, "Blog" on others).
 
 ## Still missing from Marie
-Job details, settings, employer side, staff side, the Kopeks checkout and the Souk sell flow screens.
+Job details, settings, the staff side, the Kopeks checkout and the Souk sell flow screens. There is no employer side: any member can post a job from their profile (tab Mes offres), and it goes live at once.
 
 ## Settings and Kopeks purchase (added later)
 - Settings is now a hub with five rows; the old long settings page lives at "Mon compte". Notifications and Supprimer mon compte jump to their section on that page.

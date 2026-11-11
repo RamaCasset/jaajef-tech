@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Icon } from './Icon'
+import { MyOffers } from './MyOffers'
 import { ReportButton } from './ReportButton'
 import { BuildBadge, ClanTag } from './ProjectCard'
 import { dateLocale } from '../i18n/lang'
@@ -8,7 +9,7 @@ import { fr } from '../i18n/fr'
 import { friendlyError } from '../lib/errors'
 import { listMyBlogPosts, listAuthorBlogPosts, startConversation, type MyBlogPost, type ProfileData } from '../lib/api'
 
-type Tab = 'code' | 'blog'
+type Tab = 'code' | 'blog' | 'offers'
 
 /** A member's page: cover, identity, level, numbers, then tabs. Used for profiles and for the Cité home (with `extra` under the numbers). */
 export function ProfileView({ data, viewerId, extra }: { data: ProfileData; viewerId: string; extra?: ReactNode }) {
@@ -42,7 +43,7 @@ export function ProfileView({ data, viewerId, extra }: { data: ProfileData; view
   const level = 1 + Math.floor(p.xp / xpPerLevel)
   const inLevel = p.xp % xpPerLevel
   const since = new Date(p.created_at).toLocaleDateString(dateLocale(), { month: 'long', year: 'numeric' })
-  const tabs: Tab[] = ['code', 'blog']
+  const tabs: Tab[] = ['code', 'blog', 'offers']
 
   return (
     <>
@@ -95,7 +96,7 @@ export function ProfileView({ data, viewerId, extra }: { data: ProfileData; view
 
       <div role="tablist" className="profile-tabs" aria-label={t.tabsLabel}>
         {tabs.map((k) => (
-          <button key={k} type="button" role="tab" aria-selected={tab === k} className={`profile-tab ${tab === k ? 'profile-tab-on' : ''}`} onClick={() => setTab(k)}>{!own ? (k === 'code' ? t.projectsOther : t.blogOther) : t.tabs[k]}</button>
+          <button key={k} type="button" role="tab" aria-selected={tab === k} className={`profile-tab ${tab === k ? 'profile-tab-on' : ''}`} onClick={() => setTab(k)}>{!own ? (k === 'code' ? t.projectsOther : k === 'blog' ? t.blogOther : t.offersOther) : t.tabs[k]}</button>
         ))}
       </div>
 
@@ -123,6 +124,8 @@ export function ProfileView({ data, viewerId, extra }: { data: ProfileData; view
         </div>
       )}
 
+
+      {tab === 'offers' && <MyOffers userId={p.id} own={own} />}
 
       {tab === 'blog' && (
         <section aria-labelledby="pbl">

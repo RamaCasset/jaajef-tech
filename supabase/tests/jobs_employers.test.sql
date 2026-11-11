@@ -110,40 +110,8 @@ begin
   raise notice 'OK 1: an employer profile needs a clean name and https addresses; one per member; visitors cannot create one';
 end $$;
 
--- ---- 2. A company that is not approved yet ---------------------------------------------------------------------
-do $$
-declare o uuid;
-begin
-  perform jbkit.as_user(1);
-  o := public.create_job_offer('Developpeur Python', 'job', 'On cherche un developpeur', 'full_time', 'Dakar', 'hybrid', 300000, 500000, 'month', false, array['Python', 'django']);
-  perform jbkit.must_fail('publishing before approval', format('select public.publish_job_offer(%L)', o), 'waiting for approval');
-  if (select count(*) from public.employers where owner_id = jbkit.uid(1)) <> 1 then raise exception 'FAIL: the owner sees her own profile'; end if;
-  if (select count(*) from public.job_offers) <> 1 then raise exception 'FAIL: the owner sees her own draft'; end if;
-  reset role;
-
-  perform jbkit.as_anon();
-  if exists (select 1 from public.employers) then raise exception 'FAIL: visitors see an unapproved employer'; end if;
-  if exists (select 1 from public.job_offers) then raise exception 'FAIL: visitors see a draft offer'; end if;
-  reset role;
-  perform jbkit.as_user(3);
-  if exists (select 1 from public.employers where owner_id = jbkit.uid(1)) then raise exception 'FAIL: members see an unapproved employer'; end if;
-  if exists (select 1 from public.job_offers where id = o) then raise exception 'FAIL: members see another employer''s draft'; end if;
-  perform jbkit.must_fail('publishing someone else''s offer', format('select public.publish_job_offer(%L)', o), 'Offer not found');
-  reset role;
-  perform jbkit.as_user(7);
-  perform jbkit.must_fail('an offer without an employer profile', $q$select public.create_job_offer('Offre', 'freelance', 'Description')$q$, 'Create your employer profile first');
-  perform jbkit.must_fail('the review queue as a member', 'select * from public.list_review_queue()', 'Only staff');
-  reset role;
-
-  perform jbkit.as_user(5);
-  if (select count(*) from public.employers) <> 2 then raise exception 'FAIL: staff should see every profile'; end if;
-  if (select count(*) from public.list_review_queue() where kind = 'employer' and title = 'Teranga Tech') <> 1 then raise exception 'FAIL: the company should be in the queue'; end if;
-  if exists (select 1 from public.list_review_queue() where title = 'Coumba Freelance') then raise exception 'FAIL: an individual with no offer is not in the queue'; end if;
-  reset role;
-  raise notice 'OK 2: an unapproved company can draft but not publish; only the owner and staff see it; staff have a queue';
-end $$;
-
--- ---- 3. Staff decide on a company ------------------------------------------------------------------------------------
+-- ---- 2. Old employer profiles: staff can still approve them ------------------------------------------------
+-- The app no longer asks for an employer profile (see jobs_open_posting), but the old functions still work.
 do $$
 declare e uuid := jbkit.emp(1);
 begin
@@ -156,30 +124,42 @@ begin
   perform jbkit.as_user(5);
   perform jbkit.must_fail('rejecting without a reason', format('select public.review_employer(%L, false)', e), 'reason');
   perform jbkit.must_fail('an unknown employer', format('select public.review_employer(%L, true)', gen_random_uuid()), 'not found');
-  perform public.review_employer(e, false, 'Site web introuvable');
-  perform public.review_employer(e, false, 'Site web introuvable'); -- again: nothing changes
-  reset role;
-  if (select count(*) from public.admin_audit_log where action = 'employer_rejected' and target_id = e::text) <> 1 then raise exception 'FAIL: the rejection should be logged once'; end if;
-
-  perform jbkit.as_user(1);
-  if (select review_note from public.employers where id = e) <> 'Site web introuvable' then raise exception 'FAIL: the owner should see the reason'; end if;
-  perform jbkit.must_fail('an offer from a rejected employer', $q$select public.create_job_offer('Autre offre', 'freelance', 'Description')$q$, 'was rejected');
-  perform jbkit.must_fail('publishing as a rejected employer', format('select public.publish_job_offer(%L)', jbkit.off('Developpeur Python')), 'was rejected');
-  if public.update_employer('Teranga Tech', 'Une agence', 'https://teranga.sn', 'https://teranga.sn/logo.png', 'Dakar') <> 'pending' then raise exception 'FAIL: editing a rejected profile sends it back for review'; end if;
-  reset role;
-  if (select review_note from public.employers where id = e) is not null then raise exception 'FAIL: the old reason should be cleared'; end if;
-
-  perform jbkit.as_user(4);
   perform public.review_employer(e, true);
   perform public.review_employer(e, true);
+  perform public.review_employer(jbkit.emp(3), true);
   reset role;
-  if (select status from public.employers where id = e) <> 'approved' then raise exception 'FAIL: the company should be approved'; end if;
   if (select count(*) from public.admin_audit_log where action = 'employer_approved' and target_id = e::text) <> 1 then raise exception 'FAIL: the approval should be logged once'; end if;
   perform jbkit.as_anon();
   if (select count(*) from public.employers where id = e) <> 1 then raise exception 'FAIL: an approved employer is public'; end if;
   if (select review_note from public.employers where id = e) is not null then raise exception 'FAIL: no staff note on a public row'; end if;
   reset role;
-  raise notice 'OK 3: staff approve or reject a company with a reason; rejected ones can edit and try again; every decision is logged once';
+  raise notice 'OK 2: staff can still approve an old employer profile, once, and it is logged';
+end $$;
+
+-- ---- 3. Drafts are private --------------------------------------------------------------------------------------------------
+do $$
+declare o uuid;
+begin
+  perform jbkit.as_user(1);
+  o := public.create_job_offer('Developpeur Python', 'job', 'On cherche un developpeur', 'full_time', 'Dakar', 'hybrid', 300000, 500000, 'month', false, array['Python', 'django']);
+  if (select count(*) from public.job_offers) <> 1 then raise exception 'FAIL: the owner sees her own draft'; end if;
+  reset role;
+
+  perform jbkit.as_anon();
+  if exists (select 1 from public.job_offers) then raise exception 'FAIL: visitors see a draft offer'; end if;
+  reset role;
+  perform jbkit.as_user(3);
+  if exists (select 1 from public.job_offers where id = o) then raise exception 'FAIL: members see another member''s draft'; end if;
+  perform jbkit.must_fail('publishing someone else''s offer', format('select public.publish_job_offer(%L)', o), 'Offer not found');
+  reset role;
+  perform jbkit.as_user(2);
+  perform jbkit.must_fail('the review queue as a member', 'select * from public.list_review_queue()', 'Only staff');
+  reset role;
+  perform jbkit.as_user(5);
+  if (select count(*) from public.employers) <> 2 then raise exception 'FAIL: staff should see every profile'; end if;
+  if exists (select 1 from public.list_review_queue()) then raise exception 'FAIL: nothing waits for review any more'; end if;
+  reset role;
+  raise notice 'OK 3: a draft is seen only by its owner and staff; staff have an empty queue';
 end $$;
 
 -- ---- 4. Checking an offer ---------------------------------------------------------------------------------------------
@@ -256,85 +236,55 @@ begin
   reset role;
 end $$;
 
--- ---- 6. An individual's first offer ----------------------------------------------------------------------------------
+-- ---- 6. Anyone can post, and it goes live straight away ------------------------------------------------------
 do $$
-declare o uuid; e uuid := jbkit.emp(3);
+declare o uuid;
 begin
+  -- bara (2) has never had an employer profile
+  perform jbkit.as_user(2);
+  o := public.create_job_offer('Offre de bara', 'freelance', 'Une mission courte', null, 'Dakar', 'remote');
+  if public.publish_job_offer(o) <> 'published' then raise exception 'FAIL: a new member publishes straight away'; end if;
+  reset role;
+  if (select status from public.employers where owner_id = jbkit.uid(2)) <> 'approved' then raise exception 'FAIL: the hidden poster record is approved'; end if;
+  if (select kind from public.employers where owner_id = jbkit.uid(2)) <> 'individual' then raise exception 'FAIL: the hidden poster record is an individual'; end if;
+  perform jbkit.as_anon();
+  if not jbkit.on_board('Offre de bara') then raise exception 'FAIL: the offer is on the board'; end if;
+  reset role;
+  perform jbkit.as_user(2);
+  perform public.delete_job_offer(o);
+  reset role;
+
   perform jbkit.as_user(3);
   o := public.create_job_offer('Site vitrine', 'freelance', 'Un site pour mon commerce', null, 'Thies', 'remote', 150000, 250000, 'project', true, array['wordpress']);
-  if public.publish_job_offer(o) <> 'pending_review' then raise exception 'FAIL: an individual''s first offer waits for review'; end if;
-  if public.publish_job_offer(o) <> 'pending_review' then raise exception 'FAIL: asking again keeps it waiting'; end if;
-  reset role;
-  perform jbkit.as_anon();
-  if jbkit.on_board('Site vitrine') then raise exception 'FAIL: an offer waiting for review is on the board'; end if;
-  reset role;
-  perform jbkit.as_user(5);
-  if (select count(*) from public.list_review_queue() where kind = 'offer' and title = 'Site vitrine') <> 1 then raise exception 'FAIL: the offer should be in the queue'; end if;
-  perform jbkit.must_fail('rejecting without a reason', format('select public.review_job_offer(%L, false)', o), 'reason');
-  perform public.review_job_offer(o, false, 'Description trop vague');
-  perform jbkit.must_fail('reviewing an offer that is not waiting', format('select public.review_job_offer(%L, true)', o), 'not waiting');
-  reset role;
-  if jbkit.status_of('Site vitrine') <> 'rejected' then raise exception 'FAIL: the offer should be rejected'; end if;
-
-  perform jbkit.as_user(3);
-  if (select review_note from public.job_offers where id = o) <> 'Description trop vague' then raise exception 'FAIL: the owner sees the reason'; end if;
-  perform public.update_job_offer(o, 'Site vitrine', 'freelance', 'Un site vitrine de 5 pages pour mon commerce de Thies', null, 'Thies', 'remote', 150000, 250000, 'project', true, array['wordpress']);
-  if jbkit.status_of('Site vitrine') <> 'draft' then raise exception 'FAIL: editing a rejected offer sends it back to a draft'; end if;
-  if public.publish_job_offer(o) <> 'pending_review' then raise exception 'FAIL: sent again'; end if;
-  reset role;
-
-  perform jbkit.as_user(4);
-  perform public.review_job_offer(o, true);
-  reset role;
-  if jbkit.status_of('Site vitrine') <> 'published' then raise exception 'FAIL: approved offer should be published'; end if;
-  if (select status from public.employers where id = e) <> 'approved' then raise exception 'FAIL: approving the first offer approves the individual'; end if;
-  if (select review_note from public.job_offers where id = o) is not null then raise exception 'FAIL: no note on a published offer'; end if;
-  if (select count(*) from public.admin_audit_log where action = 'job_offer_approved' and target_id = o::text and (details ->> 'employer_approved')::boolean) <> 1 then raise exception 'FAIL: the approval should be logged with the employer approval'; end if;
-  if (select count(*) from public.admin_audit_log where action = 'job_offer_rejected' and target_id = o::text) <> 1 then raise exception 'FAIL: the rejection should be logged once'; end if;
-
-  perform jbkit.as_user(3);
+  if public.publish_job_offer(o) <> 'published' then raise exception 'FAIL: coumba publishes straight away'; end if;
   if public.publish_job_offer(public.create_job_offer('Logo', 'freelance', 'Un logo')) <> 'published' then raise exception 'FAIL: later offers go out freely'; end if;
   reset role;
-  raise notice 'OK 6: an individual''s first offer is reviewed; once approved, later offers are published straight away';
+  raise notice 'OK 6: any member can post, and the offer is published straight away';
 end $$;
 
--- ---- 7. Changing a company's identity sends it back for review ---------------------------------------------------
+-- ---- 7. The company name shown on a member's offers ---------------------------------------------------------------
 do $$
-declare e uuid := jbkit.emp(1);
 begin
   perform jbkit.as_user(1);
-  if public.update_employer('Teranga Tech', 'Nouvelle description', 'https://teranga.sn', 'https://teranga.sn/logo.png', 'Dakar') <> 'approved' then raise exception 'FAIL: a new description keeps the company approved'; end if;
+  perform jbkit.must_fail('a one letter name', $q$select public.set_my_company_name('A')$q$, '2 to 100');
+  perform public.set_my_company_name('  Teranga Studio  ');
+  reset role;
+  if (select name from public.employers where owner_id = jbkit.uid(1)) <> 'Teranga Studio' then raise exception 'FAIL: the company name is set and trimmed'; end if;
+  perform jbkit.as_anon();
+  if not exists (select 1 from public.search_job_offers('python') where employer_name = 'Teranga Studio') then raise exception 'FAIL: the board shows the company name'; end if;
+  perform jbkit.must_fail('a visitor sets a company name', $q$select public.set_my_company_name('Pirate')$q$, 'permission denied');
+  reset role;
+  perform jbkit.as_user(1);
+  perform public.set_my_company_name(null);
+  reset role;
+  if (select name from public.employers where owner_id = jbkit.uid(1)) = 'Teranga Studio' then raise exception 'FAIL: an empty name goes back to the member name'; end if;
+  perform jbkit.as_user(1);
+  perform public.set_my_company_name('Teranga Tech');
   reset role;
   perform jbkit.as_anon();
   if not jbkit.on_board('Developpeur Python') then raise exception 'FAIL: still on the board'; end if;
   reset role;
-  perform jbkit.as_user(1);
-  if public.update_employer('Banque Nationale', 'Nouvelle description', 'https://teranga.sn', 'https://teranga.sn/logo.png', 'Dakar') <> 'pending' then raise exception 'FAIL: a new name sends the company back for review'; end if;
-  reset role;
-  perform jbkit.as_anon();
-  if jbkit.on_board('Developpeur Python') then raise exception 'FAIL: offers of a company under review leave the board'; end if;
-  if exists (select 1 from public.job_offers where title = 'Developpeur Python') then raise exception 'FAIL: visitors read an offer of a company under review'; end if;
-  reset role;
-  perform jbkit.as_user(1);
-  perform jbkit.must_fail('publishing while under review', format('select public.publish_job_offer(%L)', public.create_job_offer('Brouillon prive', 'freelance', 'Un brouillon')), 'waiting for approval');
-  perform public.delete_job_offer(jbkit.off('Brouillon prive'));
-  reset role;
-  perform jbkit.as_user(5);
-  perform public.review_employer(e, true);
-  reset role;
-  perform jbkit.as_user(1);
-  if public.update_employer('Teranga Tech', 'Nouvelle description', 'https://teranga.sn', 'https://autre.sn/logo.png', 'Dakar') <> 'pending' then raise exception 'FAIL: a new logo sends the company back for review'; end if;
-  reset role;
-  perform jbkit.as_user(5);
-  perform public.review_employer(e, true);
-  reset role;
-  perform jbkit.as_user(3);
-  if public.update_employer('Coumba Studio', null, null, null, 'Thies') <> 'approved' then raise exception 'FAIL: an approved individual can rename without review'; end if;
-  reset role;
-  perform jbkit.as_anon();
-  if not jbkit.on_board('Developpeur Python') then raise exception 'FAIL: back on the board after approval'; end if;
-  reset role;
-  raise notice 'OK 7: renaming or changing the website or logo of an approved company puts it back under review';
+  raise notice 'OK 7: a member can show a company name on offers, or go back to their own name';
 end $$;
 
 -- ---- 8. Staff hide an offer ----------------------------------------------------------------------------------------------

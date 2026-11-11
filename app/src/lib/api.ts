@@ -1594,13 +1594,11 @@ export async function myTalentListing(): Promise<MyTalentListing> {
 export const joinTalentDirectory = () => rpc<void>('join_talent_directory')
 export const leaveTalentDirectory = () => rpc<void>('leave_talent_directory')
 
-// ---- Employer side of jobs ---------------------------------------------------------------------------
-export type EmployerKind = 'company' | 'individual'
+// ---- Posting jobs ---------------------------------------------------------------------------
 export type MyEmployer = {
-  id: string; kind: EmployerKind; name: string; description: string | null; website: string | null
+  id: string; kind: 'company' | 'individual'; name: string; description: string | null; website: string | null
   logo_url: string | null; location: string | null; status: 'pending' | 'approved' | 'rejected'; review_note: string | null
 }
-export type EmployerInput = { kind: EmployerKind; name: string; description: string; website: string; location: string }
 export async function getMyEmployer(userId: string): Promise<MyEmployer | null> {
   const { data, error } = await supabase
     .from('employers')
@@ -1610,14 +1608,8 @@ export async function getMyEmployer(userId: string): Promise<MyEmployer | null> 
   if (error) throw new Error(error.message)
   return (data as MyEmployer | null) ?? null
 }
-export const createEmployer = (i: EmployerInput) =>
-  rpc<string>('create_employer', {
-    p_kind: i.kind, p_name: i.name, p_description: i.description || null, p_website: i.website || null, p_logo_url: null, p_location: i.location || null,
-  })
-export const updateEmployer = (i: EmployerInput, logo: string | null) =>
-  rpc<string>('update_employer', {
-    p_name: i.name, p_description: i.description || null, p_website: i.website || null, p_logo_url: logo, p_location: i.location || null,
-  })
+/** The name shown on all your offers: a company name, or empty to use your own name. */
+export const setMyCompanyName = (name: string) => rpc<void>('set_my_company_name', { p_name: name.trim() || null })
 
 export type OfferStatus = 'draft' | 'pending_review' | 'published' | 'closed' | 'rejected'
 export type MyOffer = {

@@ -436,6 +436,8 @@ a moderator. These roles give no moderation or admin power (tested).
 - Setup: `docs/FILE_CLEANUP_SETUP.md`. It reuses the GitHub checker's password.
 
 ## Jobs (part 1: employers and offers)
+
+> Update: there is no employer profile or company approval for members any more. Any member posts a job and it goes live at once (migration `open_job_posting`). Behind the scenes each poster keeps one approved record in `employers`, named after the member or after the optional company name they set, so applications, alerts and saved searches work unchanged. The text below describes the original design.
 Working decisions (from the project coordinator, to confirm with Marie): offers
 can be published by registered companies and by people who hire freelancers;
 people apply inside the platform; a CV is stored privately and shared only with
