@@ -7,14 +7,18 @@ import type { LearningPath as Path, LearningStep } from '../lib/api'
 const listLearningPaths = vi.fn()
 const listLearningSteps = vi.fn()
 const markStepRead = vi.fn()
+const learningPathRewardState = vi.fn()
+const claimLearningPathReward = vi.fn()
 
 vi.mock('../lib/api', () => ({
   listLearningPaths: (...a: unknown[]) => listLearningPaths(...a),
   listLearningSteps: (...a: unknown[]) => listLearningSteps(...a),
   markStepRead: (...a: unknown[]) => markStepRead(...a),
+  learningPathRewardState: (...a: unknown[]) => learningPathRewardState(...a),
+  claimLearningPathReward: (...a: unknown[]) => claimLearningPathReward(...a),
 }))
 vi.mock('../auth/AuthContext', () => ({
-  useAuth: () => ({ member: { kopeks: 1, profile: { id: 'u1', display_name: 'Moussa' } }, signOut: vi.fn() }),
+  useAuth: () => ({ member: { kopeks: 1, profile: { id: 'u1', display_name: 'Moussa' } }, signOut: vi.fn(), refreshMember: vi.fn() }),
 }))
 
 import { LearningPaths } from '../pages/LearningPaths'
@@ -32,6 +36,8 @@ beforeEach(() => {
   listLearningPaths.mockReset()
   listLearningSteps.mockReset()
   markStepRead.mockReset()
+  learningPathRewardState.mockReset()
+  claimLearningPathReward.mockReset()
 })
 
 describe('Learning paths page', () => {
@@ -105,6 +111,36 @@ describe('Learning path page', () => {
     await userEvent.click(screen.getByRole('button', { name: "J'ai lu" }))
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent("Impossible d'enregistrer"))
     expect(screen.getByText('Leçon 2')).toBeInTheDocument()
+  })
+
+  it('shows the roadmap with what is next, and the total time', async () => {
+    listLearningPaths.mockResolvedValue([path(1, { steps_done: 1 })])
+    listLearningSteps.mockResolvedValue([step(1, { done: true }), step(2), step(3)])
+    mount()
+    expect(await screen.findByText('À suivre')).toBeInTheDocument()
+    expect(screen.getByText(/30 min en tout/)).toBeInTheDocument()
+    expect(screen.getByRole('progressbar', { name: 'Étapes du parcours' })).toHaveAttribute('aria-valuenow', '33')
+  })
+
+  it('offers the reward once the path is finished, and claims it once', async () => {
+    listLearningPaths.mockResolvedValue([path(1, { steps_done: 3 })])
+    listLearningSteps.mockResolvedValue([step(1, { done: true }), step(2, { done: true }), step(3, { done: true })])
+    learningPathRewardState.mockResolvedValue({ complete: true, claimed: false, xp: 200, kopeks: 100 })
+    claimLearningPathReward.mockResolvedValue({ granted: true, xp: 200, kopeks: 100 })
+    mount()
+    await userEvent.click(await screen.findByRole('button', { name: 'Récupérer ma récompense' }))
+    await waitFor(() => expect(claimLearningPathReward).toHaveBeenCalledWith('parcours-1'))
+    expect(await screen.findByText('Récompense reçue : +200 XP et +100 Kopeks.')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Récupérer ma récompense' })).not.toBeInTheDocument()
+  })
+
+  it('shows a reward that was already claimed, without a button', async () => {
+    listLearningPaths.mockResolvedValue([path(1, { steps_done: 3 })])
+    listLearningSteps.mockResolvedValue([step(1, { done: true }), step(2, { done: true }), step(3, { done: true })])
+    learningPathRewardState.mockResolvedValue({ complete: true, claimed: true, xp: 200, kopeks: 100 })
+    mount()
+    expect(await screen.findByText('Récompense déjà reçue.')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Récupérer ma récompense' })).not.toBeInTheDocument()
   })
 
   it('shows a message when the path does not exist', async () => {

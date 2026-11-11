@@ -50,9 +50,17 @@ describe('La Cité welcome page', () => {
     listMyCommunities.mockResolvedValue([{ ...comm(1), role: 'member' }])
     listMyQuestProgress.mockResolvedValue([{ quest_id: 'q1', status: 'in_progress', tests_passed: 0, tests_total: 3 }])
     mount()
-    const done = await screen.findByRole('progressbar', { name: 'Vos premiers pas' })
-    await vi.waitFor(() => expect(done).toHaveAttribute('aria-valuenow', '3'))
-    expect(within(screen.getByRole('region', { name: 'Vos premiers pas' })).getAllByText('Fait')).toHaveLength(3)
+    // Once all three are done, the card goes away.
+    await vi.waitFor(() => expect(screen.queryByRole('region', { name: 'Vos premiers pas' })).not.toBeInTheDocument())
+  })
+
+  it('counts the first steps one by one while some are still to do', async () => {
+    loadMyProfileFields.mockResolvedValue({ bio: 'Dev à Dakar' })
+    listMyCommunities.mockResolvedValue([{ ...comm(1), role: 'member' }])
+    mount()
+    const bar = await screen.findByRole('progressbar', { name: 'Vos premiers pas' })
+    await vi.waitFor(() => expect(bar).toHaveAttribute('aria-valuenow', '2'))
+    expect(within(screen.getByRole('region', { name: 'Vos premiers pas' })).getAllByText('Fait')).toHaveLength(2)
   })
 
   it('a project room does not count as finding a community', async () => {

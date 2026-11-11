@@ -4,7 +4,7 @@ import { AppShell } from '../components/AppShell'
 import { Icon } from '../components/Icon'
 import { useAuth } from '../auth/AuthContext'
 import { fr } from '../i18n/fr'
-import { listDiscoverCommunities, listMyCommunities, listMyQuestProgress, loadMyProfileFields, type Community, type CommunityTopic } from '../lib/api'
+import { listDiscoverCommunities, listLearningPaths, listMyCommunities, listMyQuestProgress, loadMyProfileFields, type Community, type CommunityTopic, type LearningPath } from '../lib/api'
 
 const TOPIC_ICON: Record<CommunityTopic, string> = { web: 'repo', ia_data: 'fork', gaming: 'arena', design: 'souk', mobile: 'repo', open_source: 'fork' }
 
@@ -17,6 +17,7 @@ export function LaCite() {
   const [joined, setJoined] = useState<boolean | null>(null)
   const [started, setStarted] = useState<boolean | null>(null)
   const [communities, setCommunities] = useState<Community[] | null>(null)
+  const [resume, setResume] = useState<LearningPath | null>(null)
 
   const myId = me?.id
   useEffect(() => {
@@ -26,18 +27,27 @@ export function LaCite() {
     Promise.resolve().then(() => listMyCommunities(myId)).then((l) => { if (alive) setJoined((l ?? []).some((c) => !c.project_id)) }).catch(() => { if (alive) setJoined(false) })
     Promise.resolve().then(() => listMyQuestProgress(myId)).then((l) => { if (alive) setStarted((l ?? []).length > 0) }).catch(() => { if (alive) setStarted(false) })
     Promise.resolve().then(() => listDiscoverCommunities()).then((l) => { if (alive) setCommunities(l ?? []) }).catch(() => { if (alive) setCommunities([]) })
+    // The path I started and have not finished: the one with the most steps done.
+    Promise.resolve().then(() => listLearningPaths()).then((l) => {
+      if (!alive) return
+      const started = (l ?? []).filter((p) => Number(p.steps_done) > 0 && Number(p.steps_done) < Number(p.steps_total))
+      started.sort((a, b) => Number(b.steps_done) - Number(a.steps_done))
+      setResume(started[0] ?? null)
+    }).catch(() => { /* no card */ })
     return () => { alive = false }
   }, [myId])
 
   const done = [introduced === true, joined === true, started === true]
   const doneCount = done.filter(Boolean).length
+  // Once all three first steps are done the card has done its job and goes away.
+  const allSteps = introduced === true && joined === true && started === true
   const stepLinks = ['/parametres/profil', '/communautes', '/quetes']
   const company = (communities ?? []).filter((c) => !c.project_id).slice(0, 3)
 
   return (
     <AppShell>
       <main className="page lacite">
-        <div className="lacite-top">
+        <div className={`lacite-top${allSteps ? ' lacite-top-solo' : ''}`}>
           <section className="panel lacite-hero">
             <p className="eyebrow">{t.eyebrow}</p>
             <h1 className="lacite-title">{t.title[0]}<br />{t.title[1]}</h1>
@@ -49,6 +59,7 @@ export function LaCite() {
             <p className="muted tiny">{t.pace}</p>
           </section>
 
+          {!allSteps && (
           <section className="panel lacite-steps" aria-label={t.stepsTitle}>
             <div className="lacite-steps-head">
               <h2>{t.stepsTitle}</h2>
@@ -73,7 +84,22 @@ export function LaCite() {
               ))}
             </ol>
           </section>
+          )}
         </div>
+
+        {resume ? (
+          <section className="panel panel-pad lacite-resume" aria-label={fr.learning.resumeTitle}>
+            <div>
+              <p className="eyebrow">{fr.learning.resumeTitle}</p>
+              <h2>{resume.title}</h2>
+              <p className="muted">{fr.learning.resumeText(Number(resume.steps_done), Number(resume.steps_total))}</p>
+              <div className="path-bar" role="progressbar" aria-label={resume.title} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round((Number(resume.steps_done) / Number(resume.steps_total)) * 100)}>
+                <span style={{ width: `${(Number(resume.steps_done) / Number(resume.steps_total)) * 100}%` }} />
+              </div>
+            </div>
+            <Link className="btn btn-cta" to={`/parcours/${resume.slug}`}>{fr.learning.resumeCta} <Icon name="forward" size={16} /></Link>
+          </section>
+        ) : null}
 
         <div className="lacite-section-head">
           <h2>{t.playground}</h2>
