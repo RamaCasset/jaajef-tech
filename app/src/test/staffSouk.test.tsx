@@ -19,14 +19,14 @@ vi.mock('../auth/AuthContext', () => ({
   }),
 }))
 
-import { StaffSouk } from '../pages/StaffSouk'
+import { Staff } from '../pages/Staff'
 
 const sub = (extra = {}) => ({
   id: 's1', creator_id: 'u2', creator_username: 'awa', kind: 'theme', name: 'Sahel doré', description: '<i>beau</i>',
   data: { accent: '#C9A227', label: 'Doré' }, proposed_price: 300, status: 'pending', review_note: null, created_at: '2026-11-06T10:00:00Z', ...extra,
 })
 const access = (extra = {}) => ({ role: null, shopManager: true, questWriter: false, shopOwner: false, ...extra })
-const mount = () => render(<MemoryRouter><StaffSouk /></MemoryRouter>)
+const mount = () => render(<MemoryRouter initialEntries={['/equipe?onglet=souk']}><Staff /></MemoryRouter>)
 
 beforeEach(() => {
   for (const m of [getMyStaffAccess, listSoukSubmissions, reviewSoukSubmission]) m.mockReset()

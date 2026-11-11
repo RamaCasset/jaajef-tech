@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const api = vi.hoisted(() => ({
-  getMyStaffAccess: vi.fn(), listStaff: vi.fn(), listBackOfficeTeam: vi.fn(), setModerator: vi.fn(),
+  getMyStaffAccess: vi.fn(), listReports: vi.fn().mockResolvedValue([]), listStaff: vi.fn(), listBackOfficeTeam: vi.fn(), setModerator: vi.fn(),
   setBackOfficeRole: vi.fn(), liftSuspension: vi.fn(), findMemberByUsername: vi.fn(),
 }))
 vi.mock('../lib/api', () => api)
@@ -15,14 +15,15 @@ vi.mock('../auth/AuthContext', () => ({
   }),
 }))
 
-import { StaffTeam } from '../pages/StaffTeam'
+import { Staff } from '../pages/Staff'
 
 const access = (extra = {}) => ({ role: 'admin', shopManager: false, questWriter: false, shopOwner: false, ...extra })
-const mount = () => render(<MemoryRouter><StaffTeam /></MemoryRouter>)
+const mount = () => render(<MemoryRouter initialEntries={['/equipe?onglet=team']}><Staff /></MemoryRouter>)
 
 beforeEach(() => {
   for (const m of Object.values(api)) m.mockReset()
   api.getMyStaffAccess.mockResolvedValue(access())
+  api.listReports.mockResolvedValue([])
   api.listStaff.mockResolvedValue([
     { user_id: 'a1', username: 'chef', role: 'admin', granted_at: '2026-11-01T00:00:00Z' },
     { user_id: 'm1', username: 'modo', role: 'moderator', granted_at: '2026-11-02T00:00:00Z' },
@@ -36,7 +37,8 @@ describe('Staff team', () => {
   it('is closed to a moderator', async () => {
     api.getMyStaffAccess.mockResolvedValue(access({ role: 'moderator' }))
     mount()
-    expect(await screen.findByText(/réservée à l'équipe/)).toBeInTheDocument()
+    expect(await screen.findByRole('tab', { name: 'Signalements' })).toBeInTheDocument()
+    expect(screen.queryByRole('tab', { name: 'Équipe' })).not.toBeInTheDocument()
     expect(api.listStaff).not.toHaveBeenCalled()
   })
 

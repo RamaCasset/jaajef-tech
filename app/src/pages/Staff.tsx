@@ -1,20 +1,33 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
 import { useAuth } from '../auth/AuthContext'
 import { fr } from '../i18n/fr'
 import { getMyStaffAccess, type StaffAccess } from '../lib/api'
+import { isAdmin, isModeration, isShopStaff } from '../staff/StaffGate'
+import { StaffReportsPanel } from './StaffReports'
+import { StaffSoukPanel } from './StaffSouk'
+import { StaffTeamPanel } from './StaffTeam'
+
+type TabKey = 'reports' | 'souk' | 'team'
+const TABS: { key: TabKey; allow: (a: StaffAccess) => boolean }[] = [
+  { key: 'reports', allow: isModeration },
+  { key: 'souk', allow: isShopStaff },
+  { key: 'team', allow: isAdmin },
+]
 
 export function Staff() {
   const { member } = useAuth()
   const [access, setAccess] = useState<StaffAccess | null | undefined>(undefined)
+  const [params, setParams] = useSearchParams()
 
   useEffect(() => {
     getMyStaffAccess(member?.profile.id ?? '').then(setAccess).catch(() => setAccess(null))
   }, [member?.profile.id])
 
-  const any = !!access && (access.role !== null || access.shopManager || access.shopOwner || access.questWriter)
-  const shop = !!access && (access.role === 'admin' || access.shopManager || access.shopOwner)
+  const tabs = access ? TABS.filter((t) => t.allow(access)) : []
+  const asked = params.get('onglet')
+  const current = tabs.find((t) => t.key === asked)?.key ?? tabs[0]?.key
 
   return (
     <AppShell>
@@ -24,25 +37,19 @@ export function Staff() {
           <p className="muted">{fr.staff.subtitle}</p>
         </header>
         {access === undefined && <p className="muted">{fr.common.loading}</p>}
-        {access !== undefined && !any && <p className="muted">{fr.staff.denied}</p>}
-        {access && access.role !== null && (
-          <>
-            <section className="panel panel-pad" style={{ marginBottom: 16 }}>
-              <h2><Link to="/equipe/signalements">{fr.staff.tools.reports}</Link></h2>
-              <p className="muted">{fr.staff.tools.reportsText}</p>
-            </section>
-            <section className="panel panel-pad" style={{ marginBottom: 16 }}>
-              <h2><Link to="/equipe/validation">{fr.staff.tools.review}</Link></h2>
-              <p className="muted">{fr.staff.tools.reviewText}</p>
-            </section>
-          </>
+        {access !== undefined && tabs.length === 0 && <p className="muted">{fr.staff.denied}</p>}
+        {tabs.length > 0 && (
+          <div role="tablist" aria-label={fr.staff.title} className="souk-tabs">
+            {tabs.map((t) => (
+              <button key={t.key} type="button" role="tab" aria-selected={current === t.key} className={`pill ${current === t.key ? 'pill-on' : ''}`} onClick={() => setParams({ onglet: t.key })}>
+                {fr.staff.tabs[t.key]}
+              </button>
+            ))}
+          </div>
         )}
-        {shop && (
-          <section className="panel panel-pad" style={{ marginBottom: 16 }}>
-            <h2><Link to="/equipe/souk">{fr.staff.tools.souk}</Link></h2>
-            <p className="muted">{fr.staff.tools.soukText}</p>
-          </section>
-        )}
+        {current === 'reports' && <StaffReportsPanel />}
+        {current === 'souk' && <StaffSoukPanel />}
+        {current === 'team' && <StaffTeamPanel />}
       </main>
     </AppShell>
   )

@@ -37,10 +37,6 @@ import { RepoBrowser } from './pages/RepoBrowser'
 import { Profile } from './pages/Profile'
 import { Souk } from './pages/Souk'
 import { Staff } from './pages/Staff'
-import { StaffReports } from './pages/StaffReports'
-import { StaffReview } from './pages/StaffReview'
-import { StaffTeam } from './pages/StaffTeam'
-import { StaffSouk } from './pages/StaffSouk'
 import { SoukSell } from './pages/SoukSell'
 import { EditProfile } from './pages/EditProfile'
 import { Search } from './pages/Search'
@@ -119,11 +115,10 @@ export function AppRoutes() {
       <Route path="/depots" element={<RequireAuth><RequireCharacter><MyRepos /></RequireCharacter></RequireAuth>} />
       <Route path="/la-cite" element={<RequireAuth><RequireCharacter><LaCite /></RequireCharacter></RequireAuth>} />
       <Route path="/projets" element={<RequireAuth><RequireCharacter><Projects /></RequireCharacter></RequireAuth>} />
+      <Route path="/equipe/signalements" element={<Navigate to="/equipe?onglet=reports" replace />} />
+      <Route path="/equipe/souk" element={<Navigate to="/equipe?onglet=souk" replace />} />
+      <Route path="/equipe/equipe" element={<Navigate to="/equipe?onglet=team" replace />} />
       <Route path="/equipe" element={<RequireAuth><RequireCharacter><Staff /></RequireCharacter></RequireAuth>} />
-      <Route path="/equipe/signalements" element={<RequireAuth><RequireCharacter><StaffReports /></RequireCharacter></RequireAuth>} />
-      <Route path="/equipe/equipe" element={<RequireAuth><RequireCharacter><StaffTeam /></RequireCharacter></RequireAuth>} />
-      <Route path="/equipe/souk" element={<RequireAuth><RequireCharacter><StaffSouk /></RequireCharacter></RequireAuth>} />
-      <Route path="/equipe/validation" element={<RequireAuth><RequireCharacter><StaffReview /></RequireCharacter></RequireAuth>} />
       <Route path="/souk/vendre" element={<RequireAuth><RequireCharacter><SoukSell /></RequireCharacter></RequireAuth>} />
       <Route path="/parametres/profil" element={<RequireAuth><RequireCharacter><EditProfile /></RequireCharacter></RequireAuth>} />
       <Route path="/recherche" element={<RequireAuth><RequireCharacter><Search /></RequireCharacter></RequireAuth>} />
