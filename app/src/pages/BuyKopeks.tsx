@@ -87,7 +87,7 @@ export function BuyKopeks() {
                     <label htmlFor="buy-phone">{t.phoneLabel(methodName)}</label>
                     <div className="buy-phone">
                       <span>+221</span>
-                      <input id="buy-phone" type="tel" inputMode="tel" autoComplete="tel-national" placeholder={t.phonePlaceholder} value={phone} onChange={(e) => setPhone(e.target.value)} />
+                      <input id="buy-phone" type="tel" inputMode="tel" autoComplete="off" placeholder={t.phonePlaceholder} value={phone} onChange={(e) => setPhone(e.target.value)} />
                     </div>
                     <span className="hint">{t.phoneHint(methodName)}</span>
                   </div>
