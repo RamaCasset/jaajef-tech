@@ -11,24 +11,42 @@ const LANGUAGES: Record<string, string> = {
 }
 export const languageOf = (path: string) => LANGUAGES[path.split('.').pop()?.toLowerCase() ?? ''] ?? 'plaintext'
 
-// Same dark blue as the rest of the app instead of the default grey of the editor.
+// The editor follows the app colours, so a Souk theme changes it too. Monaco needs plain #rrggbb colours.
 const THEME = 'jaajef'
-const defineTheme = (monaco: { editor: { defineTheme: (name: string, theme: unknown) => void } }) => monaco.editor.defineTheme(THEME, {
-  base: 'vs-dark',
-  inherit: true,
-  rules: [],
-  colors: {
-    'editor.background': '#0b1120',
-    'editorGutter.background': '#0b1120',
-    'editor.lineHighlightBackground': '#111a30',
-    'editor.lineHighlightBorder': '#00000000',
-    'editorLineNumber.foreground': '#4b5a78',
-    'editorLineNumber.activeForeground': '#9fb0cf',
-    'editorWidget.background': '#0e1526',
-    'scrollbarSlider.background': '#ffffff18',
-    'scrollbarSlider.hoverBackground': '#ffffff28',
-  },
-})
+function appColour(name: string, fallback: string): string {
+  try {
+    const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+    return /^#[0-9a-fA-F]{6}$/.test(v) ? v : fallback
+  } catch { return fallback }
+}
+/** Mixes a #rrggbb colour with black (amount 0 to 1 of black). */
+function darken(hex: string, amount: number): string {
+  const n = parseInt(hex.slice(1), 16)
+  const f = (shift: number) => Math.round(((n >> shift) & 255) * (1 - amount)).toString(16).padStart(2, '0')
+  return `#${f(16)}${f(8)}${f(0)}`
+}
+const defineTheme = (monaco: { editor: { defineTheme: (name: string, theme: unknown) => void } }) => {
+  const bg = appColour('--bg', '#080e1c')
+  const panel = appColour('--panel', '#0c1730')
+  const raised = appColour('--panel-raised', '#10203f')
+  const deep = darken(bg, 0.38)
+  monaco.editor.defineTheme(THEME, {
+    base: 'vs-dark',
+    inherit: true,
+    rules: [],
+    colors: {
+      'editor.background': deep,
+      'editorGutter.background': deep,
+      'editor.lineHighlightBackground': raised,
+      'editor.lineHighlightBorder': '#00000000',
+      'editorLineNumber.foreground': '#4b5a78',
+      'editorLineNumber.activeForeground': '#9fb0cf',
+      'editorWidget.background': panel,
+      'scrollbarSlider.background': '#ffffff18',
+      'scrollbarSlider.hoverBackground': '#ffffff28',
+    },
+  })
+}
 
 export function CodeEditor({ path, value, onChange, readOnly = false, height = 'max(460px, calc(100vh - 320px))', onCursor }: { path: string; value: string; onChange: (value: string) => void; readOnly?: boolean; height?: string; onCursor?: (line: number, column: number) => void }) {
   return (

@@ -31,6 +31,7 @@ export function Quest() {
   const [outcome, setOutcome] = useState<RunOutcome | null>(null)
   const [running, setRunning] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [resultTab, setResultTab] = useState<'terminal' | 'results'>('terminal')
   const [note, setNote] = useState<string | null>(null)
   const [hintBusy, setHintBusy] = useState(false)
   const [noMoreHints, setNoMoreHints] = useState(false)
@@ -213,24 +214,42 @@ export function Quest() {
             </section>
 
             <section className="panel quest-pane quest-results" aria-label={p.results}>
-              <header className="quest-pane-head">
-                <Icon name="terminal" size={16} /> <h2>{p.resultsTitle}</h2>
+              <header className="quest-pane-head quest-tabs-head">
+                <div role="tablist" className="quest-tabs">
+                  <button type="button" role="tab" aria-selected={resultTab === 'terminal'} className={resultTab === 'terminal' ? 'quest-tab quest-tab-on' : 'quest-tab'} onClick={() => setResultTab('terminal')}>Terminal</button>
+                  <button type="button" role="tab" aria-selected={resultTab === 'results'} className={resultTab === 'results' ? 'quest-tab quest-tab-on' : 'quest-tab'} onClick={() => setResultTab('results')}>{p.tabResults}</button>
+                </div>
                 {shown ? <span className={`quest-chip ${shown.tests_passed === shown.tests_total ? 'quest-chip-ok' : ''}`}>{p.passedChip(shown.tests_passed, shown.tests_total)}</span> : null}
               </header>
-              <div className="quest-pane-body">
+              <div className="quest-pane-body" role="tabpanel">
                 {!shown ? <p className="muted tiny">{p.noResultsYet}</p> : (
                   <>
-                    <p className="tiny muted">{p.testsPassed(shown.tests_passed, shown.tests_total)}</p>
                     {shown.reason === 'too_fast' ? <p role="status" className="muted">{p.tooFast(shown.min_seconds ?? 0)}</p> : null}
-                    <ul className="test-list">
-                      {shown.tests.map((t) => (
-                        <li key={t.name}>
-                          <span className={t.passed ? 'test-ok' : 'test-ko'}>{t.passed ? p.passed : p.failed}</span>
-                          <span className="mono">{t.name}</span>
-                          {t.message ? <span className="muted tiny">{t.message}</span> : null}
-                        </li>
-                      ))}
-                    </ul>
+                    {resultTab === 'terminal' ? (
+                      <div className="term-out">
+                        <p className="term-cmd">{quest.language === 'python' ? 'python' : quest.language === 'javascript' ? 'node' : 'run'} {file}</p>
+                        {shown.tests.map((t) => (
+                          <div key={t.name}>
+                            <p className={t.passed ? 'term-line term-ok' : 'term-line term-ko'}><span aria-hidden="true">{t.passed ? '✓' : '×'}</span> <span className="visually-hidden">{t.passed ? p.passed : p.failed} </span>{t.name}</p>
+                            {t.message ? <p className="term-line term-err">{t.message}</p> : null}
+                          </div>
+                        ))}
+                        <p className="term-sum">{p.terminalSummary(shown.tests_passed, shown.tests_total)}</p>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="tiny muted">{p.testsPassed(shown.tests_passed, shown.tests_total)}</p>
+                        <ul className="test-list">
+                          {shown.tests.map((t) => (
+                            <li key={t.name}>
+                              <span className={t.passed ? 'test-ok' : 'test-ko'}>{t.passed ? p.passed : p.failed}</span>
+                              <span className="mono">{t.name}</span>
+                              {t.message ? <span className="muted tiny">{t.message}</span> : null}
+                            </li>
+                          ))}
+                        </ul>
+                      </>
+                    )}
                   </>
                 )}
               </div>
