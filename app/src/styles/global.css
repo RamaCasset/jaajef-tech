@@ -1392,3 +1392,11 @@ div.alert[data-dismissed], p.alert[data-dismissed], div.notice[data-dismissed], 
 .kopeks-pill { text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
 .kopeks-pill:hover { background: rgba(214, 150, 40, 0.22); }
 .kopeks-plus { display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; background: #f0b24a; color: #1a1205; font-weight: 700; line-height: 1; }
+
+/* The phone field: one clean box. The browser's autofill colour must not paint a second box inside it. */
+.field .buy-phone input { border: 0; background: transparent; box-shadow: none; border-radius: 0; padding: 14px 0; width: auto; min-width: 0; }
+.buy-phone input:-webkit-autofill,
+.buy-phone input:-webkit-autofill:hover,
+.buy-phone input:-webkit-autofill:focus { -webkit-text-fill-color: var(--fg); caret-color: var(--fg); -webkit-box-shadow: 0 0 0 1000px #0b0d18 inset; transition: background-color 9999s ease-out 0s; }
+.buy-phone:focus-within { border-color: var(--accent); }
+.buy-phone > span { color: var(--fg-muted); font-weight: 600; padding-right: 12px; border-right: 1px solid var(--line); }
