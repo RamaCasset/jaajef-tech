@@ -1,8 +1,6 @@
 import { dateLocale } from '../i18n/lang'
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { AppShell } from '../components/AppShell'
-import { StaffGate, isShopStaff } from '../staff/StaffGate'
 import { useAuth } from '../auth/AuthContext'
 import { fr } from '../i18n/fr'
 import { friendlyError } from '../lib/errors'
@@ -82,7 +80,7 @@ function SubmissionCard({ item, mine, onDone }: { item: SoukSubmissionStaff; min
   )
 }
 
-function StaffSoukPage() {
+export function StaffSoukPanel() {
   const { member } = useAuth()
   const me = member?.profile.id
   const [tab, setTab] = useState<Tab>('pending')
@@ -98,35 +96,24 @@ function StaffSoukPage() {
   useEffect(load, [load])
 
   return (
-    <AppShell>
-      <main className="page souk">
-        <p><Link to="/equipe">← {fr.staff.back}</Link></p>
-        <h1 className="page-title">{fr.staff.souk.title}</h1>
-        <div role="tablist" className="souk-tabs">
-          {TABS.map((k) => (
-            <button key={k} type="button" role="tab" aria-selected={tab === k} className={`pill ${tab === k ? 'pill-on' : ''}`} onClick={() => { setTab(k); setNotice(false) }}>
-              {fr.staff.souk.tabs[k]}
-            </button>
-          ))}
+    <section>
+      <div role="tablist" className="souk-tabs">
+        {TABS.map((k) => (
+          <button key={k} type="button" role="tab" aria-selected={tab === k} className={`pill ${tab === k ? 'pill-on' : ''}`} onClick={() => { setTab(k); setNotice(false) }}>
+            {fr.staff.souk.tabs[k]}
+          </button>
+        ))}
+      </div>
+      {notice && <div className="notice" role="status">{fr.staff.souk.done}</div>}
+      {failed && (
+        <div className="alert" role="alert">
+          {fr.staff.loadFailed} <button type="button" className="btn" onClick={load}>{fr.staff.retry}</button>
         </div>
-        {notice && <div className="notice" role="status">{fr.staff.souk.done}</div>}
-        {failed && (
-          <div className="alert" role="alert">
-            {fr.staff.loadFailed} <button type="button" className="btn" onClick={load}>{fr.staff.retry}</button>
-          </div>
-        )}
-        {!failed && !rows && <p className="muted">{fr.common.loading}</p>}
-        {rows && rows.length === 0 && <p className="muted">{fr.staff.souk.empty}</p>}
-        {(rows ?? []).map((r) => <SubmissionCard key={r.id} item={r} mine={r.creator_id === me} onDone={() => { setNotice(true); load() }} />)}
-      </main>
-    </AppShell>
+      )}
+      {!failed && !rows && <p className="muted">{fr.common.loading}</p>}
+      {rows && rows.length === 0 && <p className="muted">{fr.staff.souk.empty}</p>}
+      {(rows ?? []).map((r) => <SubmissionCard key={r.id} item={r} mine={r.creator_id === me} onDone={() => { setNotice(true); load() }} />)}
+    </section>
   )
 }
 
-export function StaffSouk() {
-  return (
-    <StaffGate allow={isShopStaff}>
-      <StaffSoukPage />
-    </StaffGate>
-  )
-}
