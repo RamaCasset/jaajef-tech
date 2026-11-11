@@ -286,7 +286,6 @@ export function Communities() {
 
         <footer className="communities-foot">
           <span className="muted tiny">{t.footerText}</span>
-          <Link to="/guide" className="tiny">{t.charter} <Icon name="forward" size={14} /></Link>
         </footer>
       </main>
     </AppShell>
