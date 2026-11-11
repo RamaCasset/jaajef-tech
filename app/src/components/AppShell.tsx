@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useState, type MouseEvent, type ReactNode } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { Logo } from './Logo'
@@ -34,10 +34,14 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [railOpen, setRailOpen] = useState(() => {
     try { return localStorage.getItem('jaajef.rail') === 'open' } catch { return false }
   })
-  const toggleRail = () => {
-    const next = !railOpen
-    setRailOpen(next)
-    try { localStorage.setItem('jaajef.rail', next ? 'open' : 'closed') } catch { /* the choice is just not remembered */ }
+  const setRail = (open: boolean) => {
+    setRailOpen(open)
+    try { localStorage.setItem('jaajef.rail', open ? 'open' : 'closed') } catch { /* the choice is just not remembered */ }
+  }
+  const toggleRail = () => setRail(!railOpen)
+  // Going somewhere from the bar closes it, so it does not stay in the way on the next screen.
+  const closeAfterLink = (e: MouseEvent<HTMLElement>) => {
+    if (railOpen && (e.target as HTMLElement).closest('a')) setRail(false)
   }
   // The number on the chat button: unread private messages plus unread community and project messages.
   // It is checked again on every page change and once a minute; if it cannot be read, no number shows.
@@ -107,7 +111,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             {chatUnread > 0 && <span className="bell-count" aria-hidden="true">{chatUnread > 99 ? '99+' : chatUnread}</span>}
           </NavLink>
           <NotificationBell />
-          <span className="kopeks-pill" aria-label={fr.nav.kopeks}>{member?.kopeks ?? 0} {fr.nav.kopeks}</span>
+          <NavLink to="/kopeks" className="kopeks-pill" aria-label={fr.nav.kopeks} title={fr.kopeks.buy}>{member?.kopeks ?? 0} {fr.nav.kopeks} <span className="kopeks-plus" aria-hidden="true">+</span></NavLink>
           <details className="account-menu">
             <summary className="avatar-btn" aria-label={fr.nav.account}>{member?.profile.avatar_url ? <img src={member.profile.avatar_url} alt="" /> : initial}</summary>
             <div className="account-pop">
@@ -122,7 +126,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </header>
       <div className={`shell-frame ${railOpen ? 'rail-open' : ''}`}>
-        <nav aria-label={fr.nav.railLabel} className={`rail ${railOpen ? 'rail-wide' : ''}`}>
+        <nav aria-label={fr.nav.railLabel} className={`rail ${railOpen ? 'rail-wide' : ''}`} onClick={closeAfterLink}>
           <NavLink to="/communautes" end className="rail-item rail-explore" title={fr.nav.communities} aria-label={fr.nav.communities}>
             <span className="rail-ico"><Icon name="compass" size={26} /></span>
             <span className="rail-label">{fr.nav.communities}</span>
