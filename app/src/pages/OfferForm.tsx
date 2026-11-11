@@ -1,8 +1,9 @@
-import { useEffect, useState, type FormEvent } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
+import { BackLink } from '../components/BackLink'
 import { useAuth } from '../auth/AuthContext'
-import { createJobOffer, getMyOffer, publishJobOffer, updateJobOffer, type OfferInput } from '../lib/api'
+import { createJobOffer, getMyEmployer, getMyOffer, publishJobOffer, setMyCompanyName, updateJobOffer, type OfferInput } from '../lib/api'
 import { friendlyError } from '../lib/errors'
 import { fr } from '../i18n/fr'
 
@@ -19,9 +20,23 @@ export function OfferForm() {
   const navigate = useNavigate()
   const [v, setV] = useState<OfferInput>(EMPTY)
   const [ready, setReady] = useState(!id)
+  const [company, setCompany] = useState('')
+  const [companyStart, setCompanyStart] = useState('')
+  const ownName = member?.profile.display_name ?? ''
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const set = <K extends keyof OfferInput>(k: K, val: OfferInput[K]) => setV((x) => ({ ...x, [k]: val }))
+
+  // A company name is shown only when the member gave one different from their own name.
+  useEffect(() => {
+    let alive = true
+    getMyEmployer(me).then((e) => {
+      if (!alive || !e || e.name === ownName) return
+      setCompany(e.name)
+      setCompanyStart(e.name)
+    }).catch(() => { /* the field just starts empty */ })
+    return () => { alive = false }
+  }, [me, ownName])
 
   useEffect(() => {
     if (!id) return
@@ -45,13 +60,14 @@ export function OfferForm() {
     setError(null)
     setBusy(true)
     try {
+      if (company.trim() !== companyStart) await setMyCompanyName(company)
       if (id) {
         await updateJobOffer(id, v)
         if (publish) await publishJobOffer(id)
       } else {
         await createJobOffer(v, publish)
       }
-      navigate('/employeur')
+      navigate(`/profil/${member?.profile.username ?? ''}`)
     } catch (err) {
       setError(friendlyError(err))
       setBusy(false)
@@ -60,54 +76,91 @@ export function OfferForm() {
 
   const valid = v.title.trim().length >= 3 && v.description.trim().length > 0
 
+  const profileLink = `/profil/${member?.profile.username ?? ''}`
+
   return (
     <AppShell>
-      <main className="page jobs">
-        <p><Link to="/employeur">← {fr.employer.back}</Link></p>
-        <header className="page-head"><h1 className="page-title">{id ? t.editTitle : t.newTitle}</h1></header>
+      <main className="page offer-page">
+        <BackLink to={profileLink}>{fr.employer.back}</BackLink>
+        <p className="eyebrow">{t.crumb}</p>
+        <h1 className="page-title">{id ? t.editTitle : t.newTitle}</h1>
+        <p className="muted">{t.subtitle}</p>
         {error && <div className="alert" role="alert">{error}</div>}
         {ready && (
           <form onSubmit={(e: FormEvent) => { e.preventDefault(); void submit(false) }}>
-            <div className="field"><label htmlFor="of-title">{t.title}</label><input id="of-title" maxLength={120} value={v.title} onChange={(e) => set('title', e.target.value)} /></div>
-            <div className="field">
-              <label htmlFor="of-kind">{t.kind}</label>
-              <select id="of-kind" value={v.kind} onChange={(e) => set('kind', e.target.value as OfferInput['kind'])}>
-                <option value="job">{t.job}</option>
-                <option value="freelance">{t.freelance}</option>
-              </select>
-            </div>
-            {v.kind === 'job' && (
-              <div className="field">
-                <label htmlFor="of-contract">{t.contract}</label>
-                <select id="of-contract" value={v.employment_type} onChange={(e) => set('employment_type', e.target.value)}>
-                  {Object.entries(t.contracts).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+            <ul className="settings-list panel form-list">
+              <Row id="of-title" label={t.title} hint={t.hints.title} required>
+                <input id="of-title" maxLength={120} value={v.title} onChange={(e) => set('title', e.target.value)} />
+              </Row>
+              <Row id="of-kind" label={t.kind} hint={t.hints.kind} required>
+                <select id="of-kind" value={v.kind} onChange={(e) => set('kind', e.target.value as OfferInput['kind'])}>
+                  <option value="job">{t.job}</option>
+                  <option value="freelance">{t.freelance}</option>
                 </select>
-              </div>
-            )}
-            <div className="field">
-              <label htmlFor="of-remote">{t.remote}</label>
-              <select id="of-remote" value={v.remote} onChange={(e) => set('remote', e.target.value)}>
-                {Object.entries(t.remotes).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
-              </select>
+              </Row>
+              {v.kind === 'job' && (
+                <Row id="of-contract" label={t.contract} hint={t.hints.contract} required>
+                  <select id="of-contract" value={v.employment_type} onChange={(e) => set('employment_type', e.target.value)}>
+                    {Object.entries(t.contracts).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+                  </select>
+                </Row>
+              )}
+              <Row id="of-desc" label={t.description} hint={t.hints.description} required>
+                <textarea id="of-desc" rows={8} maxLength={10000} value={v.description} onChange={(e) => set('description', e.target.value)} />
+              </Row>
+              <Row id="of-remote" label={t.remote} hint={t.hints.remote} required>
+                <select id="of-remote" value={v.remote} onChange={(e) => set('remote', e.target.value)}>
+                  {Object.entries(t.remotes).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+                </select>
+              </Row>
+              <Row id="of-place" label={t.place} hint={t.hints.place}>
+                <input id="of-place" maxLength={100} value={v.location} onChange={(e) => set('location', e.target.value)} />
+              </Row>
+              <Row id="of-min" label={t.payMin} hint={t.hints.pay}>
+                <input id="of-min" inputMode="numeric" value={v.pay_min} onChange={(e) => set('pay_min', e.target.value.replace(/\D/g, ''))} />
+              </Row>
+              <Row id="of-max" label={t.payMax}>
+                <input id="of-max" inputMode="numeric" value={v.pay_max} onChange={(e) => set('pay_max', e.target.value.replace(/\D/g, ''))} />
+              </Row>
+              <Row id="of-unit" label={t.payUnit}>
+                <select id="of-unit" value={v.pay_unit} onChange={(e) => set('pay_unit', e.target.value)}>
+                  {Object.entries(t.payUnits).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+                </select>
+              </Row>
+              <Row id="of-neg" label={t.negotiable}>
+                <input id="of-neg" type="checkbox" checked={v.pay_negotiable} onChange={(e) => set('pay_negotiable', e.target.checked)} />
+              </Row>
+              <Row id="of-tags" label={t.tags} hint={t.hints.tags}>
+                <input id="of-tags" value={v.tags} onChange={(e) => set('tags', e.target.value)} />
+              </Row>
+              <Row id="of-close" label={t.closesOn} hint={t.hints.closesOn}>
+                <input id="of-close" type="date" value={v.closes_on} onChange={(e) => set('closes_on', e.target.value)} />
+              </Row>
+              <Row id="of-company" label={t.companyName} hint={t.companyHint}>
+                <input id="of-company" maxLength={100} value={company} onChange={(e) => setCompany(e.target.value)} />
+              </Row>
+            </ul>
+            <p className="muted tiny">{t.requiredNote}</p>
+            <div className="form-actions">
+              <button type="submit" className="btn" disabled={busy || !valid}>{id ? t.save : t.saveDraft}</button>
+              <button type="button" className="btn btn-cta" disabled={busy || !valid} onClick={() => void submit(true)}>{t.saveAndPublish}</button>
             </div>
-            <div className="field"><label htmlFor="of-place">{t.place}</label><input id="of-place" maxLength={100} value={v.location} onChange={(e) => set('location', e.target.value)} /></div>
-            <div className="field"><label htmlFor="of-desc">{t.description}</label><textarea id="of-desc" rows={8} maxLength={10000} value={v.description} onChange={(e) => set('description', e.target.value)} /></div>
-            <div className="field"><label htmlFor="of-min">{t.payMin}</label><input id="of-min" inputMode="numeric" value={v.pay_min} onChange={(e) => set('pay_min', e.target.value.replace(/\D/g, ''))} /></div>
-            <div className="field"><label htmlFor="of-max">{t.payMax}</label><input id="of-max" inputMode="numeric" value={v.pay_max} onChange={(e) => set('pay_max', e.target.value.replace(/\D/g, ''))} /></div>
-            <div className="field">
-              <label htmlFor="of-unit">{t.payUnit}</label>
-              <select id="of-unit" value={v.pay_unit} onChange={(e) => set('pay_unit', e.target.value)}>
-                {Object.entries(t.payUnits).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
-              </select>
-            </div>
-            <div className="field"><label><input type="checkbox" checked={v.pay_negotiable} onChange={(e) => set('pay_negotiable', e.target.checked)} /> {t.negotiable}</label></div>
-            <div className="field"><label htmlFor="of-tags">{t.tags}</label><input id="of-tags" value={v.tags} onChange={(e) => set('tags', e.target.value)} /></div>
-            <div className="field"><label htmlFor="of-close">{t.closesOn}</label><input id="of-close" type="date" value={v.closes_on} onChange={(e) => set('closes_on', e.target.value)} /></div>
-            <button type="submit" className="btn" disabled={busy || !valid}>{id ? t.save : t.saveDraft}</button>{' '}
-            <button type="button" className="btn btn-cta" disabled={busy || !valid} onClick={() => void submit(true)}>{t.saveAndPublish}</button>
           </form>
         )}
       </main>
     </AppShell>
+  )
+}
+
+/** One entry of the form, laid out like a row of the settings screen: what it is on the left, the field on the right. */
+function Row({ id, label, hint, required, children }: { id: string; label: string; hint?: string; required?: boolean; children: ReactNode }) {
+  return (
+    <li className="form-row">
+      <div className="form-row-label">
+        <strong><label htmlFor={id}>{label}</label>{required ? <span className="req" aria-hidden="true"> *</span> : null}</strong>
+        {hint ? <span className="muted">{hint}</span> : null}
+      </div>
+      <div className="form-row-field">{children}</div>
+    </li>
   )
 }

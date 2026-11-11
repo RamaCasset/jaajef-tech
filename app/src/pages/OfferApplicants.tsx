@@ -2,6 +2,7 @@ import { dateLocale } from '../i18n/lang'
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
+import { useAuth } from '../auth/AuthContext'
 import {
   applicantCvLink, getApplicationDetail, listOfferApplicants, setApplicationStatus, startConversation,
   type Applicant, type ApplicantDetail, type ApplicantStatus,
@@ -13,6 +14,7 @@ export function OfferApplicants() {
   const t = fr.employer.applicantsPage
   const { id = '' } = useParams()
   const navigate = useNavigate()
+  const { member } = useAuth()
   const [filter, setFilter] = useState<ApplicantStatus | ''>('')
   const [list, setList] = useState<Applicant[] | null>(null)
   const [failed, setFailed] = useState(false)
@@ -70,7 +72,7 @@ export function OfferApplicants() {
   return (
     <AppShell>
       <main className="page jobs">
-        <p><Link to="/employeur">← {fr.employer.back}</Link></p>
+        <p><Link to={`/profil/${member?.profile.username ?? ''}`}>← {fr.employer.back}</Link></p>
         <header className="page-head"><h1 className="page-title">{t.title}</h1></header>
         <div role="tablist" className="souk-tabs">
           {(['', 'submitted', 'seen', 'shortlisted', 'declined'] as const).map((s) => (

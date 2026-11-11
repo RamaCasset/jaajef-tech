@@ -4,7 +4,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const api = vi.hoisted(() => ({
-  getMyEmployer: vi.fn(), createEmployer: vi.fn(), updateEmployer: vi.fn(),
+  getMyEmployer: vi.fn(), setMyCompanyName: vi.fn(),
   listMyOffers: vi.fn(), getMyOffer: vi.fn(), createJobOffer: vi.fn(), updateJobOffer: vi.fn(),
   publishJobOffer: vi.fn(), closeJobOffer: vi.fn(), unpublishJobOffer: vi.fn(), deleteJobOffer: vi.fn(),
   listOfferApplicants: vi.fn(), setApplicationStatus: vi.fn(), getApplicationDetail: vi.fn(),
@@ -12,10 +12,10 @@ const api = vi.hoisted(() => ({
 }))
 vi.mock('../lib/api', () => api)
 vi.mock('../auth/AuthContext', () => ({
-  useAuth: () => ({ member: { kopeks: 1, profile: { id: 'me', display_name: 'Moussa' } }, signOut: vi.fn() }),
+  useAuth: () => ({ member: { kopeks: 1, profile: { id: 'me', display_name: 'Moussa', username: 'moussa' } }, signOut: vi.fn() }),
 }))
 
-import { Employer } from '../pages/Employer'
+import { MyOffers } from '../components/MyOffers'
 import { OfferForm } from '../pages/OfferForm'
 import { OfferApplicants } from '../pages/OfferApplicants'
 
@@ -27,13 +27,13 @@ const offer = (id: string, status: string, extra = {}) => ({
   pay_min_fcfa: 500000, pay_max_fcfa: 900000, pay_unit: 'month', pay_negotiable: false, tags: ['React', 'SQL'], status, review_note: null,
   staff_hidden: false, closes_on: null, ...extra,
 })
-const mountHub = () => render(<MemoryRouter><Employer /></MemoryRouter>)
-const mountForm = (path = '/employeur/offres/nouvelle') => render(
+const mountHub = () => render(<MemoryRouter><MyOffers userId="me" own /></MemoryRouter>)
+const mountForm = (path = '/jobs/nouvelle') => render(
   <MemoryRouter initialEntries={[path]}>
     <Routes>
-      <Route path="/employeur/offres/nouvelle" element={<OfferForm />} />
-      <Route path="/employeur/offres/:id" element={<OfferForm />} />
-      <Route path="/employeur" element={<p>hub</p>} />
+      <Route path="/jobs/nouvelle" element={<OfferForm />} />
+      <Route path="/jobs/:id/modifier" element={<OfferForm />} />
+      <Route path="/profil/:username" element={<p>hub</p>} />
     </Routes>
   </MemoryRouter>,
 )
@@ -42,9 +42,9 @@ const applicant = (n: number, status = 'submitted') => ({
   skills: ['React'], status, applied_at: '2026-11-01T00:00:00Z', has_cv: true,
 })
 const mountApplicants = () => render(
-  <MemoryRouter initialEntries={['/employeur/offres/o1/candidatures']}>
+  <MemoryRouter initialEntries={['/jobs/o1/candidatures']}>
     <Routes>
-      <Route path="/employeur/offres/:id/candidatures" element={<OfferApplicants />} />
+      <Route path="/jobs/:id/candidatures" element={<OfferApplicants />} />
       <Route path="/messages/:id" element={<p>conversation ouverte</p>} />
     </Routes>
   </MemoryRouter>,
@@ -54,36 +54,27 @@ beforeEach(() => {
   vi.resetAllMocks()
   api.getMyEmployer.mockResolvedValue(emp())
   api.listMyOffers.mockResolvedValue([])
-  for (const k of ['createEmployer', 'updateEmployer', 'createJobOffer', 'updateJobOffer', 'closeJobOffer', 'unpublishJobOffer', 'deleteJobOffer', 'setApplicationStatus'] as const) api[k].mockResolvedValue(undefined)
+  for (const k of ['setMyCompanyName', 'createJobOffer', 'updateJobOffer', 'closeJobOffer', 'unpublishJobOffer', 'deleteJobOffer', 'setApplicationStatus'] as const) api[k].mockResolvedValue(undefined)
   api.publishJobOffer.mockResolvedValue('published')
   api.listOfferApplicants.mockResolvedValue([applicant(1), applicant(2, 'seen')])
   api.startConversation.mockResolvedValue('c1')
 })
 
-describe('Employer hub', () => {
-  it('lets a member create an employer profile', async () => {
-    api.getMyEmployer.mockResolvedValue(null)
-    mountHub()
-    await userEvent.selectOptions(await screen.findByLabelText('Vous êtes'), 'individual')
-    await userEvent.type(screen.getByLabelText('Nom'), 'Awa Diop')
-    await userEvent.click(screen.getByRole('button', { name: 'Créer mon profil' }))
-    await waitFor(() => expect(api.createEmployer).toHaveBeenCalledWith(expect.objectContaining({ kind: 'individual', name: 'Awa Diop' })))
-  })
-
-  it('shows the profile status and a refusal reason', async () => {
-    api.getMyEmployer.mockResolvedValue(emp('rejected', 'Site introuvable'))
-    mountHub()
-    expect(await screen.findByText(/a été refusé/)).toBeInTheDocument()
-    expect(screen.getByText('Motif : Site introuvable')).toBeInTheDocument()
-  })
-
-  it('publishes a draft and says when it goes to review', async () => {
+describe('My offers', () => {
+  it('publishes a draft', async () => {
     api.listMyOffers.mockResolvedValue([offer('o1', 'draft')])
-    api.publishJobOffer.mockResolvedValue('pending_review')
     mountHub()
     await userEvent.click(await screen.findByRole('button', { name: 'Publier : Offre o1' }))
     await waitFor(() => expect(api.publishJobOffer).toHaveBeenCalledWith('o1'))
-    expect(await screen.findByText(/envoyée à l'équipe pour relecture/)).toBeInTheDocument()
+    expect(await screen.findByText('Offre publiée.')).toBeInTheDocument()
+  })
+
+  it('shows only published offers on someone else\'s profile, without actions', async () => {
+    api.listMyOffers.mockResolvedValue([offer('d', 'draft'), offer('p', 'published')])
+    render(<MemoryRouter><MyOffers userId="other" own={false} /></MemoryRouter>)
+    expect(await screen.findByText('Offre p')).toBeInTheDocument()
+    expect(screen.queryByText('Offre d')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
 
   it('offers only the actions that fit each status', async () => {
@@ -116,13 +107,6 @@ describe('Employer hub', () => {
     confirm.mockRestore()
   })
 
-  it('shows a French message when publishing is refused', async () => {
-    api.listMyOffers.mockResolvedValue([offer('a', 'draft')])
-    api.publishJobOffer.mockRejectedValue(new Error('Your company is waiting for approval'))
-    mountHub()
-    await userEvent.click(await screen.findByRole('button', { name: 'Publier : Offre a' }))
-    expect(await screen.findByRole('alert')).toHaveTextContent("attend d'être validée")
-  })
 })
 
 describe('Offer form', () => {
@@ -135,6 +119,18 @@ describe('Offer form', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Enregistrer et publier' }))
     await waitFor(() => expect(api.createJobOffer).toHaveBeenCalledWith(expect.objectContaining({ title: 'Dev React', pay_min: '600000', tags: 'React, SQL' }), true))
     expect(await screen.findByText('hub')).toBeInTheDocument()
+  })
+
+  it('saves a new company name before the offer', async () => {
+    mountForm()
+    const company = await screen.findByLabelText("Nom de l'entreprise (facultatif)")
+    await userEvent.clear(company)
+    await userEvent.type(company, 'Teranga Tech')
+    await userEvent.type(screen.getByLabelText('Titre'), 'Dev React')
+    await userEvent.type(screen.getByLabelText('Description'), 'Texte')
+    await userEvent.click(screen.getByRole('button', { name: 'Enregistrer et publier' }))
+    await waitFor(() => expect(api.setMyCompanyName).toHaveBeenCalledWith('Teranga Tech'))
+    expect(api.createJobOffer).toHaveBeenCalled()
   })
 
   it('saves a draft without publishing', async () => {
@@ -160,7 +156,7 @@ describe('Offer form', () => {
 
   it('loads and updates an existing offer', async () => {
     api.getMyOffer.mockResolvedValue(offer('o9', 'draft'))
-    mountForm('/employeur/offres/o9')
+    mountForm('/jobs/o9/modifier')
     const title = await screen.findByDisplayValue('Offre o9')
     expect(screen.getByDisplayValue('React, SQL')).toBeInTheDocument()
     await userEvent.clear(title)
