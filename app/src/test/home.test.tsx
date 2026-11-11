@@ -107,20 +107,20 @@ describe('Cité home', () => {
     mount()
     expect(await screen.findByText('La Malédiction du Loop')).toBeInTheDocument()
     expect(screen.getByText(/25 min · \+250 XP · \+50 Kopeks · Il reste 5 h 12 min/)).toBeInTheDocument()
-    const link = screen.getByRole('link', { name: 'Commencer' })
+    const link = screen.getByRole('link', { name: 'Lancer la quête' })
     expect(link).toHaveAttribute('href', '/quetes/la-malediction-du-loop')
   })
 
   it('offers to resume a started quest and to review a solved one', async () => {
     getDailyQuest.mockResolvedValue(quest({ status: 'in_progress' }))
     const first = mount()
-    expect(await screen.findByRole('link', { name: 'Reprendre' })).toBeInTheDocument()
+    expect(await screen.findByRole('link', { name: 'Reprendre la quête' })).toBeInTheDocument()
     first.unmount()
     getDailyQuest.mockResolvedValue(quest({ status: 'solved' }))
     mount()
-    expect(await screen.findByRole('link', { name: 'Revoir' })).toBeInTheDocument()
+    expect(await screen.findByRole('link', { name: 'Revoir la quête' })).toBeInTheDocument()
     expect(screen.getByText(/Déjà résolue aujourd'hui/)).toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: 'Commencer' })).toBeNull()
+    expect(screen.queryByRole('link', { name: 'Lancer la quête' })).toBeNull()
   })
 
   it('shows minutes only when less than an hour is left', async () => {

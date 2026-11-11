@@ -98,7 +98,8 @@ export function Communities() {
 
   const needle = query.trim().toLowerCase()
   const matches = (c: Community) => (!needle || `${c.name} ${c.description ?? ''} ${(c.tags ?? []).join(' ')}`.toLowerCase().includes(needle)) && (!topic || c.topic === topic)
-  const mineShown = (mine ?? []).filter(matches)
+  const mineCommunities = (mine ?? []).filter((c) => !c.project_id)
+  const mineShown = mineCommunities.filter(matches)
   const othersShown = (others ?? []).filter(matches)
 
   const t = fr.communities
@@ -169,8 +170,8 @@ export function Communities() {
               <h2 className="community-heading">{t.mine}</h2>
               <span className="muted tiny">{t.mineCount(mineShown.length)}</span>
             </div>
-            {mine.length === 0 && <p className="muted">{t.mineEmpty}</p>}
-            {mine.length > 0 && mineShown.length === 0 && <p className="muted">{t.noMatch}</p>}
+            {mineCommunities.length === 0 && <p className="muted">{t.mineEmpty}</p>}
+            {mineCommunities.length > 0 && mineShown.length === 0 && <p className="muted">{t.noMatch}</p>}
             <div className="community-grid">
               {mineShown.map((c) => (
                 <article key={c.id} className={`panel community-card community-card-link community-topic-${c.topic ?? 'none'}`}>

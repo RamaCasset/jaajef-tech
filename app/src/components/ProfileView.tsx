@@ -6,7 +6,7 @@ import { BuildBadge, ClanTag } from './ProjectCard'
 import { dateLocale } from '../i18n/lang'
 import { fr } from '../i18n/fr'
 import { friendlyError } from '../lib/errors'
-import { listMyBlogPosts, startConversation, type MyBlogPost, type ProfileData } from '../lib/api'
+import { listMyBlogPosts, listAuthorBlogPosts, startConversation, type MyBlogPost, type ProfileData } from '../lib/api'
 
 type Tab = 'code' | 'blog'
 
@@ -22,9 +22,12 @@ export function ProfileView({ data, viewerId, extra }: { data: ProfileData; view
   const own = p.id === viewerId
 
   useEffect(() => {
-    if (tab !== 'blog' || !own || posts !== null) return
+    if (tab !== 'blog' || posts !== null) return
     let alive = true
-    listMyBlogPosts(p.id).then((list) => { if (alive) setPosts(list.filter((x) => x.status === 'published' && !x.staff_hidden)) }).catch(() => { if (alive) setPostsFailed(true) })
+    const load = own
+      ? listMyBlogPosts(p.id).then((list) => list.filter((x) => x.status === 'published' && !x.staff_hidden))
+      : listAuthorBlogPosts(p.id)
+    load.then((list) => { if (alive) setPosts(list) }).catch(() => { if (alive) setPostsFailed(true) })
     return () => { alive = false }
   }, [tab, own, posts, p.id])
 
@@ -39,7 +42,7 @@ export function ProfileView({ data, viewerId, extra }: { data: ProfileData; view
   const level = 1 + Math.floor(p.xp / xpPerLevel)
   const inLevel = p.xp % xpPerLevel
   const since = new Date(p.created_at).toLocaleDateString(dateLocale(), { month: 'long', year: 'numeric' })
-  const tabs: Tab[] = own ? ['code', 'blog'] : ['code']
+  const tabs: Tab[] = ['code', 'blog']
 
   return (
     <>
@@ -92,7 +95,7 @@ export function ProfileView({ data, viewerId, extra }: { data: ProfileData; view
 
       <div role="tablist" className="profile-tabs" aria-label={t.tabsLabel}>
         {tabs.map((k) => (
-          <button key={k} type="button" role="tab" aria-selected={tab === k} className={`profile-tab ${tab === k ? 'profile-tab-on' : ''}`} onClick={() => setTab(k)}>{k === 'code' && !own ? t.projectsOther : t.tabs[k]}</button>
+          <button key={k} type="button" role="tab" aria-selected={tab === k} className={`profile-tab ${tab === k ? 'profile-tab-on' : ''}`} onClick={() => setTab(k)}>{!own ? (k === 'code' ? t.projectsOther : t.blogOther) : t.tabs[k]}</button>
         ))}
       </div>
 
