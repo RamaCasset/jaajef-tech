@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Icon } from './Icon'
+import { MyApplications } from './MyApplications'
 import { MyOffers } from './MyOffers'
 import { ReportButton } from './ReportButton'
 import { BuildBadge, ClanTag } from './ProjectCard'
@@ -9,7 +10,7 @@ import { fr } from '../i18n/fr'
 import { friendlyError } from '../lib/errors'
 import { listMyBlogPosts, listAuthorBlogPosts, startConversation, type MyBlogPost, type ProfileData } from '../lib/api'
 
-type Tab = 'code' | 'blog' | 'offers'
+type Tab = 'code' | 'blog' | 'offers' | 'applications'
 
 /** A member's page: cover, identity, level, numbers, then tabs. Used for profiles and for the Cité home (with `extra` under the numbers). */
 export function ProfileView({ data, viewerId, extra }: { data: ProfileData; viewerId: string; extra?: ReactNode }) {
@@ -43,7 +44,7 @@ export function ProfileView({ data, viewerId, extra }: { data: ProfileData; view
   const level = 1 + Math.floor(p.xp / xpPerLevel)
   const inLevel = p.xp % xpPerLevel
   const since = new Date(p.created_at).toLocaleDateString(dateLocale(), { month: 'long', year: 'numeric' })
-  const tabs: Tab[] = own ? ['code', 'blog', 'offers'] : ['code', 'blog']
+  const tabs: Tab[] = own ? ['code', 'blog', 'offers', 'applications'] : ['code', 'blog']
 
   return (
     <>
@@ -126,6 +127,7 @@ export function ProfileView({ data, viewerId, extra }: { data: ProfileData; view
 
 
       {tab === 'offers' && own && <MyOffers userId={p.id} />}
+      {tab === 'applications' && own && <MyApplications />}
 
       {tab === 'blog' && (
         <section aria-labelledby="pbl">
