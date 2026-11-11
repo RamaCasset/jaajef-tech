@@ -485,6 +485,31 @@ export async function runQuest(questId: string, code: string): Promise<RunOutcom
   return data as RunOutcome
 }
 
+// ---- Buying Kopeks (PayDunya) ----------------------------------------------------------------------------
+export type KopekMethod = 'wave' | 'orange' | 'card'
+export type KopekPaymentOutcome = 'credited' | 'already' | 'pending' | 'failed' | 'cancelled' | 'amount_mismatch' | 'unknown' | 'unavailable'
+
+async function paymentCall<T>(body: Record<string, unknown>): Promise<T> {
+  const { data, error } = await supabase.functions.invoke('kopeks-payment', { body })
+  if (error) {
+    let reason = 'unknown'
+    const context = (error as { context?: unknown }).context
+    if (context instanceof Response) {
+      try { reason = String((await context.json())?.error ?? 'unknown') } catch { /* keep unknown */ }
+    }
+    throw new Error(reason)
+  }
+  return data as T
+}
+
+/** Opens a payment page for a pack. Returns the address to send the member to. */
+export const startKopekPurchase = (kopeks: number, method: KopekMethod, phone: string) =>
+  paymentCall<{ url: string }>({ action: 'create', kopeks, method, phone })
+
+/** Asks the server what became of a payment, after the member comes back from the payment page. */
+export const confirmKopekPurchase = (token: string) =>
+  paymentCall<{ outcome: KopekPaymentOutcome; kopeks: number }>({ action: 'confirm', token })
+
 // ---------------------------------------------------------------------
 // The Cité home page
 // ---------------------------------------------------------------------
@@ -738,6 +763,11 @@ export type BlogCard = {
 }
 export const listBlogPosts = (tag: string, limit = 20, offset = 0) =>
   rpc<BlogCard[]>('list_blog_posts', { p_tag: tag.trim() || null, p_author: null, p_limit: limit, p_offset: offset })
+/** Published posts of one member, newest first, in the shape the profile list uses. */
+export async function listAuthorBlogPosts(authorId: string): Promise<MyBlogPost[]> {
+  const cards = await rpc<BlogCard[]>('list_blog_posts', { p_tag: null, p_author: authorId, p_limit: 50, p_offset: 0 })
+  return cards.map((c) => ({ id: c.id, slug: c.slug, title: c.title, status: 'published' as const, staff_hidden: false, updated_at: c.published_at }))
+}
 export const likeBlogPost = (id: string) => rpc<void>('like_blog_post', { p_post: id })
 export const unlikeBlogPost = (id: string) => rpc<void>('unlike_blog_post', { p_post: id })
 

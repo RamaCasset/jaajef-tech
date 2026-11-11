@@ -266,7 +266,7 @@ export function Quests() {
             {shown.map((q) => <QuestCard key={q.id} quest={q} progress={byQuest.get(q.id)} />)}
           </div>
         ) : null}
-        <p className="quest-foot-note muted tiny">{fr.quests.footNote} · <Link to="/guide">{fr.quests.guide}</Link></p>
+        <p className="quest-foot-note muted tiny">{fr.quests.footNote}</p>
       </main>
     </AppShell>
   )

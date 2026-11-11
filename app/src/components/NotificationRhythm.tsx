@@ -39,7 +39,7 @@ export function NotificationRhythm() {
           </label>
         )
       })}
-      <Link className="btn" to="/parametres#notifications">{t.managePrefs}</Link>
+      <Link className="btn" to="/parametres/compte#notifications">{t.managePrefs}</Link>
     </section>
   )
 }

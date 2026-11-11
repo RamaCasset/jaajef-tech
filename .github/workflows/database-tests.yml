@@ -78,6 +78,9 @@ jobs:
       - name: Run the content import tool test
         run: node --test tools/import-content.test.mjs
 
+      - name: Run the Kopeks payment test (real database, pretend PayDunya)
+        run: node --experimental-strip-types supabase/functions/kopeks-payment/payment.test.mjs
+
       - name: Run the E2B runner test (real python and node, pretend E2B)
         run: node --experimental-strip-types supabase/functions/e2b-runner/runner.test.mjs
 
