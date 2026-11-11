@@ -5,6 +5,7 @@
 - `demo_more_themes.sql` adds six more colour themes (coral, red earth, hibiscus, savanna, indigo, silver). Run it after `demo_souk.sql`.
 - `demo_paths.sql` adds one sample learning path per clan (3 short placeholder lessons each). Run it after `learning_paths`; running it again resets it. `demo_data_remove.sql` does not remove it; to remove it run `delete from public.learning_paths where slug like '%-demo';`.
 - `demo_souk.sql` adds the nine Souk creations of Marie's screen (3 themes that really change the app colours, 3 frames, 3 badges) and takes every other item off sale, so the shop shows exactly those nine. Run it after `demo_data.sql` and `souk_creator_on_shop`; running it again resets it.
+- `demo_jobs.sql` adds 10 sample job offers (8 live, 1 draft, 1 closed) from five sample members, and 14 applications from other sample members at different stages (sent, seen, interview, declined). Run it after `demo_data.sql` and the open job posting file; running it again resets it. `demo_data_remove.sql` removes it too.
 - `demo_data_remove.sql` removes all of it. Real members and their content are never touched.
 
 Every sample member has an e-mail ending in `@demo.jaajef.invalid` (an address that cannot exist), has no password and cannot sign in.
