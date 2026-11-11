@@ -3,6 +3,7 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { GithubButton } from '../components/GithubButton'
+import { SiteFooter } from '../components/SiteFooter'
 import { Logo } from '../components/Logo'
 import { Stepper } from '../components/Stepper'
 import { fr } from '../i18n/fr'
@@ -66,6 +67,7 @@ export function Signup() {
           {fr.signup.agreeBefore}<Link to="/conditions">{fr.signup.terms}</Link>{fr.signup.agreeMiddle}<Link to="/confidentialite">{fr.signup.privacy}</Link>{fr.signup.agreeAfter}
         </p>
       </form>
+      <SiteFooter />
     </main>
   )
 }

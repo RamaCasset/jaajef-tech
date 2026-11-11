@@ -1,3 +1,4 @@
+import { SiteFooter } from '../components/SiteFooter'
 import { Link } from 'react-router-dom'
 import { CornerArt } from '../components/CornerArt'
 import mascot from '../assets/landing/splash-mascot.webp'
@@ -17,9 +18,7 @@ export function Splash() {
         <Link className="btn btn-cta" to="/inscription">{t.signUp}</Link>
         <Link className="btn" to="/connexion">{t.signIn}</Link>
       </div>
-      <p className="tiny splash-legal">
-        <Link to="/conditions">{t.terms}</Link> · <Link to="/confidentialite">{t.privacy}</Link> · <Link to="/regles">{t.rules}</Link>
-      </p>
+      <SiteFooter />
     </main>
   )
 }

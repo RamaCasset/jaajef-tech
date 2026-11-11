@@ -1,6 +1,7 @@
 import { useEffect, useState, type MouseEvent, type ReactNode } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
+import { SiteFooter } from './SiteFooter'
 import { Logo } from './Logo'
 import { Icon } from './Icon'
 import { LanguageSwitch } from './LanguageSwitch'
@@ -150,7 +151,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             </NavLink>
           ))}
         </nav>
-        <div className="shell-body">{children}</div>
+        <div className="shell-body">{children}<SiteFooter /></div>
       </div>
     </div>
   )

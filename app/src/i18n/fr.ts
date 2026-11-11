@@ -8,20 +8,21 @@ export const frMessages = {
     loading: 'Chargement…',
     unknownError: 'Une erreur est survenue. Réessayez dans un instant.',
   },
-  splash: {
-    terms: 'Conditions',
+  footer: {
+    label: 'Informations légales',
+    terms: "Conditions d'utilisation",
     privacy: 'Confidentialité',
-    rules: 'Règles',
+    rules: 'Règles de la communauté',
+    jobRules: 'Règles des offres',
+    credit: 'Conçu par Jarama Tech SAS',
+  },
+  splash: {
     tagline: 'La tech entre nous !',
     about: 'À propos',
     signUp: "S'inscrire",
     signIn: 'Se connecter',
   },
   about: {
-    terms: 'Conditions',
-    privacy: 'Confidentialité',
-    rules: 'Règles de la communauté',
-    jobRules: 'Règles des offres',
     title: "Bienvenue sur jaajef.tech, l'entre magique où la tech africaine forge son avenir.",
     p1: "Au-delà des salons et groupes de discussion classiques et des dépôts de code solitaires, il manquait un espace à notre image. Un lieu où les développeurs, designers, experts IA et passionnés de tech d'Afrique et de sa diaspora peuvent se rassembler, collaborer sans filtre, et repousser les limites de leur art et de leurs compétences.",
     p2: "jaajef.tech est né d'une conviction simple : la culture geek et l'excellence technique en Afrique méritent leur propre sanctuaire. Un endroit où dire « jaajëf » (merci en langue wolof) devient le moteur d'une communauté qui s'entraide, partage ses projets et célèbre chaque victoire technique.",

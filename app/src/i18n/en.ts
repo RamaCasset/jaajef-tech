@@ -8,20 +8,21 @@ export const en: Messages = {
     loading: 'Loading…',
     unknownError: 'Something went wrong. Please try again in a moment.',
   },
-  splash: {
-    terms: 'Terms',
+  footer: {
+    label: 'Legal information',
+    terms: 'Terms of use',
     privacy: 'Privacy',
-    rules: 'Rules',
+    rules: 'Community rules',
+    jobRules: 'Job rules',
+    credit: 'Design by Jarama Tech SAS',
+  },
+  splash: {
     tagline: 'Tech, among us!',
     about: 'About',
     signUp: 'Sign up',
     signIn: 'Sign in',
   },
   about: {
-    terms: 'Terms',
-    privacy: 'Privacy',
-    rules: 'Community rules',
-    jobRules: 'Job rules',
     title: 'Welcome to jaajef.tech, the magic den where African tech forges its future.',
     p1: 'Beyond the usual chat rooms and lonely code repositories, a space in our own image was missing. A place where developers, designers, AI experts and tech enthusiasts from Africa and its diaspora can gather, collaborate openly, and push the limits of their craft and skills.',
     p2: 'jaajef.tech was born from a simple belief: geek culture and technical excellence in Africa deserve their own sanctuary. A place where saying "jaajëf" (thank you in Wolof) becomes the engine of a community that helps each other, shares its projects and celebrates every technical victory.',

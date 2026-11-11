@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 import { Legal } from '../pages/Legal'
@@ -9,8 +9,16 @@ describe('Legal pages', () => {
     render(<MemoryRouter><Legal doc="privacy" /></MemoryRouter>)
     expect(screen.getByRole('heading', { level: 1, name: 'Politique de confidentialité' })).toBeInTheDocument()
     expect(screen.getByRole('note')).toHaveTextContent('Version provisoire')
-    expect(screen.getByRole('link', { name: "Conditions d'utilisation" })).toHaveAttribute('href', '/conditions')
-    expect(screen.getByRole('link', { name: 'Règles des offres' })).toHaveAttribute('href', '/regles-offres')
+    const menu = within(screen.getByRole('navigation', { name: 'Textes et règles' }))
+    expect(menu.getByRole('link', { name: "Conditions d'utilisation" })).toHaveAttribute('href', '/conditions')
+    expect(menu.getByRole('link', { name: 'Règles des offres' })).toHaveAttribute('href', '/regles-offres')
+  })
+
+  it('has a footer with the legal links and the credit', () => {
+    render(<MemoryRouter><Legal doc="terms" /></MemoryRouter>)
+    const foot = within(screen.getByRole('contentinfo'))
+    expect(foot.getByRole('link', { name: 'Confidentialité' })).toHaveAttribute('href', '/confidentialite')
+    expect(foot.getByText('Conçu par Jarama Tech SAS')).toBeInTheDocument()
   })
 
   it('has the same texts and sections in French and English', () => {

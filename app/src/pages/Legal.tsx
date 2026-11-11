@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { CornerArt } from '../components/CornerArt'
+import { SiteFooter } from '../components/SiteFooter'
 import { Logo } from '../components/Logo'
 import { legal, type LegalDocKey } from '../i18n/legal'
 import { getLang } from '../i18n/lang'
@@ -38,6 +39,7 @@ export function Legal({ doc }: { doc: LegalDocKey }) {
           </section>
         ))}
       </article>
+      <SiteFooter />
     </main>
   )
 }

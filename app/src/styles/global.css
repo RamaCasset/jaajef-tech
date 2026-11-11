@@ -1444,3 +1444,8 @@ div.alert[data-dismissed], p.alert[data-dismissed], div.notice[data-dismissed], 
 .legal-section h2 { font-size: 1.1rem; margin: 0 0 8px; }
 .splash-legal, .about-legal { margin-top: 16px; text-align: center; }
 .splash-legal a, .about-legal a { color: inherit; opacity: 0.8; }
+.site-footer { margin: 40px 16px 24px; padding-top: 16px; border-top: 1px solid var(--line); text-align: center; font-size: 0.85rem; color: var(--fg-muted); }
+.site-footer nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 18px; margin-bottom: 8px; }
+.site-footer a { color: inherit; opacity: 0.85; }
+.site-footer a:hover { opacity: 1; text-decoration: underline; }
+.site-footer p { margin: 0; }
