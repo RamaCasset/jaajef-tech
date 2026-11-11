@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
+import { BackLink } from '../components/BackLink'
 import { useAuth } from '../auth/AuthContext'
 import { fr } from '../i18n/fr'
 import { friendlyError } from '../lib/errors'
@@ -85,6 +86,7 @@ export function EditProfile() {
   return (
     <AppShell>
       <main className="page souk">
+        <BackLink to="/parametres">{fr.settingsHub.backToSettings}</BackLink>
         <header className="page-head">
           <h1 className="page-title">{fr.editProfile.title}</h1>
         </header>
