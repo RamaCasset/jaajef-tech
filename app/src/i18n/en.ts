@@ -682,6 +682,8 @@ export const en: Messages = {
     page: {
       crumb: 'Quests',
       statementTitle: 'Quest statement',
+      tabResults: 'Results',
+      terminalSummary: (done: number, total: number) => `${total - done} failed, ${done} passed`,
       resultsTitle: 'Test results',
       noResultsYet: 'Run the tests to see the result here.',
       passedChip: (done: number, total: number): string => `${done} / ${total} passed`,

@@ -682,6 +682,8 @@ export const frMessages = {
     page: {
       crumb: 'Quêtes',
       statementTitle: 'Énoncé de la quête',
+      tabResults: 'Résultats',
+      terminalSummary: (done: number, total: number) => `${total - done} échoué(s), ${done} réussi(s)`,
       resultsTitle: 'Résultats des tests',
       noResultsYet: 'Lancez les tests pour voir le résultat ici.',
       passedChip: (done: number, total: number): string => `${done} / ${total} réussis`,
