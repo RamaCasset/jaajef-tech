@@ -69,6 +69,16 @@ describe('Buy Kopeks', () => {
   })
 })
 
+describe('Payment not set up', () => {
+  it('names the missing settings so they can be fixed', async () => {
+    startKopekPurchase.mockRejectedValue(new Error('not_configured:SITE_URL, PAYDUNYA_TOKEN'))
+    render(<MemoryRouter><BuyKopeks /></MemoryRouter>)
+    await userEvent.click(screen.getByRole('radio', { name: 'Carte bancaire' }))
+    await userEvent.click(screen.getByRole('button', { name: /^Payer/ }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('SITE_URL, PAYDUNYA_TOKEN')
+  })
+})
+
 describe('Return from the payment page', () => {
   const at = (q: string) => render(<MemoryRouter initialEntries={[`/kopeks/retour${q}`]}><KopeksReturn /></MemoryRouter>)
 

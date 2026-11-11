@@ -183,9 +183,12 @@ export async function handler(request: Request, getEnv: (name: string) => string
     siteUrl: (getEnv('SITE_URL') ?? '').replace(/\/+$/, ''),
     baseUrl: getEnv('PAYDUNYA_BASE_URL') || undefined, // for tests only
   }
-  if (!env.supabaseUrl || !env.serviceKey || !env.masterKey || !env.privateKey || !env.paydunyaToken || !env.siteUrl) {
-    return jsonResponse({ error: 'not_configured' }, 503)
-  }
+  // Say WHICH settings are missing (names only, never values), so the setup can be fixed without guessing.
+  const missing = [
+    ['SUPABASE_URL', env.supabaseUrl], ['SUPABASE_SERVICE_ROLE_KEY', env.serviceKey], ['PAYDUNYA_MASTER_KEY', env.masterKey],
+    ['PAYDUNYA_PRIVATE_KEY', env.privateKey], ['PAYDUNYA_TOKEN', env.paydunyaToken], ['SITE_URL', env.siteUrl],
+  ].filter(([, value]) => !value).map(([name]) => name)
+  if (missing.length > 0) return jsonResponse({ error: 'not_configured', missing }, 503)
 
   const type = request.headers.get('content-type') ?? ''
   const auth = request.headers.get('authorization') ?? ''
