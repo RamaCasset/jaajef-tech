@@ -1,0 +1,160 @@
+path,position,title,lesson,mastery,minutes,quest
+devenir-griot-du-code,1,"Une variable, c'est une boîte","# Une variable
+
+Une variable garde une valeur sous un nom.
+
+```python
+prix = 500
+nom = ""Awa""
+```
+
+On peut relire la valeur et la changer :
+
+```python
+prix = prix + 100
+```
+
+Choisissez des noms clairs : `prix_total` se comprend mieux que `x`.",ndongo,5,
+devenir-griot-du-code,2,Du texte et des f-strings,"# Le texte
+
+Un texte s'écrit entre guillemets. Une *f-string* y insère des valeurs :
+
+```python
+nom = ""Awa""
+print(f""Salam, {nom} !"")
+```
+
+Méthodes utiles : `strip()` enlève les espaces autour, `lower()` met en minuscules.",ndongo,6,salutation-du-marche
+devenir-griot-du-code,3,Faire des choix avec if,"# Les conditions
+
+```python
+if age >= 18:
+    print(""majeur"")
+else:
+    print(""mineur"")
+```
+
+Une chaîne vide, une liste vide et `0` comptent comme « faux ». Le reste compte comme « vrai ».",ndongo,6,
+devenir-griot-du-code,4,Parcourir une liste,"# Les boucles
+
+`for` traite chaque élément à son tour :
+
+```python
+total = 0
+for n in [3, 5, 8]:
+    total += n
+```
+
+Le reste d'une division s'obtient avec `%` : `8 % 2` vaut `0`, donc 8 est pair.",bagne,8,somme-des-pairs
+devenir-griot-du-code,5,"Min, max et listes vides","# Les fonctions toutes faites
+
+`len`, `sum`, `min`, `max`, `sorted` travaillent sur une liste.
+
+Piège classique : `max([])` provoque une erreur. Testez d'abord si la liste est vide.",bagne,7,le-plus-grand-ecart
+devenir-griot-du-code,6,Compter avec un dictionnaire,"# Les dictionnaires
+
+Un dictionnaire associe une clé à une valeur :
+
+```python
+stock = {""mangues"": 12, ""oranges"": 7}
+stock[""mangues""] += 1
+```
+
+`d.setdefault(cle, [])` crée la valeur si la clé n'existe pas encore.",bagne,9,grouper-par-longueur
+devenir-forgeron,1,"Une page, c'est du HTML","# HTML
+
+HTML décrit le contenu : titres (`h1`, `h2`), paragraphes (`p`), liens (`a`), images (`img`).
+
+```html
+<h1>Bienvenue</h1>
+<p>Un texte.</p>
+```
+
+Choisissez la balise pour son sens, pas pour son apparence.",ndongo,6,
+devenir-forgeron,2,Les balises qui ont du sens,"# HTML sémantique
+
+`header`, `nav`, `main`, `section`, `footer` disent à quoi sert chaque zone. Les lecteurs d'écran et les moteurs de recherche s'en servent.
+
+Une seule balise `h1` par page, puis `h2`, `h3` dans l'ordre.",ndongo,6,
+devenir-forgeron,3,CSS : couleurs et texte,"# CSS
+
+CSS décrit l'apparence.
+
+```css
+h1 { color: #f0b24a; font-size: 2rem; }
+```
+
+Un sélecteur (`h1`), puis des propriétés entre accolades.",ndongo,7,
+devenir-forgeron,4,Espacer et aligner,"# Le modèle de boîte
+
+Chaque élément a un contenu, un `padding` (dedans), une bordure et une `margin` (dehors).
+
+Pour aligner : `display: flex;` avec `gap` pour l'espace entre éléments.",bagne,8,
+devenir-forgeron,5,Contraste et accessibilité,"# Accessibilité
+
+- Contraste : le texte doit se lire sur son fond (visez un rapport d'au moins 4,5 pour 1).
+- Chaque image a un texte alternatif (`alt`).
+- Tout se fait aussi au clavier.
+
+Une interface accessible est une meilleure interface pour tout le monde.",bagne,8,
+devenir-forgeron,6,S'adapter à tous les écrans,"# Responsive
+
+Le site doit marcher sur un téléphone. Utilisez des largeurs relatives (`%`, `rem`) et une règle `@media (max-width: 600px) { ... }` pour changer la mise en page.",bagne,8,
+devenir-saltigue,1,Lire une série de chiffres,"# Les données
+
+Une liste de nombres peut être résumée par quelques chiffres : le total, la plus petite et la plus grande valeur, la moyenne.
+
+Commencez toujours par regarder les données : combien de valeurs ? des trous ? des valeurs étranges ?",ndongo,6,
+devenir-saltigue,2,La moyenne,"# La moyenne
+
+Somme divisée par le nombre de valeurs.
+
+```python
+sum(v) / len(v)
+```
+
+Attention à la liste vide : on ne divise pas par zéro. `round(x, 2)` arrondit.",ndongo,6,moyenne-des-ventes
+devenir-saltigue,3,La médiane,"# La médiane
+
+La valeur du milieu une fois les chiffres triés. Elle résiste aux valeurs extrêmes : dans `[1, 2, 3, 1000]`, la moyenne est trompeuse, la médiane non.",ndongo,8,valeur-mediane
+devenir-saltigue,4,Le mode,"# Le mode
+
+La valeur la plus fréquente. On compte avec un dictionnaire, puis on cherche le plus grand compte. Il faut décider ce qu'on fait en cas d'égalité : ici, la plus petite valeur.",bagne,8,valeur-la-plus-frequente
+devenir-saltigue,5,Mettre à la même échelle,"# Normaliser
+
+Pour comparer des notes sur 20 et des notes sur 100, on les ramène entre 0 et 1 :
+
+`(x - min) / (max - min)`
+
+Si toutes les valeurs sont égales, max - min vaut 0 : traitez ce cas à part.",bagne,9,normaliser-les-scores
+devenir-saltigue,6,Raconter ce que disent les chiffres,"# Conclure
+
+Un chiffre seul ne dit rien. Dites ce qu'il signifie, comparé à quoi, et ce que vous ne savez pas encore.
+
+Exemple : « Les ventes moyennes sont de 3,67 mais une journée sort du lot : à vérifier. »",bagne,6,
+devenir-buur-linguere,1,Pourquoi la sécurité compte,"# Les bases
+
+Un système est aussi solide que son maillon le plus faible. Trois questions : qu'est-ce qu'on protège, contre qui, et que se passe-t-il si ça casse ?
+
+La sécurité est un réflexe, pas une option ajoutée à la fin.",ndongo,5,
+devenir-buur-linguere,2,Des mots de passe solides,"# Les mots de passe
+
+La longueur compte plus que les symboles. Une phrase de passe longue vaut mieux qu'un mot court compliqué.
+
+Un mot de passe ne se réutilise jamais, et se range dans un gestionnaire.",ndongo,7,mot-de-passe-solide
+devenir-buur-linguere,3,Cacher ce qui est privé,"# La vie privée
+
+Montrez le minimum nécessaire. Une adresse e-mail s'affiche masquée : `m*****@exemple.sn`.
+
+Moins on expose de données, moins il y a à perdre en cas de fuite.",ndongo,6,masquer-l-email
+devenir-buur-linguere,4,Un premier chiffrement,"# Le chiffre de César
+
+On décale chaque lettre d'un nombre fixe de places. C'est un jeu : il se casse en quelques secondes. Mais il montre l'idée : une clé (le décalage) transforme un message lisible en message illisible.
+
+Le vrai chiffrement utilise des clés très longues et des algorithmes éprouvés. N'inventez jamais le vôtre.",bagne,9,chiffre-de-cesar
+devenir-buur-linguere,5,Les adresses du réseau,"# Adresses IP
+
+Une adresse IPv4 a 4 nombres de 0 à 255. Valider ce qu'on reçoit est un réflexe de sécurité : on ne fait jamais confiance à une entrée.",bagne,9,adresse-ip-valide
+devenir-buur-linguere,6,Ne jamais faire confiance à l'entrée,"# Valider les entrées
+
+Tout ce qui vient de l'extérieur (formulaire, URL, fichier) peut être piégé. Vérifiez le type, la taille, le format. Refusez ce qui ne ressemble pas à ce que vous attendez.",bagne,6,
