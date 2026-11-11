@@ -50,3 +50,7 @@ A checklist. Nothing here is done yet unless it says so. No platform can be prom
 - Do not store members' code on the platform.
 - The code editor (Monaco) loads its files from a public CDN (jsDelivr) when the editor page opens. Before launch, host these files ourselves, or allow that address in the site's content security rules, so the editor does not depend on a third party.
 - The editor saves commits under the app's name (the member's name appears in the message footer). Decide if that is acceptable, or if commits should carry the member's own name.
+
+## Job offer reminders
+
+- Set up the daily reminder for offers left open too long: see `JOB_REMINDERS_SETUP.md`. Decide the time of day, and whether 90 days is the right limit (`job_offer_stale_days`).

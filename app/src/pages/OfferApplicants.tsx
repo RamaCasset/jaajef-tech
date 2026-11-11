@@ -4,8 +4,8 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
 import { useAuth } from '../auth/AuthContext'
 import {
-  applicantCvLink, getApplicationDetail, listOfferApplicants, setApplicationStatus, startConversation,
-  type Applicant, type ApplicantDetail, type ApplicantStatus,
+  applicantCvLink, closeJobOffer, getApplicationDetail, getMyOffer, listOfferApplicants, setApplicationStatus, startConversation,
+  type Applicant, type ApplicantDetail, type ApplicantStatus, type MyOffer,
 } from '../lib/api'
 import { friendlyError } from '../lib/errors'
 import { fr } from '../i18n/fr'
@@ -22,12 +22,30 @@ export function OfferApplicants() {
   const [busy, setBusy] = useState(false)
   const [open, setOpen] = useState<string | null>(null)
   const [detail, setDetail] = useState<ApplicantDetail | null>(null)
+  const [offer, setOffer] = useState<MyOffer | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
 
   const load = useCallback(() => {
     setFailed(false)
     listOfferApplicants(id, filter).then(setList).catch(() => setFailed(true))
   }, [id, filter])
   useEffect(() => { setList(null); load() }, [load])
+  const myId = member?.profile.id ?? ''
+  useEffect(() => { getMyOffer(myId, id).then(setOffer).catch(() => { /* the title is a bonus */ }) }, [myId, id])
+
+  async function closeOffer() {
+    setBusy(true)
+    setError(null)
+    try {
+      await closeJobOffer(id)
+      setNotice(t.closed)
+      setOffer((o) => (o ? { ...o, status: 'closed' } : o))
+    } catch (e) {
+      setError(friendlyError(e))
+    } finally {
+      setBusy(false)
+    }
+  }
 
   async function setStatus(a: Applicant, status: 'seen' | 'shortlisted' | 'declined') {
     setBusy(true)
@@ -73,7 +91,11 @@ export function OfferApplicants() {
     <AppShell>
       <main className="page jobs">
         <p><Link to={`/profil/${member?.profile.username ?? ''}`}>← {fr.employer.back}</Link></p>
-        <header className="page-head"><h1 className="page-title">{t.title}</h1></header>
+        <header className="page-head">
+          <h1 className="page-title">{t.title}{offer ? ` · ${offer.title}` : ''}</h1>
+          {offer?.status === 'published' ? <p><button type="button" className="btn" disabled={busy} onClick={() => void closeOffer()}>{t.closeOffer}</button> <span className="muted tiny">{t.closeHint}</span></p> : null}
+        </header>
+        {notice && <div className="notice" role="status">{notice}</div>}
         <div role="tablist" className="souk-tabs">
           {(['', 'submitted', 'seen', 'shortlisted', 'declined'] as const).map((s) => (
             <button key={s || 'all'} type="button" role="tab" aria-selected={filter === s} className={`pill ${filter === s ? 'pill-on' : ''}`} onClick={() => setFilter(s)}>

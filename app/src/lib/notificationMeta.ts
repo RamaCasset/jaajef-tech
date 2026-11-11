@@ -9,7 +9,7 @@ const CATEGORY: Record<NotificationKind, Category> = {
   mention: 'mentions', project_comment: 'mentions', blog_comment: 'mentions', blog_like: 'mentions',
   quest_completed: 'quests',
   question_answered: 'mentions', answer_accepted: 'mentions',
-  new_application: 'other', application_seen: 'other', application_shortlisted: 'other', application_declined: 'other', job_alert: 'other', job_offer_hidden: 'other',
+  new_application: 'other', application_seen: 'other', application_shortlisted: 'other', application_declined: 'other', job_alert: 'other', job_offer_hidden: 'other', job_offer_stale: 'other',
   blog_hidden: 'other', souk_submission_approved: 'other', souk_submission_rejected: 'other', souk_sale: 'other', souk_item_removed: 'other',
   project_starred: 'projects', project_confirmed: 'projects', project_hidden: 'projects',
   collab_request: 'projects', collab_accepted: 'projects', collab_declined: 'projects',
@@ -41,7 +41,7 @@ export function tileOf(kind: NotificationKind): ToneIcon {
     case 'blog_like': return { icon: 'star', tone: 'blue' }
     case 'question_answered': return { icon: 'messages', tone: 'blue' }
     case 'answer_accepted': return { text: '✓', tone: 'gold' }
-    case 'new_application': case 'application_seen': case 'application_shortlisted': case 'application_declined': case 'job_alert': return { icon: 'jobs', tone: 'blue' }
+    case 'new_application': case 'application_seen': case 'application_shortlisted': case 'application_declined': case 'job_alert': case 'job_offer_stale': return { icon: 'jobs', tone: 'blue' }
     case 'souk_submission_approved': case 'souk_submission_rejected': case 'souk_sale': return { icon: 'souk', tone: 'blue' }
     case 'proposal_opened': case 'proposal_merged': case 'proposal_declined': return { icon: 'fork', tone: 'blue' }
     case 'collab_request': case 'collab_accepted': case 'collab_declined': case 'collab_invite': case 'collab_invite_accepted': case 'collab_invite_declined': return { icon: 'user', tone: 'blue' }
@@ -112,7 +112,8 @@ export function noticeLink(n: NotificationRow): string | null {
     case 'blog_comment': case 'blog_like': return str('post_slug') ? `/blog/${str('post_slug')}` : null
     case 'question_answered': case 'answer_accepted': return str('question_id') ? `/questions/${str('question_id')}` : null
     case 'quest_completed': return str('quest_slug') ? `/quetes/${str('quest_slug')}` : '/quetes'
-    case 'new_application': case 'job_alert': return str('offer_id') ? `/jobs/${str('offer_id')}` : null
+    case 'new_application': case 'job_offer_stale': return str('offer_id') ? `/jobs/${str('offer_id')}/candidatures` : null
+    case 'job_alert': return str('offer_id') ? `/jobs/${str('offer_id')}` : null
     case 'souk_submission_approved': case 'souk_submission_rejected': case 'souk_sale': case 'souk_item_removed': return '/souk'
     default: return null
   }
