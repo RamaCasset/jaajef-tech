@@ -31,7 +31,7 @@ export function LaCite() {
 
   const done = [introduced === true, joined === true, started === true]
   const doneCount = done.filter(Boolean).length
-  const stepLinks = ['/parametres', '/communautes', '/quetes']
+  const stepLinks = ['/parametres/profil', '/communautes', '/quetes']
   const company = (communities ?? []).filter((c) => !c.project_id).slice(0, 3)
 
   return (
@@ -44,7 +44,7 @@ export function LaCite() {
             <p className="muted lacite-text">{t.text[0]}<br />{t.text[1]}</p>
             <div className="lacite-actions">
               <Link className="btn btn-cta" to="/communautes">{t.explore} <Icon name="forward" size={16} /></Link>
-              <Link className="btn" to="/parametres">{t.completeProfile}</Link>
+              <Link className="btn" to="/parametres/profil">{t.completeProfile}</Link>
             </div>
             <p className="muted tiny">{t.pace}</p>
           </section>
