@@ -99,7 +99,7 @@ describe('Jobs page', () => {
     await userEvent.click(screen.getByRole('tab', { name: 'Sauvegardées' }))
     expect(await screen.findByText('Plus en ligne')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('tab', { name: 'Mes candidatures' }))
-    expect(await screen.findByText('Retenue')).toBeInTheDocument()
+    expect(await screen.findByText('Entretien')).toBeInTheDocument()
   })
 
   it('withdraws an application after a click, and offers no button for ones already closed', async () => {

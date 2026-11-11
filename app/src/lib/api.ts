@@ -1147,7 +1147,7 @@ export type NotificationKind =
   | 'new_application' | 'application_seen' | 'application_shortlisted' | 'application_declined' | 'job_alert'
   | 'blog_comment' | 'blog_like' | 'blog_hidden' | 'job_offer_hidden'
   | 'souk_submission_approved' | 'souk_submission_rejected' | 'souk_sale' | 'souk_item_removed'
-  | 'mention' | 'quest_completed'
+  | 'mention' | 'quest_completed' | 'job_offer_stale'
 
 export type NotificationRow = {
   id: number
@@ -1622,6 +1622,12 @@ export async function listMyOffers(userId: string): Promise<MyOffer[]> {
   const { data, error } = await supabase.from('job_offers').select(OFFER_COLUMNS).eq('posted_by', userId).order('created_at', { ascending: false })
   if (error) throw new Error(error.message)
   return (data ?? []) as MyOffer[]
+}
+export type OfferCounts = { total: number; unseen: number }
+/** How many people applied to each of my offers, and how many applications are not looked at yet. */
+export async function myOfferApplicantCounts(): Promise<Record<string, OfferCounts>> {
+  const rows = await rpc<{ offer_id: string; total: number; unseen: number }[]>('my_offer_applicant_counts')
+  return Object.fromEntries((rows ?? []).map((r) => [r.offer_id, { total: r.total, unseen: r.unseen }]))
 }
 export async function getMyOffer(userId: string, id: string): Promise<MyOffer | null> {
   const { data, error } = await supabase.from('job_offers').select(OFFER_COLUMNS).eq('posted_by', userId).eq('id', id).maybeSingle()

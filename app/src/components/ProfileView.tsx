@@ -43,7 +43,7 @@ export function ProfileView({ data, viewerId, extra }: { data: ProfileData; view
   const level = 1 + Math.floor(p.xp / xpPerLevel)
   const inLevel = p.xp % xpPerLevel
   const since = new Date(p.created_at).toLocaleDateString(dateLocale(), { month: 'long', year: 'numeric' })
-  const tabs: Tab[] = ['code', 'blog', 'offers']
+  const tabs: Tab[] = own ? ['code', 'blog', 'offers'] : ['code', 'blog']
 
   return (
     <>
@@ -96,7 +96,7 @@ export function ProfileView({ data, viewerId, extra }: { data: ProfileData; view
 
       <div role="tablist" className="profile-tabs" aria-label={t.tabsLabel}>
         {tabs.map((k) => (
-          <button key={k} type="button" role="tab" aria-selected={tab === k} className={`profile-tab ${tab === k ? 'profile-tab-on' : ''}`} onClick={() => setTab(k)}>{!own ? (k === 'code' ? t.projectsOther : k === 'blog' ? t.blogOther : t.offersOther) : t.tabs[k]}</button>
+          <button key={k} type="button" role="tab" aria-selected={tab === k} className={`profile-tab ${tab === k ? 'profile-tab-on' : ''}`} onClick={() => setTab(k)}>{!own ? (k === 'code' ? t.projectsOther : t.blogOther) : t.tabs[k]}</button>
         ))}
       </div>
 
@@ -125,7 +125,7 @@ export function ProfileView({ data, viewerId, extra }: { data: ProfileData; view
       )}
 
 
-      {tab === 'offers' && <MyOffers userId={p.id} own={own} />}
+      {tab === 'offers' && own && <MyOffers userId={p.id} />}
 
       {tab === 'blog' && (
         <section aria-labelledby="pbl">

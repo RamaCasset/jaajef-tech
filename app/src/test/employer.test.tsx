@@ -4,7 +4,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const api = vi.hoisted(() => ({
-  getMyEmployer: vi.fn(), setMyCompanyName: vi.fn(),
+  getMyEmployer: vi.fn(), setMyCompanyName: vi.fn(), myOfferApplicantCounts: vi.fn(),
   listMyOffers: vi.fn(), getMyOffer: vi.fn(), createJobOffer: vi.fn(), updateJobOffer: vi.fn(),
   publishJobOffer: vi.fn(), closeJobOffer: vi.fn(), unpublishJobOffer: vi.fn(), deleteJobOffer: vi.fn(),
   listOfferApplicants: vi.fn(), setApplicationStatus: vi.fn(), getApplicationDetail: vi.fn(),
@@ -27,7 +27,7 @@ const offer = (id: string, status: string, extra = {}) => ({
   pay_min_fcfa: 500000, pay_max_fcfa: 900000, pay_unit: 'month', pay_negotiable: false, tags: ['React', 'SQL'], status, review_note: null,
   staff_hidden: false, closes_on: null, ...extra,
 })
-const mountHub = () => render(<MemoryRouter><MyOffers userId="me" own /></MemoryRouter>)
+const mountHub = () => render(<MemoryRouter><MyOffers userId="me" /></MemoryRouter>)
 const mountForm = (path = '/jobs/nouvelle') => render(
   <MemoryRouter initialEntries={[path]}>
     <Routes>
@@ -54,6 +54,8 @@ beforeEach(() => {
   vi.resetAllMocks()
   api.getMyEmployer.mockResolvedValue(emp())
   api.listMyOffers.mockResolvedValue([])
+  api.myOfferApplicantCounts.mockResolvedValue({})
+  api.getMyOffer.mockResolvedValue(offer('o1', 'published'))
   for (const k of ['setMyCompanyName', 'createJobOffer', 'updateJobOffer', 'closeJobOffer', 'unpublishJobOffer', 'deleteJobOffer', 'setApplicationStatus'] as const) api[k].mockResolvedValue(undefined)
   api.publishJobOffer.mockResolvedValue('published')
   api.listOfferApplicants.mockResolvedValue([applicant(1), applicant(2, 'seen')])
@@ -69,14 +71,6 @@ describe('My offers', () => {
     expect(await screen.findByText('Offre publiée.')).toBeInTheDocument()
   })
 
-  it('shows only published offers on someone else\'s profile, without actions', async () => {
-    api.listMyOffers.mockResolvedValue([offer('d', 'draft'), offer('p', 'published')])
-    render(<MemoryRouter><MyOffers userId="other" own={false} /></MemoryRouter>)
-    expect(await screen.findByText('Offre p')).toBeInTheDocument()
-    expect(screen.queryByText('Offre d')).not.toBeInTheDocument()
-    expect(screen.queryByRole('button')).not.toBeInTheDocument()
-  })
-
   it('offers only the actions that fit each status', async () => {
     api.listMyOffers.mockResolvedValue([offer('d', 'draft'), offer('p', 'published')])
     mountHub()
@@ -85,6 +79,14 @@ describe('My offers', () => {
     expect(screen.queryByRole('button', { name: 'Fermer : Offre d' })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Fermer : Offre p' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Publier : Offre p' })).not.toBeInTheDocument()
+  })
+
+  it('shows how many people applied, and leads to the applicants', async () => {
+    api.listMyOffers.mockResolvedValue([offer('a', 'published')])
+    api.myOfferApplicantCounts.mockResolvedValue({ a: { total: 3, unseen: 2 } })
+    mountHub()
+    expect(await screen.findByText('3 candidatures · 2 nouvelles')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Offre a' })).toHaveAttribute('href', '/jobs/a/candidatures')
   })
 
   it('closes the right offer', async () => {
@@ -177,16 +179,25 @@ describe('Offer form', () => {
 })
 
 describe('Applicants', () => {
+  it('shows the offer, and closes it', async () => {
+    mountApplicants()
+    expect(await screen.findByText(/Candidatures · Offre o1/)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: "Fermer l'offre" }))
+    await waitFor(() => expect(api.closeJobOffer).toHaveBeenCalledWith('o1'))
+    expect(await screen.findByText('Offre fermée.')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: "Fermer l'offre" })).not.toBeInTheDocument()
+  })
+
   it('lists applicants and filters by status', async () => {
     mountApplicants()
     expect(await screen.findByText('Candidat 1')).toBeInTheDocument()
-    await userEvent.click(screen.getByRole('tab', { name: 'Retenue' }))
+    await userEvent.click(screen.getByRole('tab', { name: 'Entretien' }))
     await waitFor(() => expect(api.listOfferApplicants).toHaveBeenLastCalledWith('o1', 'shortlisted'))
   })
 
   it('shortlists the right applicant', async () => {
     mountApplicants()
-    await userEvent.click(await screen.findByRole('button', { name: 'Retenir : Candidat 2' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Inviter à un entretien : Candidat 2' }))
     await waitFor(() => expect(api.setApplicationStatus).toHaveBeenCalledWith('a2', 'shortlisted'))
   })
 
