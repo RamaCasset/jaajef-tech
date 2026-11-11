@@ -1442,3 +1442,5 @@ div.alert[data-dismissed], p.alert[data-dismissed], div.notice[data-dismissed], 
 .lacite-resume > div { flex: 1 1 280px; display: grid; gap: 8px; }
 .lacite-resume h2 { margin: 0; }
 .lacite-top-solo { grid-template-columns: minmax(0, 1fr); }
+.app-status-shortlisted { border-color: #3ddba7; color: #3ddba7; }
+.app-status-declined { border-color: var(--danger); color: var(--danger); }
