@@ -1433,5 +1433,14 @@ div.alert[data-dismissed], p.alert[data-dismissed], div.notice[data-dismissed], 
 .req { color: var(--accent); }
 .form-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: flex-end; margin-top: 16px; }
 @media (max-width: 700px) { .form-row { grid-template-columns: minmax(0, 1fr); gap: 10px; } }
+
+/* Learning path: roadmap, reward and the resume card */
+.path-roadmap { max-width: 520px; margin-top: 12px; display: grid; gap: 6px; }
+.path-step-next { margin-left: auto; font-size: 11px; }
+.path-reward { margin-top: 16px; display: grid; gap: 8px; border-color: var(--accent); }
+.lacite-resume { display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; margin-bottom: 24px; }
+.lacite-resume > div { flex: 1 1 280px; display: grid; gap: 8px; }
+.lacite-resume h2 { margin: 0; }
+.lacite-top-solo { grid-template-columns: minmax(0, 1fr); }
 .app-status-shortlisted { border-color: #3ddba7; color: #3ddba7; }
 .app-status-declined { border-color: var(--danger); color: var(--danger); }

@@ -922,6 +922,15 @@ export type LearningStep = {
 /** The published learning paths, with how many steps I have done in each. */
 export const listLearningPaths = () => rpc<LearningPath[]>('list_learning_paths')
 export const listLearningSteps = (path: string) => rpc<LearningStep[]>('list_learning_steps', { p_path: path })
+export type PathRewardState = { complete: boolean; claimed: boolean; xp: number; kopeks: number }
+export const learningPathRewardState = async (slug: string): Promise<PathRewardState> => {
+  const rows = await rpc<PathRewardState[]>('learning_path_reward_state', { p_path: slug })
+  return rows[0]
+}
+export const claimLearningPathReward = async (slug: string): Promise<{ granted: boolean; xp: number; kopeks: number }> => {
+  const rows = await rpc<{ granted: boolean; xp: number; kopeks: number }[]>('claim_learning_path_reward', { p_path: slug })
+  return rows[0]
+}
 export const markStepRead = (stepId: string) => rpc<void>('mark_step_read', { p_step: stepId })
 export const startConversation = (userId: string) => rpc<string>('start_conversation', { p_user: userId })
 
