@@ -1,0 +1,5 @@
+quest,name,input,expected
+somme-des-pairs,Mélange,"[1, 2, 3, 4]",6
+somme-des-pairs,Aucun pair,"[1, 3]",0
+somme-des-pairs,Liste vide,[],0
+somme-des-pairs,Négatifs,"[-2, -3, 4]",2

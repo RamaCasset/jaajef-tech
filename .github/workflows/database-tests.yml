@@ -75,6 +75,9 @@ jobs:
       - name: Run the quest runner test (real database, pretend code runner)
         run: node --experimental-strip-types supabase/functions/run-quest/run.test.mjs
 
+      - name: Run the content import tool test
+        run: node --test tools/import-content.test.mjs
+
       - name: Run the Kopeks payment test (real database, pretend PayDunya)
         run: node --experimental-strip-types supabase/functions/kopeks-payment/payment.test.mjs
 
