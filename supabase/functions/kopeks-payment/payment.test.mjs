@@ -112,7 +112,10 @@ try {
   // 1. sign-in and settings
   assert.equal((await post(null, { action: 'create', kopeks: 500, method: 'wave' })).status, 401)
   assert.equal((await post('wrong', { action: 'create', kopeks: 500, method: 'wave' })).status, 401)
-  assert.equal((await handler(new Request('http://x', { method: 'POST', body: '{}' }), () => undefined, fetch)).status, 503)
+  const unset = await handler(new Request('http://x', { method: 'POST', body: '{}' }), () => undefined, fetch)
+  assert.equal(unset.status, 503)
+  const partial = await handler(new Request('http://x', { method: 'POST', body: '{}' }), (n) => (n === 'SITE_URL' ? undefined : settings[n]), fetch)
+  assert.deepEqual((await partial.json()).missing, ['SITE_URL'])
   assert.equal((await handler(new Request('http://x', { method: 'OPTIONS' }), () => undefined, fetch)).status, 204)
   assert.equal(invoices.size, 0)
   ok('sign-in is required; missing settings give a clear error; nothing reaches PayDunya')

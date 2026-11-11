@@ -36,7 +36,8 @@ export function BuyKopeks() {
       const { url } = await startKopekPurchase(pack, method, phone)
       window.location.assign(url)
     } catch (err) {
-      setError((err as Error).message === 'not_configured' ? t.notYet : t.failed)
+      const message = (err as Error).message
+      setError(message.startsWith('not_configured') ? `${t.notYet}${message.includes(':') ? ` (${message.slice(message.indexOf(':') + 1)})` : ''}` : t.failed)
       setBusy(false)
     }
   }

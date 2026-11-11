@@ -495,7 +495,11 @@ async function paymentCall<T>(body: Record<string, unknown>): Promise<T> {
     let reason = 'unknown'
     const context = (error as { context?: unknown }).context
     if (context instanceof Response) {
-      try { reason = String((await context.json())?.error ?? 'unknown') } catch { /* keep unknown */ }
+      try {
+        const body = await context.json()
+        reason = String(body?.error ?? 'unknown')
+        if (reason === 'not_configured' && Array.isArray(body?.missing)) reason += `:${body.missing.join(', ')}`
+      } catch { /* keep unknown */ }
     }
     throw new Error(reason)
   }
