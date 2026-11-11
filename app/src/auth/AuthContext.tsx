@@ -11,6 +11,7 @@ type AuthState = {
   member: MemberState | null
   signIn: (email: string, password: string) => Promise<void>
   signUp: (email: string, password: string) => Promise<SignUpResult>
+  signInWithGithub: () => Promise<void>
   requestPasswordReset: (email: string) => Promise<void>
   updatePassword: (newPassword: string) => Promise<void>
   signOut: () => Promise<void>
@@ -57,6 +58,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data, error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: `${window.location.origin}/connexion` } })
       if (error) throw new Error(error.message)
       return data.session ? 'signed_in' : 'confirm_email'
+    },
+    async signInWithGithub() {
+      const { error } = await supabase.auth.signInWithOAuth({ provider: 'github', options: { redirectTo: `${window.location.origin}/la-cite` } })
+      if (error) throw new Error(error.message)
     },
     async requestPasswordReset(email) {
       const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/nouveau-mot-de-passe` })

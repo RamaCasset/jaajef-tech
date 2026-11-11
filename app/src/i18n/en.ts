@@ -18,6 +18,8 @@ export const en: Messages = {
     submit: 'Sign in',
     noAccount: 'Not a member yet?',
     signUp: 'Sign up',
+    or: 'or',
+    github: 'Sign in with GitHub',
   },
   forgotPassword: {
     eyebrow: 'Sign in / Password',
@@ -43,6 +45,7 @@ export const en: Messages = {
     askAgain: 'Ask for a new link',
   },
   signup: {
+    github: 'Sign up with GitHub',
     eyebrow: 'Character creation / Step 1 of 3',
     title: 'Create your identity',
     subtitle: 'An account to enter the City.',

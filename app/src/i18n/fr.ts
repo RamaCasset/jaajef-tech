@@ -18,6 +18,8 @@ export const frMessages = {
     submit: 'Se connecter',
     noAccount: 'Pas encore inscrit ?',
     signUp: "S'inscrire",
+    or: 'ou',
+    github: 'Se connecter avec GitHub',
   },
   forgotPassword: {
     eyebrow: 'Connexion / Mot de passe',
@@ -43,6 +45,7 @@ export const frMessages = {
     askAgain: 'Demander un nouveau lien',
   },
   signup: {
+    github: "S'inscrire avec GitHub",
     eyebrow: 'Création de personnage / Étape 1 sur 3',
     title: 'Crée ton identité',
     subtitle: 'Un compte pour entrer dans la Cité.',
