@@ -98,4 +98,13 @@ describe('Profile page', () => {
     expect(await screen.findByRole('link', { name: 'Mon article' })).toHaveAttribute('href', '/blog/mon-article')
     expect(listAuthorBlogPosts).toHaveBeenCalledWith('u2')
   })
+
+  it('marks a project the member works on without owning it', async () => {
+    const d = data()
+    d.projects = [...d.projects, { id: 'p2', github_owner: 'awa', github_repo: 'equipe', title: 'Equipe', summary: null, language: null, github_stars: 1, build_status: null, collaborator: true }]
+    loadProfile.mockResolvedValue(d)
+    mount()
+    await screen.findByText('awa / equipe')
+    expect(screen.getAllByText('Collaborateur')).toHaveLength(1)
+  })
 })

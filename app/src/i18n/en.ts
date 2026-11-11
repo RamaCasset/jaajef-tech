@@ -736,6 +736,7 @@ export const en: Messages = {
     tabsLabel: 'Profile sections',
     tabs: { code: 'My projects', blog: 'My blogs' },
     projectsOther: 'Projects',
+    collaborator: 'Collaborator',
     blogOther: 'Blog',
     customizeCover: 'Customise cover',
     projectsCount: (n: number) => (n === 1 ? '1 project' : `${n} projects`),

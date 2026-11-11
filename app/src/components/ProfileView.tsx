@@ -108,6 +108,7 @@ export function ProfileView({ data, viewerId, extra }: { data: ProfileData; view
                 <h3><Link to={`/projets/${pr.id}`}>{pr.github_owner} / {pr.github_repo}</Link></h3>
                 <p className="muted project-summary">{pr.summary ?? pr.title}</p>
                 <div className="project-tags">
+                  {pr.collaborator ? <span className="tag">{t.collaborator}</span> : null}
                   {pr.language ? <span className="tag">{pr.language}</span> : null}
                   <span className="muted tiny">★ {pr.github_stars}</span>
                   <BuildBadge status={pr.build_status} />
