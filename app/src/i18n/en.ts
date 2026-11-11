@@ -206,6 +206,8 @@ export const en: Messages = {
     },
   },
   settingsHub: {
+    back: 'Back',
+    backToSettings: 'Back to settings',
     crumb: 'My space / Settings',
     title: 'Settings',
     subtitle: 'Manage your profile and preferences, simply.',

@@ -13,12 +13,21 @@ vi.mock('../auth/AuthContext', () => ({
 vi.mock('../components/AppShell', () => ({ AppShell: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }))
 
 import { SettingsHub } from '../pages/SettingsHub'
+import { LanguageSettings } from '../pages/LanguageSettings'
 import { BuyKopeks } from '../pages/BuyKopeks'
 import { KopeksReturn } from '../pages/KopeksReturn'
 
 beforeEach(() => { startKopekPurchase.mockReset(); confirmKopekPurchase.mockReset() })
 
 describe('Settings hub', () => {
+  it('has a back link to La Cité, and the language page goes back to settings', () => {
+    const first = render(<MemoryRouter><SettingsHub /></MemoryRouter>)
+    expect(screen.getByRole('link', { name: /Retour/ })).toHaveAttribute('href', '/la-cite')
+    first.unmount()
+    render(<MemoryRouter><LanguageSettings /></MemoryRouter>)
+    expect(screen.getByRole('link', { name: /Retour aux paramètres/ })).toHaveAttribute('href', '/parametres')
+  })
+
   it('lists the five areas with their links', () => {
     render(<MemoryRouter><SettingsHub /></MemoryRouter>)
     expect(screen.getByRole('heading', { level: 1, name: 'Paramètres' })).toBeInTheDocument()

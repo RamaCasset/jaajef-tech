@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
+import { BackLink } from '../components/BackLink'
 import { Icon } from '../components/Icon'
 import { useLang } from '../i18n/LangContext'
 import { fr } from '../i18n/fr'
@@ -18,6 +19,7 @@ export function SettingsHub() {
   return (
     <AppShell>
       <main className="page settings-hub">
+        <BackLink to="/la-cite">{fr.settingsHub.back}</BackLink>
         <p className="eyebrow">{t.crumb}</p>
         <h1 className="page-title">{t.title}</h1>
         <p className="muted">{t.subtitle}</p>

@@ -1,6 +1,7 @@
 import { dateLocale } from '../i18n/lang'
 import { useCallback, useEffect, useState } from 'react'
 import { AppShell } from '../components/AppShell'
+import { BackLink } from '../components/BackLink'
 import { fr } from '../i18n/fr'
 import { friendlyError } from '../lib/errors'
 import { NotificationPrefs } from '../components/NotificationPrefs'
@@ -90,6 +91,7 @@ export function Settings() {
   return (
     <AppShell>
       <main className="page souk">
+        <BackLink to="/parametres">{fr.settingsHub.backToSettings}</BackLink>
         <header className="page-head"><h1 className="page-title">{fr.settings.title}</h1></header>
         <p className="muted">{fr.settings.subtitle}</p>
 

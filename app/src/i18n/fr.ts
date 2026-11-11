@@ -206,6 +206,8 @@ export const frMessages = {
     },
   },
   settingsHub: {
+    back: 'Retour',
+    backToSettings: 'Retour aux paramètres',
     crumb: 'Mon espace / Paramètres',
     title: 'Paramètres',
     subtitle: 'Gérez votre profil et vos préférences, simplement.',

@@ -1385,3 +1385,6 @@ div.alert[data-dismissed], p.alert[data-dismissed], div.notice[data-dismissed], 
 .about .art-bl { left: 2%; bottom: 14%; }
 .about .art-br { right: 3%; bottom: 10%; }
 @media (max-width: 1300px) { .about .corner-art { display: none; } }
+
+.back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--fg-muted); text-decoration: none; justify-self: start; }
+.back-link:hover { color: var(--fg); }
