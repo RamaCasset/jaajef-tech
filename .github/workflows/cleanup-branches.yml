@@ -1,0 +1,34 @@
+# Deletes branches whose pull request is already merged or closed.
+# Start it by hand: GitHub, Actions tab, "Clean up old branches", Run workflow.
+# It never touches main, and never touches a branch that still has an open pull request.
+name: Clean up old branches
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete branches of merged or closed pull requests
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -e
+          gh api "repos/$REPO/pulls?state=all&per_page=100" --paginate --jq '.[] | "\(.head.ref)\t\(.state)\t\(.head.repo.full_name)"' > prs.txt
+          gh api "repos/$REPO/pulls?state=open&per_page=100" --paginate --jq '.[].head.ref' > open.txt
+          gh api "repos/$REPO/branches?per_page=100" --paginate --jq '.[].name' > branches.txt
+          while read -r b; do
+            [ "$b" = "main" ] && continue
+            grep -qxF "$b" open.txt && continue
+            if grep -qP "^\Q$b\E\t" prs.txt; then
+              gh api -X DELETE "repos/$REPO/git/refs/heads/$b" > /dev/null && echo "deleted $b" || echo "could not delete $b"
+            else
+              echo "kept $b (no pull request)"
+            fi
+          done < branches.txt
