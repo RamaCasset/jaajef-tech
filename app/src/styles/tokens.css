@@ -10,6 +10,11 @@
   --fg-muted: #8a97b0;
   --accent: #3fb8f0;
   --accent-soft: rgba(63, 184, 240, 0.12);
+  /* Derived from the theme colours, so a Souk theme changes them too. */
+  --bg-deep: color-mix(in srgb, var(--bg) 62%, #000);
+  --avatar-bg: color-mix(in srgb, var(--accent) 24%, var(--panel));
+  --avatar-fg: color-mix(in srgb, var(--accent) 20%, #fff);
+  --avatar-grad: linear-gradient(160deg, color-mix(in srgb, var(--accent) 38%, var(--panel)), var(--avatar-bg));
   --cta: #c8410a;
   --cta-hover: #e0500f;
   --cta-fg: #ffffff;
