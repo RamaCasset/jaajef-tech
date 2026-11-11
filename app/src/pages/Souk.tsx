@@ -74,7 +74,6 @@ export function Souk() {
             <h1 className="page-title">{mine ? fr.souk.mineTitle : fr.souk.title}</h1>
             <p className="muted">{fr.souk.subtitle}</p>
           </div>
-          <Link className="btn" to="/kopeks">{fr.kopeks.buy}</Link>
           <Link className="btn btn-cta" to="/souk/vendre"><Icon name="plus" size={16} /> {fr.soukSell.sellLink}</Link>
         </header>
 

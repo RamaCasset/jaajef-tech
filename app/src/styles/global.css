@@ -1388,3 +1388,7 @@ div.alert[data-dismissed], p.alert[data-dismissed], div.notice[data-dismissed], 
 
 .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--fg-muted); text-decoration: none; justify-self: start; }
 .back-link:hover { color: var(--fg); }
+
+.kopeks-pill { text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+.kopeks-pill:hover { background: rgba(214, 150, 40, 0.22); }
+.kopeks-plus { display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; background: #f0b24a; color: #1a1205; font-weight: 700; line-height: 1; }

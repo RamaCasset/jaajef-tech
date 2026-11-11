@@ -60,6 +60,22 @@ describe('AppShell', () => {
     localStorage.removeItem('jaajef.rail')
   })
 
+  it('closes the open side bar after a link in it is clicked', async () => {
+    localStorage.setItem('jaajef.rail', 'open')
+    mount()
+    const rail = screen.getByRole('navigation', { name: 'Espaces' })
+    expect(rail).toHaveClass('rail-wide')
+    await userEvent.click(await within(rail).findByRole('link', { name: 'GameDev Senegal' }))
+    expect(rail).not.toHaveClass('rail-wide')
+    expect(localStorage.getItem('jaajef.rail')).toBe('closed')
+    localStorage.removeItem('jaajef.rail')
+  })
+
+  it('links the Kopeks balance to the Buy Kopeks page', () => {
+    mount()
+    expect(screen.getByLabelText('Kopeks')).toHaveAttribute('href', '/kopeks')
+  })
+
   it('keeps the rail and the unread number between pages, so they do not blink at every page change', async () => {
     const first = mount()
     await screen.findByRole('link', { name: 'GameDev Senegal' })
