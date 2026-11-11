@@ -1,15 +1,22 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+const startKopekPurchase = vi.fn()
+const confirmKopekPurchase = vi.fn()
+vi.mock('../lib/api', () => ({ startKopekPurchase: (...a: unknown[]) => startKopekPurchase(...a), confirmKopekPurchase: (...a: unknown[]) => confirmKopekPurchase(...a) }))
 
 vi.mock('../auth/AuthContext', () => ({
-  useAuth: () => ({ member: { kopeks: 2450, profile: { id: 'me', display_name: 'Moussa Diop' } }, signOut: vi.fn() }),
+  useAuth: () => ({ member: { kopeks: 2450, profile: { id: 'me', display_name: 'Moussa Diop' } }, signOut: vi.fn(), refreshMember: vi.fn() }),
 }))
 vi.mock('../components/AppShell', () => ({ AppShell: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }))
 
 import { SettingsHub } from '../pages/SettingsHub'
 import { BuyKopeks } from '../pages/BuyKopeks'
+import { KopeksReturn } from '../pages/KopeksReturn'
+
+beforeEach(() => { startKopekPurchase.mockReset(); confirmKopekPurchase.mockReset() })
 
 describe('Settings hub', () => {
   it('lists the five areas with their links', () => {
@@ -38,7 +45,8 @@ describe('Buy Kopeks', () => {
     expect(screen.getByText('3 450 Kopeks')).toBeInTheDocument()
   })
 
-  it('needs a 9-digit number for Wave and none for a card, and says payment is not open', async () => {
+  it('needs a 9-digit number for Wave and none for a card, then starts the payment with the chosen pack', async () => {
+    startKopekPurchase.mockRejectedValue(new Error('payment_unavailable'))
     render(<MemoryRouter><BuyKopeks /></MemoryRouter>)
     const pay = screen.getByRole('button', { name: /^Payer/ })
     expect(pay).toBeDisabled()
@@ -47,6 +55,34 @@ describe('Buy Kopeks', () => {
     await userEvent.click(screen.getByRole('radio', { name: 'Carte bancaire' }))
     expect(screen.queryByLabelText('Numéro de téléphone Wave')).toBeNull()
     await userEvent.click(screen.getByRole('button', { name: /^Payer/ }))
-    expect(screen.getByRole('status')).toHaveTextContent("Le paiement n'est pas encore ouvert")
+    expect(startKopekPurchase).toHaveBeenCalledWith(500, 'card', '77 123 45 67')
+    expect(await screen.findByRole('alert')).toHaveTextContent("Le paiement n'a pas pu démarrer")
+  })
+})
+
+describe('Return from the payment page', () => {
+  const at = (q: string) => render(<MemoryRouter initialEntries={[`/kopeks/retour${q}`]}><KopeksReturn /></MemoryRouter>)
+
+  it('says the Kopeks were added once the server confirms', async () => {
+    confirmKopekPurchase.mockResolvedValue({ outcome: 'credited', kopeks: 500 })
+    at('?token=test_abc')
+    expect(await screen.findByRole('status')).toHaveTextContent('500 Kopeks ont été ajoutés')
+    expect(confirmKopekPurchase).toHaveBeenCalledWith('test_abc')
+  })
+
+  it('offers to check again while the payment is pending', async () => {
+    confirmKopekPurchase.mockResolvedValueOnce({ outcome: 'pending', kopeks: 500 }).mockResolvedValueOnce({ outcome: 'credited', kopeks: 500 })
+    at('?token=test_abc')
+    await userEvent.click(await screen.findByRole('button', { name: 'Vérifier à nouveau' }))
+    expect(await screen.findByRole('status')).toHaveTextContent('500 Kopeks')
+  })
+
+  it('says nothing was charged when the payment was cancelled, and handles a missing token', async () => {
+    confirmKopekPurchase.mockResolvedValue({ outcome: 'cancelled', kopeks: 100 })
+    const first = at('?token=test_abc')
+    expect(await screen.findByRole('alert')).toHaveTextContent("n'a pas abouti")
+    first.unmount()
+    at('')
+    expect(await screen.findByRole('alert')).toHaveTextContent('Impossible de vérifier')
   })
 })
