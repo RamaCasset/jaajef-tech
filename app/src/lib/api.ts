@@ -218,6 +218,8 @@ export type ProfileProject = {
   language: string | null
   github_stars: number
   build_status: BuildStatus | null
+  /** True when the member works on this project without owning it. */
+  collaborator?: boolean
 }
 
 export type ProfileData = {
@@ -255,6 +257,16 @@ export async function loadProfile(username: string, viewerId: string): Promise<P
   ])
   for (const r of [config, badges, projects, quests, appreciation]) if (r.error) throw new Error(r.error.message)
 
+  // Public, verified projects the member works on without owning them.
+  let teamProjects: ProfileProject[] = []
+  const joined = await supabase.from('project_collaborators').select('project_id').eq('user_id', profile.id)
+  const joinedIds = (joined.data ?? []).map((r) => r.project_id as string)
+  if (joinedIds.length > 0) {
+    const shared = await supabase.from('projects').select('id, github_owner, github_repo, title, summary, language, github_stars, build_status')
+      .in('id', joinedIds).neq('owner_id', profile.id).eq('is_public', true).not('verified_at', 'is', null)
+    teamProjects = ((shared.data ?? []) as ProfileProject[]).map((p) => ({ ...p, collaborator: true }))
+  }
+
   const per = Number(config.data?.value ?? 10000) || 10000
   type BadgeRow = { badges: ProfileBadge | ProfileBadge[] | null }
   const badgeList = ((badges.data ?? []) as unknown as BadgeRow[])
@@ -264,7 +276,7 @@ export async function loadProfile(username: string, viewerId: string): Promise<P
     profile,
     xpPerLevel: per,
     badges: badgeList,
-    projects: (projects.data ?? []) as ProfileProject[],
+    projects: [...((projects.data ?? []) as ProfileProject[]), ...teamProjects.sort((a, b) => b.github_stars - a.github_stars)],
     questsSolved: mine ? (quests.count ?? 0) : null,
     appreciation: Number(appreciation.data ?? 0),
   }

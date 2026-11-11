@@ -736,6 +736,7 @@ export const frMessages = {
     tabsLabel: 'Sections du profil',
     tabs: { code: 'Mes projets', blog: 'Mes blogs' },
     projectsOther: 'Projets',
+    collaborator: 'Collaborateur',
     blogOther: 'Blog',
     customizeCover: 'Personnaliser la couverture',
     projectsCount: (n: number) => (n === 1 ? '1 projet' : `${n} projets`),
