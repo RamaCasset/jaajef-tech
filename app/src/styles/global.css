@@ -1134,8 +1134,16 @@ div.alert[data-dismissed], p.alert[data-dismissed], div.notice[data-dismissed], 
   .quest-center { grid-template-rows: auto auto; }
   .quest-center > .quest-pane { display: flex; flex-direction: column; }
   .quest-editor-box { height: max(620px, calc(100vh - 240px)); }
-  .quest-center .quest-results .quest-pane-body { min-height: 200px; }
+  .quest-center .quest-results .quest-pane-body { min-height: 240px; }
 }
+
+/* The results panel looks like a terminal */
+.quest-results .quest-pane-body { background: var(--bg-deep); font-family: var(--font-mono); font-size: 13px; line-height: 1.6; border-radius: 0 0 var(--radius) var(--radius); min-height: 180px; }
+.quest-results .quest-pane-body > p:first-child::before { content: '$ '; color: var(--accent); }
+.quest-results .test-list li::before { content: '>'; color: var(--fg-muted); }
+.quest-results .test-ok { color: #3ddba7; font-weight: 700; }
+.quest-results .test-ko { color: var(--danger); font-weight: 700; }
+.quest-results .test-list .muted { color: var(--fg-muted); }
 
 /* Learning paths */
 .path-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
