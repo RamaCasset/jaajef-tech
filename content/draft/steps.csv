@@ -1,160 +1,656 @@
 path,position,title,lesson,mastery,minutes,quest
-devenir-griot-du-code,1,"Une variable, c'est une boîte","# Une variable
+devenir-griot-du-code,1,"Une variable, c'est une boîte","# Une variable, c'est une boîte
 
-Une variable garde une valeur sous un nom.
+Une **variable** est une boîte avec une étiquette : elle garde une valeur sous un nom.
 
 ```python
 prix = 500
 nom = ""Awa""
 ```
 
-On peut relire la valeur et la changer :
+Le signe `=` ne veut pas dire « égal ». Il veut dire « range cette valeur dans la boîte ». Plus tard, on peut changer ce qu'il y a dedans :
 
 ```python
-prix = prix + 100
+prix = prix + 100   # prix vaut maintenant 600
 ```
 
-Choisissez des noms clairs : `prix_total` se comprend mieux que `x`.",ndongo,5,
-devenir-griot-du-code,2,Du texte et des f-strings,"# Le texte
+## Les types de valeurs
+Un nombre entier (`500`), un nombre à virgule (`12.5`), un texte (`""Awa""`), un vrai ou faux (`True`, `False`). La fonction `type(prix)` vous dit lequel c'est.
 
-Un texte s'écrit entre guillemets. Une *f-string* y insère des valeurs :
+## Le piège
+Python distingue les majuscules : `Prix` et `prix` sont deux boîtes différentes. Choisissez des noms qui se lisent comme une phrase : `prix_total` se comprend mieux que `x`.
+
+## À vous
+Au marché, 3 kilos de mangues à 800 FCFA le kilo. Écrivez deux variables, `kilos` et `prix_kilo`, puis une troisième, `total`, qui contient le calcul.",ndongo,5,
+devenir-griot-du-code,2,Du texte et des f-strings,"# Du texte et des f-strings
+
+Un texte s'écrit entre guillemets. On peut coller deux textes avec `+`, mais il y a plus simple : la **f-string**. Un `f` devant les guillemets permet d'y glisser des valeurs entre accolades.
 
 ```python
 nom = ""Awa""
-print(f""Salam, {nom} !"")
+age = 24
+print(f""Salam, {nom} ! Tu as {age} ans."")
 ```
 
-Méthodes utiles : `strip()` enlève les espaces autour, `lower()` met en minuscules.",ndongo,6,salutation-du-marche
-devenir-griot-du-code,3,Faire des choix avec if,"# Les conditions
+Sans f-string, il faudrait écrire `""Salam, "" + nom + "" !""` et convertir l'âge avec `str(age)`. Avec la f-string, tout se lit d'un coup.
+
+## Des méthodes utiles
+- `texte.strip()` enlève les espaces autour : `""  Awa "".strip()` donne `""Awa""`.
+- `texte.lower()` met en minuscules, `texte.upper()` en majuscules.
+- `texte.title()` met une majuscule à chaque mot.
+
+## Le piège
+Les textes ne se modifient pas sur place : `nom.strip()` renvoie un nouveau texte. Pour le garder, écrivez `nom = nom.strip()`.
+
+## À vous
+Écrivez une ligne qui accueille un client dont le nom arrive avec des espaces et des majuscules désordonnées : `""  mamadou DIOP ""` doit donner `Salam, Mamadou Diop !`.",ndongo,6,salutation-du-marche
+devenir-griot-du-code,3,Faire des choix avec if,"# Faire des choix avec if
+
+Un programme doit souvent décider. `if` pose une question dont la réponse est vrai ou faux, et ne lance son bloc que si c'est vrai.
 
 ```python
 if age >= 18:
     print(""majeur"")
+elif age >= 13:
+    print(""adolescent"")
 else:
-    print(""mineur"")
+    print(""enfant"")
 ```
 
-Une chaîne vide, une liste vide et `0` comptent comme « faux ». Le reste compte comme « vrai ».",ndongo,6,
-devenir-griot-du-code,4,Parcourir une liste,"# Les boucles
+Le bloc est marqué par les **deux-points** et par le **décalage** (4 espaces). Le décalage n'est pas décoratif : c'est lui qui dit à Python ce qui appartient au `if`.
 
-`for` traite chaque élément à son tour :
+## Comparer
+`==` (égal), `!=` (différent), `<`, `>`, `<=`, `>=`. On combine avec `and`, `or`, `not` :
+
+```python
+if age >= 18 and pays == ""Sénégal"":
+    print(""peut voter"")
+```
+
+## Vrai ou faux sans comparer
+Un texte vide `""""`, une liste vide `[]` et le nombre `0` comptent comme « faux ». Tout le reste compte comme « vrai ». Donc `if liste:` veut dire « si la liste n'est pas vide ».
+
+## Le piège
+Un seul `=` range une valeur, deux `==` comparent. `if age = 18` est une erreur.
+
+## À vous
+Un bus coûte 150 FCFA, mais les moins de 12 ans paient 75. Écrivez le prix pour un `age` donné.",ndongo,6,
+devenir-griot-du-code,4,Parcourir une liste,"# Parcourir une liste
+
+Une **liste** garde plusieurs valeurs dans l'ordre : `ventes = [3, 5, 8, 12]`. La boucle `for` traite chaque élément à son tour.
 
 ```python
 total = 0
-for n in [3, 5, 8]:
+for n in ventes:
     total += n
+print(total)   # 28
 ```
 
-Le reste d'une division s'obtient avec `%` : `8 % 2` vaut `0`, donc 8 est pair.",bagne,8,somme-des-pairs
-devenir-griot-du-code,5,"Min, max et listes vides","# Les fonctions toutes faites
+`total += n` est un raccourci pour `total = total + n`. Notez qu'on a créé `total` **avant** la boucle, à zéro : c'est la boîte qui accumule.
 
-`len`, `sum`, `min`, `max`, `sorted` travaillent sur une liste.
-
-Piège classique : `max([])` provoque une erreur. Testez d'abord si la liste est vide.",bagne,7,le-plus-grand-ecart
-devenir-griot-du-code,6,Compter avec un dictionnaire,"# Les dictionnaires
-
-Un dictionnaire associe une clé à une valeur :
+## Le reste d'une division
+L'opérateur `%` donne le reste : `8 % 2` vaut `0`, donc 8 est pair ; `7 % 2` vaut `1`, donc 7 est impair. Combiné avec `if`, on filtre :
 
 ```python
-stock = {""mangues"": 12, ""oranges"": 7}
-stock[""mangues""] += 1
+for n in ventes:
+    if n % 2 == 0:
+        print(n, ""est pair"")
 ```
 
-`d.setdefault(cle, [])` crée la valeur si la clé n'existe pas encore.",bagne,9,grouper-par-longueur
-devenir-forgeron,1,"Une page, c'est du HTML","# HTML
+## Le piège
+Ne modifiez pas une liste pendant que vous la parcourez : on enlève des éléments et la boucle en saute. Construisez plutôt une nouvelle liste.
 
-HTML décrit le contenu : titres (`h1`, `h2`), paragraphes (`p`), liens (`a`), images (`img`).
+## À vous
+Avec la liste `[4, 7, 10, 3, 6]`, calculez la somme des nombres pairs. Vous devez trouver 20.",bagne,8,somme-des-pairs
+devenir-griot-du-code,5,"Min, max et listes vides","# Min, max et listes vides
+
+Python offre des fonctions toutes faites qui travaillent sur une liste :
+
+```python
+notes = [12, 15, 9, 18]
+len(notes)      # 4, le nombre d'éléments
+sum(notes)      # 54
+min(notes)      # 9
+max(notes)      # 18
+sorted(notes)   # [9, 12, 15, 18], une nouvelle liste triée
+```
+
+Pour trouver l'écart entre la plus grande et la plus petite valeur : `max(notes) - min(notes)`.
+
+## Le piège classique
+`max([])` et `min([])` provoquent une erreur, car il n'y a rien à comparer. Quand une liste peut être vide, testez d'abord :
+
+```python
+if not notes:
+    return 0
+```
+
+## Pourquoi c'est important
+Les cas limites (liste vide, un seul élément, nombres négatifs) sont ceux où les programmes cassent en vrai. Prenez l'habitude de vous demander : « que se passe-t-il si c'est vide ? »
+
+## À vous
+Écrivez la différence entre la plus grande et la plus petite valeur d'une liste, en renvoyant `0` pour une liste vide.",bagne,7,le-plus-grand-ecart
+devenir-griot-du-code,6,Compter avec un dictionnaire,"# Compter avec un dictionnaire
+
+Un **dictionnaire** associe une clé à une valeur, comme un carnet de contacts : on cherche par le nom, on trouve le numéro.
+
+```python
+stock = {""mangue"": 12, ""banane"": 30}
+stock[""mangue""]        # 12
+stock[""orange""] = 8    # on ajoute une clé
+```
+
+## Compter des choses
+C'est l'usage le plus courant : une clé par catégorie, une valeur qui compte.
+
+```python
+mots = [""riz"", ""thé"", ""mil"", ""pain""]
+groupes = {}
+for mot in mots:
+    taille = len(mot)
+    if taille not in groupes:
+        groupes[taille] = []
+    groupes[taille].append(mot)
+# {3: [""riz"", ""thé"", ""mil""], 4: [""pain""]}
+```
+
+On vérifie d'abord si la clé existe (`in`), sinon Python lève une erreur en lisant une clé absente. La méthode `.get(cle, defaut)` évite aussi ce piège : `groupes.get(5, [])`.
+
+## À retenir
+Un dictionnaire répond à la question « à quelle catégorie ça appartient ? » en un seul coup, sans reparcourir toute la liste.
+
+## À vous
+Regroupez des mots par leur première lettre : `[""thé"", ""tamarin"", ""mil""]` donne `{""t"": [""thé"", ""tamarin""], ""m"": [""mil""]}`.",bagne,9,grouper-par-longueur
+devenir-forgeron,1,"Une page, c'est du HTML","# Une page, c'est du HTML
+
+Une page web est un **texte** que le navigateur lit et transforme en image. Ce texte s'appelle HTML. Il est fait de **balises** qui disent ce que chaque morceau est.
 
 ```html
-<h1>Bienvenue</h1>
-<p>Un texte.</p>
+<h1>Boutique de Awa</h1>
+<p>Les meilleurs pagnes de Dakar.</p>
+<a href=""https://exemple.sn"">Visitez-nous</a>
 ```
 
-Choisissez la balise pour son sens, pas pour son apparence.",ndongo,6,
-devenir-forgeron,2,Les balises qui ont du sens,"# HTML sémantique
+- `<h1>` : le grand titre.
+- `<p>` : un paragraphe.
+- `<a href=""..."">` : un lien.
 
-`header`, `nav`, `main`, `section`, `footer` disent à quoi sert chaque zone. Les lecteurs d'écran et les moteurs de recherche s'en servent.
+La plupart des balises s'ouvrent `<p>` et se ferment `</p>`. Le texte vit entre les deux.
 
-Une seule balise `h1` par page, puis `h2`, `h3` dans l'ordre.",ndongo,6,
-devenir-forgeron,3,CSS : couleurs et texte,"# CSS
+## Le squelette d'une page
+```html
+<!doctype html>
+<html lang=""fr"">
+  <head><title>Ma boutique</title></head>
+  <body>
+    <h1>Bienvenue</h1>
+  </body>
+</html>
+```
+`head` contient ce qu'on ne voit pas sur la page (le titre de l'onglet), `body` ce qu'on voit.
 
-CSS décrit l'apparence.
+## Le piège
+Oublier de fermer une balise. Le navigateur essaie de deviner, et le résultat surprend. Indentez votre code pour voir ce qui est ouvert.
+
+## À vous
+Écrivez une page avec un titre, deux paragraphes et un lien vers un site que vous aimez.",ndongo,6,
+devenir-forgeron,2,Les balises qui ont du sens,"# Les balises qui ont du sens
+
+On pourrait tout écrire avec des `<div>` génériques, mais le HTML a des balises qui **disent ce qu'elles contiennent**. On appelle cela le HTML *sémantique*.
+
+```html
+<header>Logo et menu</header>
+<nav><a href=""/"">Accueil</a> <a href=""/prix"">Prix</a></nav>
+<main>
+  <article>
+    <h1>Nos pagnes</h1>
+    <ul>
+      <li>Wax</li>
+      <li>Bazin</li>
+    </ul>
+  </article>
+</main>
+<footer>Dakar, Sénégal</footer>
+```
+
+## Pourquoi c'est important
+- Les **lecteurs d'écran** utilisés par les personnes aveugles s'en servent pour naviguer : « aller au contenu principal », « liste des titres ».
+- Les **moteurs de recherche** comprennent mieux la page.
+- Votre code est plus facile à relire.
+
+## Les titres ont un ordre
+Un seul `<h1>` par page, puis `<h2>` pour les parties, `<h3>` pour les sous-parties. Ne choisissez pas un titre pour sa taille : la taille se règle en CSS.
+
+## Les images
+```html
+<img src=""pagne.jpg"" alt=""Pagne wax bleu et jaune"">
+```
+Le texte `alt` décrit l'image à ceux qui ne la voient pas, et s'affiche si elle ne charge pas.
+
+## À vous
+Réécrivez une page faite de `<div>` avec les bonnes balises : en-tête, navigation, contenu principal, pied de page.",ndongo,6,
+devenir-forgeron,3,CSS : couleurs et texte,"# CSS : couleurs et texte
+
+Le HTML dit **quoi**, le CSS dit **comment ça a l'air**. Une règle CSS a trois parties : qui on cible, quelle propriété, quelle valeur.
 
 ```css
-h1 { color: #f0b24a; font-size: 2rem; }
+h1 {
+  color: #0b6e4f;
+  font-size: 2rem;
+}
+p {
+  color: #333;
+  line-height: 1.6;
+}
 ```
 
-Un sélecteur (`h1`), puis des propriétés entre accolades.",ndongo,7,
-devenir-forgeron,4,Espacer et aligner,"# Le modèle de boîte
+- `color` : la couleur du texte.
+- `font-size` : la taille. `rem` suit la taille choisie par l'utilisateur.
+- `line-height` : la hauteur de ligne. 1,5 à 1,7 rend un texte agréable à lire.
 
-Chaque élément a un contenu, un `padding` (dedans), une bordure et une `margin` (dehors).
+## Cibler des éléments
+```css
+.prix { font-weight: bold; }     /* tous les éléments class=""prix"" */
+#titre { text-align: center; }   /* l'élément id=""titre"" */
+```
+Préférez les **classes** (avec un point) : elles se réutilisent.
 
-Pour aligner : `display: flex;` avec `gap` pour l'espace entre éléments.",bagne,8,
-devenir-forgeron,5,Contraste et accessibilité,"# Accessibilité
+## Les couleurs
+`#0b6e4f` est un code hexadécimal : rouge, vert, bleu. Vous pouvez aussi écrire `rgb(11, 110, 79)` ou un nom comme `white`.
 
-- Contraste : le texte doit se lire sur son fond (visez un rapport d'au moins 4,5 pour 1).
-- Chaque image a un texte alternatif (`alt`).
-- Tout se fait aussi au clavier.
+## Le piège
+Une règle plus précise gagne sur une règle plus large, même écrite avant. Si une couleur ne change pas, un sélecteur plus fort la bloque peut-être.
 
-Une interface accessible est une meilleure interface pour tout le monde.",bagne,8,
-devenir-forgeron,6,S'adapter à tous les écrans,"# Responsive
+## À vous
+Mettez le titre en vert foncé, centré, avec un paragraphe en gris foncé et une hauteur de ligne de 1,6.",ndongo,7,
+devenir-forgeron,4,Espacer et aligner,"# Espacer et aligner
 
-Le site doit marcher sur un téléphone. Utilisez des largeurs relatives (`%`, `rem`) et une règle `@media (max-width: 600px) { ... }` pour changer la mise en page.",bagne,8,
-devenir-saltigue,1,Lire une série de chiffres,"# Les données
+Presque tout élément est une **boîte**. Une boîte a quatre couches, de l'intérieur vers l'extérieur :
+1. le **contenu** ;
+2. le **padding**, la marge intérieure ;
+3. la **bordure** ;
+4. le **margin**, la marge extérieure.
 
-Une liste de nombres peut être résumée par quelques chiffres : le total, la plus petite et la plus grande valeur, la moyenne.
+```css
+.carte {
+  padding: 16px;
+  border: 1px solid #ccc;
+  margin: 12px;
+  border-radius: 8px;
+}
+```
 
-Commencez toujours par regarder les données : combien de valeurs ? des trous ? des valeurs étranges ?",ndongo,6,
-devenir-saltigue,2,La moyenne,"# La moyenne
+Ajoutez toujours `box-sizing: border-box;` : la largeur que vous donnez inclut alors le padding et la bordure, ce qui évite les mauvaises surprises.
 
-Somme divisée par le nombre de valeurs.
+## Aligner avec Flexbox
+Pour mettre des éléments côte à côte :
+
+```css
+.menu {
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  align-items: center;
+}
+```
+
+- `gap` : l'espace entre les éléments.
+- `justify-content` : l'alignement dans le sens de la ligne.
+- `align-items` : l'alignement dans l'autre sens.
+
+## Le piège
+Des marges mises un peu partout. Choisissez quelques espaces (8, 16, 24 pixels) et gardez-les : une page cohérente paraît toujours plus soignée.
+
+## À vous
+Faites une rangée de trois cartes alignées, avec 16 pixels d'espace entre elles.",bagne,8,
+devenir-forgeron,5,Contraste et accessibilité,"# Contraste et accessibilité
+
+Une page jolie que l'on ne peut pas lire n'est pas réussie. Le **contraste** est la différence entre la couleur du texte et celle du fond.
+
+- Les règles d'accessibilité demandent un rapport d'au moins **4,5 pour 1** pour un texte courant.
+- Gris clair sur blanc, jaune sur blanc : à éviter, surtout sous le soleil de midi sur un téléphone.
+- Un outil de vérification de contraste (il y en a de gratuits) donne le rapport tout de suite.
+
+## Ne pas dépendre de la couleur seule
+Un champ en erreur ne doit pas être signalé **uniquement** en rouge : environ une personne sur douze (côté masculin) ne distingue pas bien certaines couleurs. Ajoutez un message ou une icône.
+
+## Les petits gestes qui comptent
+- Les liens et boutons doivent être **visibles au clavier** : ne retirez jamais `outline` sans le remplacer.
+- Toute image utile a un texte `alt`.
+- Chaque champ de formulaire a un `<label>`.
+- Un texte d'au moins 16 pixels sur mobile.
+
+```css
+a:focus-visible {
+  outline: 3px solid #0b6e4f;
+  outline-offset: 2px;
+}
+```
+
+## Le piège
+Penser que l'accessibilité est un détail pour une minorité. Elle aide aussi tout le monde : écran sous le soleil, main occupée, connexion lente.
+
+## À vous
+Prenez un texte gris clair sur fond blanc, corrigez sa couleur, et ajoutez un style de focus visible aux liens.",bagne,8,
+devenir-forgeron,6,S'adapter à tous les écrans,"# S'adapter à tous les écrans
+
+Au Sénégal, la majorité des gens visitent le web depuis un **téléphone**. Votre page doit donc marcher à 360 pixels de large avant de penser à l'ordinateur. C'est le principe *mobile d'abord*.
+
+## Première ligne indispensable
+```html
+<meta name=""viewport"" content=""width=device-width, initial-scale=1"">
+```
+Sans elle, le téléphone fait comme si l'écran était large, puis rétrécit tout.
+
+## Des tailles qui s'adaptent
+```css
+.contenu {
+  max-width: 720px;   /* pas plus large que ça */
+  width: 100%;        /* mais jamais plus que l'écran */
+  margin: 0 auto;     /* centré */
+}
+img { max-width: 100%; height: auto; }
+```
+
+## Changer de disposition avec une media query
+On écrit d'abord le style du téléphone, puis on enrichit pour les grands écrans :
+
+```css
+.cartes { display: grid; gap: 16px; }
+
+@media (min-width: 768px) {
+  .cartes { grid-template-columns: repeat(3, 1fr); }
+}
+```
+Sur téléphone : une colonne. À partir de 768 pixels : trois colonnes.
+
+## Le piège
+Des largeurs fixes en pixels (`width: 900px`) qui font défiler la page de gauche à droite sur mobile. Testez toujours en réduisant la fenêtre.
+
+## À vous
+Mettez trois cartes en une colonne sur mobile et en trois colonnes dès 768 pixels de large.",bagne,8,
+devenir-saltigue,1,Lire une série de chiffres,"# Lire une série de chiffres
+
+Avant de calculer quoi que ce soit, **regardez** vos données. Une série, c'est une liste de nombres : les ventes de chaque jour, les notes d'une classe, la température à Dakar.
 
 ```python
-sum(v) / len(v)
+ventes = [12, 15, 9, 30, 11]
 ```
 
-Attention à la liste vide : on ne divise pas par zéro. `round(x, 2)` arrondit.",ndongo,6,moyenne-des-ventes
+Quatre questions à se poser tout de suite :
+- **Combien** de valeurs ? `len(ventes)` donne 5.
+- **Quelle est la plus petite et la plus grande ?** `min` et `max` : 9 et 30.
+- **Quel écart** entre les deux ? `max - min` : 21.
+- **Certaines valeurs ont-elles l'air étranges ?** Ici 30 est loin des autres.
+
+## Trier pour mieux voir
+`sorted(ventes)` donne `[9, 11, 12, 15, 30]`. Une liste triée se lit d'un coup d'œil et rend les valeurs isolées évidentes.
+
+## Le piège
+Un chiffre isolé peut être une erreur de saisie (300 au lieu de 30) ou une vraie journée exceptionnelle. Ne le supprimez pas sans vous poser la question.
+
+## À vous
+Avec `[8, 22, 9, 10, 7]`, trouvez le plus petit, le plus grand et l'écart. Quelle valeur vous semble sortir du lot ?",ndongo,6,
+devenir-saltigue,2,La moyenne,"# La moyenne
+
+La **moyenne** répond à « combien en moyenne ? ». On additionne tout, puis on divise par le nombre de valeurs.
+
+```python
+ventes = [12, 15, 9, 30, 11]
+moyenne = sum(ventes) / len(ventes)   # 15.4
+```
+
+Le `/` donne toujours un nombre à virgule. Pour arrondir à un chiffre après la virgule : `round(moyenne, 1)`.
+
+## À quoi ça sert
+Comparer des périodes (« cette semaine, 15 ventes par jour contre 11 la semaine dernière »), prévoir un stock, fixer un objectif réaliste.
+
+## Les deux pièges
+1. **La liste vide.** `len([])` vaut 0 et on ne peut pas diviser par zéro. Testez d'abord : `if not ventes: return 0`.
+2. **Les valeurs extrêmes.** Dans notre exemple, la journée à 30 tire la moyenne vers le haut : sans elle, la moyenne serait 11,75. La moyenne est sensible aux valeurs isolées.
+
+## À vous
+Calculez la moyenne de `[2000, 2500, 1800, 2200]` et arrondissez-la à l'entier le plus proche. Que renvoie votre fonction pour une liste vide ?",ndongo,6,moyenne-des-ventes
 devenir-saltigue,3,La médiane,"# La médiane
 
-La valeur du milieu une fois les chiffres triés. Elle résiste aux valeurs extrêmes : dans `[1, 2, 3, 1000]`, la moyenne est trompeuse, la médiane non.",ndongo,8,valeur-mediane
+La **médiane** est la valeur du milieu quand on trie la série : la moitié des valeurs est en dessous, l'autre moitié au-dessus.
+
+```python
+ventes = [12, 15, 9, 30, 11]
+tri = sorted(ventes)        # [9, 11, 12, 15, 30]
+milieu = len(tri) // 2      # 2
+tri[milieu]                 # 12
+```
+
+## Avec un nombre pair de valeurs
+Il n'y a plus de valeur au milieu : on fait la moyenne des deux valeurs centrales.
+
+```python
+tri = [9, 11, 15, 30]
+(tri[1] + tri[2]) / 2       # 13.0
+```
+
+`//` est la division entière : `5 // 2` vaut `2`.
+
+## Pourquoi pas toujours la moyenne ?
+Reprenez notre série : la moyenne vaut 15,4 mais la médiane 12. La journée à 30 ne déplace presque pas la médiane. C'est la bonne mesure quand les données contiennent des valeurs extrêmes, comme des salaires ou des prix de terrain.
+
+## Le piège
+Il faut **trier avant** de chercher le milieu, sinon vous prenez simplement la valeur du milieu de la liste d'origine.
+
+## À vous
+Trouvez la médiane de `[7, 3, 9, 1]`. Vous devez obtenir 5,0.",ndongo,8,valeur-mediane
 devenir-saltigue,4,Le mode,"# Le mode
 
-La valeur la plus fréquente. On compte avec un dictionnaire, puis on cherche le plus grand compte. Il faut décider ce qu'on fait en cas d'égalité : ici, la plus petite valeur.",bagne,8,valeur-la-plus-frequente
-devenir-saltigue,5,Mettre à la même échelle,"# Normaliser
+Le **mode** est la valeur qui revient le plus souvent. C'est la seule mesure qui marche aussi pour des mots : la pointure la plus vendue, le plat le plus commandé, le mot le plus fréquent d'un texte.
 
-Pour comparer des notes sur 20 et des notes sur 100, on les ramène entre 0 et 1 :
+```python
+commandes = [""thiéb"", ""yassa"", ""thiéb"", ""mafé"", ""thiéb""]
+```
 
-`(x - min) / (max - min)`
+Ici le mode est `""thiéb""`, qui apparaît trois fois.
 
-Si toutes les valeurs sont égales, max - min vaut 0 : traitez ce cas à part.",bagne,9,normaliser-les-scores
-devenir-saltigue,6,Raconter ce que disent les chiffres,"# Conclure
+## La méthode : compter, puis choisir
+On compte les apparitions avec un dictionnaire, puis on prend la clé qui a le plus grand compte.
 
-Un chiffre seul ne dit rien. Dites ce qu'il signifie, comparé à quoi, et ce que vous ne savez pas encore.
+```python
+comptes = {}
+for plat in commandes:
+    comptes[plat] = comptes.get(plat, 0) + 1
+# {""thiéb"": 3, ""yassa"": 1, ""mafé"": 1}
 
-Exemple : « Les ventes moyennes sont de 3,67 mais une journée sort du lot : à vérifier. »",bagne,6,
-devenir-buur-linguere,1,Pourquoi la sécurité compte,"# Les bases
+mode = max(comptes, key=comptes.get)
+```
 
-Un système est aussi solide que son maillon le plus faible. Trois questions : qu'est-ce qu'on protège, contre qui, et que se passe-t-il si ça casse ?
+`max(comptes, key=comptes.get)` se lit : « donne-moi la clé dont la valeur est la plus grande ».
 
-La sécurité est un réflexe, pas une option ajoutée à la fin.",ndongo,5,
-devenir-buur-linguere,2,Des mots de passe solides,"# Les mots de passe
+## Le piège
+Que faire en cas d'égalité ? Décidez d'une règle (par exemple, prendre la plus petite valeur) et écrivez-la : un résultat qui change d'un lancement à l'autre est un bug.
 
-La longueur compte plus que les symboles. Une phrase de passe longue vaut mieux qu'un mot court compliqué.
+## À vous
+Trouvez la valeur la plus fréquente de `[4, 7, 4, 2, 7, 4]`. Ajoutez une règle pour départager deux valeurs à égalité.",bagne,8,valeur-la-plus-frequente
+devenir-saltigue,5,Mettre à la même échelle,"# Mettre à la même échelle
 
-Un mot de passe ne se réutilise jamais, et se range dans un gestionnaire.",ndongo,7,mot-de-passe-solide
-devenir-buur-linguere,3,Cacher ce qui est privé,"# La vie privée
+Comment comparer une note sur 20 et une note sur 100 ? En les ramenant sur la même échelle. La méthode la plus courante se nomme **normalisation min-max** : le plus petit devient 0, le plus grand devient 1, les autres se placent entre les deux.
 
-Montrez le minimum nécessaire. Une adresse e-mail s'affiche masquée : `m*****@exemple.sn`.
+```python
+scores = [40, 60, 100]
+petit, grand = min(scores), max(scores)
+normalises = [(x - petit) / (grand - petit) for x in scores]
+# [0.0, 0.333..., 1.0]
+```
 
-Moins on expose de données, moins il y a à perdre en cas de fuite.",ndongo,6,masquer-l-email
-devenir-buur-linguere,4,Un premier chiffrement,"# Le chiffre de César
+La formule : `(x - min) / (max - min)`.
 
-On décale chaque lettre d'un nombre fixe de places. C'est un jeu : il se casse en quelques secondes. Mais il montre l'idée : une clé (le décalage) transforme un message lisible en message illisible.
+## Pourquoi on le fait
+Pour comparer des choses mesurées différemment, pour tracer plusieurs courbes sur un même graphique, et pour préparer les données avant un modèle d'intelligence artificielle.
 
-Le vrai chiffrement utilise des clés très longues et des algorithmes éprouvés. N'inventez jamais le vôtre.",bagne,9,chiffre-de-cesar
-devenir-buur-linguere,5,Les adresses du réseau,"# Adresses IP
+## Le piège
+Si toutes les valeurs sont égales, `max - min` vaut 0 : division par zéro. Décidez ce que vous renvoyez dans ce cas (souvent une liste de zéros).
 
-Une adresse IPv4 a 4 nombres de 0 à 255. Valider ce qu'on reçoit est un réflexe de sécurité : on ne fait jamais confiance à une entrée.",bagne,9,adresse-ip-valide
-devenir-buur-linguere,6,Ne jamais faire confiance à l'entrée,"# Valider les entrées
+## À vous
+Normalisez `[10, 20, 30]`. Vous devez obtenir `[0.0, 0.5, 1.0]`. Que se passe-t-il avec `[5, 5, 5]` ?",bagne,9,normaliser-les-scores
+devenir-saltigue,6,Raconter ce que disent les chiffres,"# Raconter ce que disent les chiffres
 
-Tout ce qui vient de l'extérieur (formulaire, URL, fichier) peut être piégé. Vérifiez le type, la taille, le format. Refusez ce qui ne ressemble pas à ce que vous attendez.",bagne,6,
+Un calcul sans phrase ne sert à personne. Le dernier pas d'une analyse, c'est d'expliquer le résultat avec des mots simples.
+
+## Choisir la bonne mesure
+- **Moyenne** : quand les valeurs sont proches les unes des autres.
+- **Médiane** : quand quelques valeurs extrêmes faussent la moyenne.
+- **Mode** : quand on parle de catégories (« le plat le plus commandé »).
+
+## Une bonne phrase contient trois choses
+1. Le **chiffre** : « 15 ventes par jour en moyenne ».
+2. La **comparaison** : « contre 11 la semaine dernière ».
+3. Le **sens** : « la boutique progresse, mais une seule grosse journée explique une partie de la hausse ».
+
+## Les pièges de l'honnêteté
+- Dire « la moyenne a augmenté » sans préciser sur combien de jours.
+- Cacher les valeurs extrêmes qui changent l'histoire.
+- Montrer un pourcentage sans dire « sur combien ».
+
+Un bon analyste est quelqu'un à qui l'on peut faire confiance, pas quelqu'un qui impressionne.
+
+## À vous
+Les ventes de la semaine : `[10, 11, 9, 12, 10, 11, 40]`. Écrivez deux phrases : l'une avec la moyenne, l'autre avec la médiane. Laquelle décrit mieux une journée ordinaire ?",bagne,6,
+devenir-buur-linguere,1,Pourquoi la sécurité compte,"# Pourquoi la sécurité compte
+
+Un système sûr protège trois choses. On les retient avec trois mots :
+- **Confidentialité** : seules les bonnes personnes voient l'information. Votre message à un ami, votre mot de passe.
+- **Intégrité** : l'information n'est pas modifiée en cachette. Le montant d'un virement doit rester celui que vous avez saisi.
+- **Disponibilité** : le service fonctionne quand on en a besoin. Un site de paiement en panne le jour de la Tabaski est un problème de sécurité.
+
+## Une attaque, c'est souvent une personne
+La plupart des incidents ne viennent pas d'un génie du piratage, mais d'un faux message (l'**hameçonnage**), d'un mot de passe réutilisé ou d'une mise à jour jamais faite. La sécurité se joue d'abord dans les petites habitudes.
+
+## Le bon réflexe
+Posez-vous trois questions : *Qu'est-ce que je protège ? Contre qui ? Que se passe-t-il si cela échoue ?* On protège plus fort un compte bancaire qu'un jeu de quiz.
+
+## Le piège
+Croire que « personne ne s'intéressera à moi ». Les attaques sont automatiques : elles essaient des milliers de comptes, sans regarder qui vous êtes.
+
+## À vous
+Citez un service que vous utilisez et dites quelle serait la conséquence d'une perte de confidentialité, d'intégrité et de disponibilité.",ndongo,5,
+devenir-buur-linguere,2,Des mots de passe solides,"# Des mots de passe solides
+
+Un mot de passe est une clé. Ce qui le rend fort, c'est sa **longueur** bien plus que ses symboles compliqués.
+
+- `P@ssw0rd!` est court et très connu : il tombe en quelques secondes.
+- `le-marche-de-sandaga-est-bruyant` est long, facile à retenir et très difficile à deviner. On appelle cela une **phrase de passe**.
+
+## Les règles qui comptent
+1. **Longues** : 12 caractères au minimum, mieux vaut 16.
+2. **Uniques** : un mot de passe par service. Si un site est piraté, les autres ne tombent pas.
+3. **Jamais** un prénom, une date de naissance ou « 123456 ».
+4. Un **gestionnaire de mots de passe** retient tout à votre place.
+5. L'**authentification à deux facteurs** ajoute un code reçu sur le téléphone : même un mot de passe volé ne suffit plus.
+
+## Comment un site doit les garder
+Un bon site ne garde jamais votre mot de passe en clair. Il en garde une **empreinte** (un *hash*) : une transformation à sens unique. Pour vérifier, il transforme ce que vous tapez et compare les deux empreintes.
+
+## À vous
+Écrivez les règles d'un contrôle de force : longueur au moins 12, contient une majuscule, une minuscule et un chiffre. Chaque règle manquante doit apparaître dans un message.",ndongo,7,mot-de-passe-solide
+devenir-buur-linguere,3,Cacher ce qui est privé,"# Cacher ce qui est privé
+
+Certaines informations ne doivent pas s'afficher en entier : e-mail, téléphone, numéro de carte. On les **masque** : on garde juste de quoi reconnaître, et on cache le reste.
+
+```python
+email = ""awa.diop@exemple.sn""
+nom, domaine = email.split(""@"")
+masque = nom[0] + ""***@"" + domaine   # a***@exemple.sn
+```
+
+`split(""@"")` coupe le texte en deux morceaux autour du `@`. `nom[0]` prend la première lettre.
+
+## Le principe de minimisation
+Ne demandez, ne gardez et n'affichez que ce qui est nécessaire. Une donnée que vous n'avez pas ne peut pas être volée. Dans un journal d'erreurs, ne mettez jamais un mot de passe ni un numéro de carte.
+
+## Où on masque
+- À l'écran, quand un autre que le propriétaire regarde.
+- Dans les journaux et les messages d'erreur.
+- Dans les exports de données partagés avec des collègues.
+
+## Le piège
+Masquer trop peu (`awa.dio***@...`) donne encore l'identité ; vérifiez aussi les cas limites : un e-mail sans `@`, ou un nom d'une seule lettre.
+
+## À vous
+Écrivez une fonction qui masque un téléphone : `""771234567""` devient `""77***4567""`.",ndongo,6,masquer-l-email
+devenir-buur-linguere,4,Un premier chiffrement,"# Un premier chiffrement
+
+**Chiffrer**, c'est transformer un message pour que seul celui qui a la clé puisse le lire. Le plus ancien exemple est le **chiffre de César** : chaque lettre est décalée de quelques places dans l'alphabet.
+
+Avec un décalage de 3 : `A` devient `D`, `B` devient `E`, `Y` devient `B` (on revient au début).
+
+```python
+def decaler(lettre, cle):
+    position = ord(lettre) - ord(""a"")          # a=0, b=1, ...
+    nouvelle = (position + cle) % 26           # on revient à 0 après z
+    return chr(nouvelle + ord(""a""))
+```
+
+`ord` donne le numéro d'une lettre, `chr` fait l'inverse. Le `% 26` fait le tour de l'alphabet.
+
+## Pourquoi ce n'est pas sûr
+Il n'y a que 25 décalages possibles : un ordinateur les essaie tous en un instant. César protégeait des messages à son époque, pas aujourd'hui. Les vrais chiffrements (comme AES) reposent sur des mathématiques que personne ne sait casser.
+
+## La leçon à retenir
+Ne **fabriquez jamais** votre propre chiffrement pour protéger de vraies données : utilisez les outils éprouvés.
+
+## À vous
+Chiffrez `""abc xyz""` avec la clé 3, en laissant les espaces tels quels. Vous devez obtenir `""def abc""`.",bagne,9,chiffre-de-cesar
+devenir-buur-linguere,5,Les adresses du réseau,"# Les adresses du réseau
+
+Chaque appareil connecté a une **adresse IP**, comme une adresse postale. Dans sa forme IPv4, ce sont quatre nombres entre 0 et 255, séparés par des points : `192.168.1.10`.
+
+## Vérifier qu'une adresse est valide
+Une adresse valide a exactement quatre morceaux, chacun fait uniquement de chiffres, et compris entre 0 et 255.
+
+```python
+morceaux = adresse.split(""."")
+if len(morceaux) != 4:
+    return False
+for m in morceaux:
+    if not m.isdigit() or int(m) > 255:
+        return False
+return True
+```
+
+`isdigit()` répond vrai seulement si le texte n'est fait que de chiffres.
+
+## Les cas que l'on oublie
+- `""256.1.1.1""` : 256 est trop grand.
+- `""1.2.3""` : il manque un morceau.
+- `""a.b.c.d""` : pas des nombres.
+- `""1.2.3.4.5""` : un morceau de trop.
+
+Pensez à tester ces cas avant de dire que votre fonction est correcte.
+
+## Pourquoi c'est de la sécurité
+Les pare-feu, les journaux et les listes d'accès manipulent des adresses. Une adresse mal vérifiée peut laisser passer une entrée qu'on voulait bloquer.
+
+## À vous
+Listez cinq adresses, valides et invalides, que votre fonction doit classer correctement.",bagne,9,adresse-ip-valide
+devenir-buur-linguere,6,Ne jamais faire confiance à l'entrée,"# Ne jamais faire confiance à l'entrée
+
+La règle d'or de la sécurité : **tout ce qui vient de l'extérieur est suspect**, jusqu'à preuve du contraire. Un formulaire, une URL, un fichier envoyé, un message d'un autre programme.
+
+## Valider, avant d'utiliser
+1. Le **type** : un âge doit être un nombre.
+2. La **taille** : un nom de 10 000 caractères n'est pas un nom.
+3. Les **valeurs permises** : préférez une liste de choix autorisés à une liste de choix interdits.
+
+```python
+CLANS = {""griot_du_code"", ""forgeron"", ""saltigue"", ""buur_linguere""}
+if clan not in CLANS:
+    raise ValueError(""clan inconnu"")
+```
+
+## L'exemple célèbre : l'injection
+Imaginez une requête construite ainsi : `""SELECT * FROM membres WHERE nom = '"" + nom + ""'""`. Si quelqu'un tape `' OR '1'='1`, la requête renvoie **tout le monde**. La parade : les requêtes **paramétrées**, où la base de données reçoit les valeurs à part et ne les interprète jamais comme du code.
+
+## Deux autres réflexes
+- Échappez ce que vous affichez dans une page web (sinon : injection de script).
+- Faites la validation **aussi côté serveur** : celle du navigateur se contourne.
+
+## À vous
+Un formulaire demande un âge. Écrivez les trois contrôles que vous faites avant de l'enregistrer.",bagne,6,

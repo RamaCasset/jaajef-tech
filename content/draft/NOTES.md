@@ -8,7 +8,7 @@ All of this is a first draft for Thursday night. Nothing is published: every row
   - Saltigué: 4 Python quests on statistics
   - Buur/Lingeer: 4 Python quests on security
   - Forgeron: none yet. HTML and CSS cannot be graded automatically today (see below).
-- `paths.csv` and `steps.csv`: one learning path per clan, six lessons each. Steps with a quest finish when the quest is solved.
+- `paths.csv` and `steps.csv`: one learning path per clan, six lessons each. Each lesson has an idea, an example, a common mistake and an "À vous" mini-exercise (about 1,000 characters on average). Steps with a quest finish when the quest is solved.
 - Everything is French, short and meant to be rewritten in your voice.
 
 ## To review on Thursday
