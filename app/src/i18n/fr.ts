@@ -8,6 +8,14 @@ export const frMessages = {
     loading: 'Chargement…',
     unknownError: 'Une erreur est survenue. Réessayez dans un instant.',
   },
+  footer: {
+    label: 'Informations légales',
+    terms: "Conditions d'utilisation",
+    privacy: 'Confidentialité',
+    rules: 'Règles de la communauté',
+    jobRules: 'Règles des offres',
+    credit: 'Conçu par Jarama Tech SAS',
+  },
   splash: {
     tagline: 'La tech entre nous !',
     about: 'À propos',
@@ -62,6 +70,11 @@ export const frMessages = {
     askAgain: 'Demander un nouveau lien',
   },
   signup: {
+    agreeBefore: 'En créant un compte, vous acceptez les ',
+    terms: "Conditions d'utilisation",
+    agreeMiddle: ' et la ',
+    privacy: 'Politique de confidentialité',
+    agreeAfter: '.',
     github: "S'inscrire avec GitHub",
     eyebrow: 'Création de personnage / Étape 1 sur 3',
     title: 'Crée ton identité',

@@ -8,6 +8,14 @@ export const en: Messages = {
     loading: 'Loading…',
     unknownError: 'Something went wrong. Please try again in a moment.',
   },
+  footer: {
+    label: 'Legal information',
+    terms: 'Terms of use',
+    privacy: 'Privacy',
+    rules: 'Community rules',
+    jobRules: 'Job rules',
+    credit: 'Design by Jarama Tech SAS',
+  },
   splash: {
     tagline: 'Tech, among us!',
     about: 'About',
@@ -62,6 +70,11 @@ export const en: Messages = {
     askAgain: 'Ask for a new link',
   },
   signup: {
+    agreeBefore: 'By creating an account, you accept the ',
+    terms: 'Terms of use',
+    agreeMiddle: ' and the ',
+    privacy: 'Privacy policy',
+    agreeAfter: '.',
     github: 'Sign up with GitHub',
     eyebrow: 'Character creation / Step 1 of 3',
     title: 'Create your identity',

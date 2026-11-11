@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { CornerArt } from '../components/CornerArt'
+import { SiteFooter } from '../components/SiteFooter'
 import { Logo } from '../components/Logo'
 import communities from '../assets/landing/communaute.webp'
 import projects from '../assets/landing/projets.webp'
@@ -41,6 +42,7 @@ export function About() {
         <p>{t.ready}</p>
         <Link className="btn btn-cta" to="/inscription">{t.signUp}</Link>
       </section>
+      <SiteFooter />
     </main>
   )
 }

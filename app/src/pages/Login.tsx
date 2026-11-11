@@ -3,6 +3,7 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { GithubButton } from '../components/GithubButton'
+import { SiteFooter } from '../components/SiteFooter'
 import { Logo } from '../components/Logo'
 import { fr } from '../i18n/fr'
 import { friendlyError } from '../lib/errors'
@@ -64,6 +65,7 @@ export function Login() {
           {fr.login.noAccount} <Link to="/inscription">{fr.login.signUp}</Link>
         </p>
       </form>
+      <SiteFooter />
     </main>
   )
 }

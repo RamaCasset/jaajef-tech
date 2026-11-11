@@ -58,6 +58,7 @@ import { LanguageSettings } from './pages/LanguageSettings'
 import { BuyKopeks } from './pages/BuyKopeks'
 import { KopeksReturn } from './pages/KopeksReturn'
 import { Setup } from './pages/Setup'
+import { Legal } from './pages/Legal'
 
 function Loading() {
   return <main className="center-page"><p className="muted">{fr.common.loading}</p></main>
@@ -93,6 +94,10 @@ export function AppRoutes() {
     <Routes>
       <Route path="/" element={<PublicOnly><Splash /></PublicOnly>} />
       <Route path="/a-propos" element={<About />} />
+      <Route path="/confidentialite" element={<Legal doc="privacy" />} />
+      <Route path="/conditions" element={<Legal doc="terms" />} />
+      <Route path="/regles" element={<Legal doc="rules" />} />
+      <Route path="/regles-offres" element={<Legal doc="jobs" />} />
       <Route path="/connexion" element={<PublicOnly><Login /></PublicOnly>} />
       <Route path="/mot-de-passe-oublie" element={<PublicOnly><ForgotPassword /></PublicOnly>} />
       <Route path="/nouveau-mot-de-passe" element={<ResetPassword />} />

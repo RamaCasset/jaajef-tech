@@ -1444,3 +1444,17 @@ div.alert[data-dismissed], p.alert[data-dismissed], div.notice[data-dismissed], 
 .lacite-top-solo { grid-template-columns: minmax(0, 1fr); }
 .app-status-shortlisted { border-color: #3ddba7; color: #3ddba7; }
 .app-status-declined { border-color: var(--danger); color: var(--danger); }
+
+/* Legal pages */
+.legal-nav { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 20px; }
+.legal-body { max-width: 760px; }
+.legal-body p { line-height: 1.65; }
+.legal-section { margin-top: 24px; }
+.legal-section h2 { font-size: 1.1rem; margin: 0 0 8px; }
+.splash-legal, .about-legal { margin-top: 16px; text-align: center; }
+.splash-legal a, .about-legal a { color: inherit; opacity: 0.8; }
+.site-footer { margin: 40px 16px 24px; padding-top: 16px; border-top: 1px solid var(--line); text-align: center; font-size: 0.85rem; color: var(--fg-muted); }
+.site-footer nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 18px; margin-bottom: 8px; }
+.site-footer a { color: inherit; opacity: 0.85; }
+.site-footer a:hover { opacity: 1; text-decoration: underline; }
+.site-footer p { margin: 0; }
