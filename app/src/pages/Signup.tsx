@@ -2,6 +2,7 @@ import { CornerArt } from '../components/CornerArt'
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
+import { GithubButton } from '../components/GithubButton'
 import { Logo } from '../components/Logo'
 import { Stepper } from '../components/Stepper'
 import { fr } from '../i18n/fr'
@@ -60,6 +61,7 @@ export function Signup() {
         <button className="btn btn-cta" type="submit" disabled={busy || !email || !password} style={{ width: '100%' }}>
           {fr.signup.submit} →
         </button>
+        <GithubButton label={fr.signup.github} onError={setError} />
       </form>
     </main>
   )

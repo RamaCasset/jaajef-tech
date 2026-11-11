@@ -5,7 +5,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ProfileData } from '../lib/api'
 
 const loadProfile = vi.fn()
-vi.mock('../lib/api', () => ({ loadProfile: (...a: unknown[]) => loadProfile(...a) }))
+const listAuthorBlogPosts = vi.fn()
+vi.mock('../lib/api', () => ({ loadProfile: (...a: unknown[]) => loadProfile(...a), listAuthorBlogPosts: (...a: unknown[]) => listAuthorBlogPosts(...a) }))
 vi.mock('../auth/AuthContext', () => ({
   useAuth: () => ({ session: { user: { id: 'me' } }, member: { kopeks: 5, profile: { display_name: 'Moussa' } }, signOut: vi.fn() }),
 }))
@@ -84,5 +85,17 @@ describe('Profile page', () => {
     loadProfile.mockResolvedValue(other)
     mount()
     expect(await screen.findByRole('button', { name: 'Signaler' })).toBeInTheDocument()
+  })
+
+  it("shows the Blog tab on someone else's profile with their published posts", async () => {
+    const other = data()
+    other.profile = { ...other.profile, id: 'u2' }
+    loadProfile.mockResolvedValue(other)
+    listAuthorBlogPosts.mockResolvedValue([{ id: 'b1', slug: 'mon-article', title: 'Mon article', status: 'published', staff_hidden: false, updated_at: '2026-11-01T00:00:00Z' }])
+    mount()
+    await screen.findByRole('heading', { name: /Moussa Diop/ })
+    await userEvent.click(screen.getByRole('tab', { name: 'Blog' }))
+    expect(await screen.findByRole('link', { name: 'Mon article' })).toHaveAttribute('href', '/blog/mon-article')
+    expect(listAuthorBlogPosts).toHaveBeenCalledWith('u2')
   })
 })

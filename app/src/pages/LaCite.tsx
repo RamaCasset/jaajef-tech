@@ -127,7 +127,6 @@ export function LaCite() {
 
         <footer className="communities-foot">
           <span className="muted tiny">{t.footer}</span>
-          <span className="tiny">{t.help} <Link to="/guide">{t.guide} <Icon name="forward" size={14} /></Link></span>
         </footer>
       </main>
     </AppShell>
