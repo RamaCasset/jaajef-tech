@@ -1126,7 +1126,7 @@ div.alert[data-dismissed], p.alert[data-dismissed], div.notice[data-dismissed], 
 .hero-chest-reward { color: #f0b24a; font-weight: 700; }
 
 /* Quest page: the page scrolls, and the editor is tall enough to work in */
-.quest-editor-box { flex: 1; min-height: 0; height: 560px; }
+.quest-editor-box { flex: none; height: 560px; }
 @media (min-width: 1200px) {
   .quest-ws { padding-bottom: 28px; }
   .quest-ws .quest-grid { align-items: start; }
