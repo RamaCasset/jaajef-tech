@@ -7,11 +7,13 @@ import type { QuestSummary } from '../lib/api'
 const listQuests = vi.fn()
 const listMyQuestProgress = vi.fn()
 const listMyNotebook = vi.fn()
+const getQuestDrip = vi.fn()
 
 vi.mock('../lib/api', () => ({
   listQuests: (...a: unknown[]) => listQuests(...a),
   listMyQuestProgress: (...a: unknown[]) => listMyQuestProgress(...a),
   listMyNotebook: (...a: unknown[]) => listMyNotebook(...a),
+  getQuestDrip: (...a: unknown[]) => getQuestDrip(...a),
 }))
 vi.mock('../auth/AuthContext', () => ({
   useAuth: () => ({ member: { kopeks: 1, profile: { id: 'u1', display_name: 'Moussa' } }, signOut: vi.fn() }),
@@ -31,6 +33,8 @@ beforeEach(() => {
   listQuests.mockReset()
   listMyQuestProgress.mockReset()
   listMyNotebook.mockReset()
+  getQuestDrip.mockReset()
+  getQuestDrip.mockResolvedValue(null)
   listQuests.mockResolvedValue([quest(1), quest(2, { daily_on: '2026-11-06', kopek_reward: 0, language: 'javascript' }), quest(3)])
   listMyQuestProgress.mockResolvedValue([
     { quest_id: 'q1', status: 'solved', tests_passed: 3, tests_total: 3 },
@@ -48,6 +52,24 @@ describe('Quests page', () => {
     expect(screen.getAllByText(/10 min/).length).toBeGreaterThanOrEqual(3)
     expect(screen.getByText(/· Quête du jour/)).toBeInTheDocument()
     expect(screen.getAllByText(/^Griot du Code/).length).toBeGreaterThanOrEqual(3)
+  })
+
+  it('says which day of the unlock the member is on, and that everything is open at the end', async () => {
+    getQuestDrip.mockResolvedValue({ day: 3, total: 32 })
+    mount()
+    expect(await screen.findByText('Jour 3 sur 32 : une nouvelle quête chaque jour.')).toBeInTheDocument()
+  })
+
+  it('says every quest is open once the last day is reached', async () => {
+    getQuestDrip.mockResolvedValue({ day: 40, total: 32 })
+    mount()
+    expect(await screen.findByText('Toutes les quêtes sont ouvertes.')).toBeInTheDocument()
+  })
+
+  it('shows no unlock line when no quest has a drip day', async () => {
+    mount()
+    await screen.findByText('Quête 1')
+    expect(screen.queryByText(/une nouvelle quête chaque jour/)).toBeNull()
   })
 
   it('shows solved and in-progress marks only on the right quests', async () => {

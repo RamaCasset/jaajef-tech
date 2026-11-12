@@ -671,6 +671,7 @@ export const frMessages = {
     footNote: "Chaque quête compte. Avance à ton rythme.",
     guide: "Guide des quêtes",
     weekDays: ['L', 'M', 'M', 'J', 'V', 'S', 'D'],
+    drip: (day: number, total: number): string => (day >= total ? 'Toutes les quêtes sont ouvertes.' : `Jour ${day} sur ${total} : une nouvelle quête chaque jour.`),
     dailyEyebrow: 'La quête du jour',
     dailyLeft: (h: number, m: number): string => (h > 0 ? `encore ${h} h` : `encore ${m} min`),
     dailyHint: "Un petit pas pour aujourd'hui.",
