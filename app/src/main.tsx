@@ -5,10 +5,12 @@ import './styles/global.css'
 import { initLang } from './i18n/lang'
 import { installBannerDismiss } from './lib/dismissBanners'
 import { applyRememberedTheme } from './lib/theme'
+import { initMonitoring } from './lib/monitoring'
 
 initLang()
 applyRememberedTheme()
 installBannerDismiss()
+initMonitoring()
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

@@ -25,7 +25,7 @@ const fr: LegalSet = {
       sections: [
         { h: 'Qui sommes-nous ?', p: [
           "jaajef.tech est une plateforme pour les développeurs, designers et passionnés de technologie, au Sénégal et dans la diaspora. Elle est éditée par [À CONFIRMER : nom de la structure, adresse].",
-          "Pour toute question sur vos données : [À CONFIRMER : adresse e-mail de contact].",
+          "Pour toute question sur vos données : ramatoulaye@jaramatech.com.",
         ] },
         { h: 'Ce que nous recueillons', p: [
           "Votre compte : adresse e-mail et mot de passe. Le mot de passe n'est jamais gardé en clair. Si vous vous connectez avec GitHub, nous recevons votre identifiant et votre adresse e-mail GitHub.",
@@ -118,7 +118,7 @@ const fr: LegalSet = {
           "Ces conditions sont régies par le droit sénégalais. [À CONFIRMER : tribunal compétent.]",
         ] },
         { h: 'Changements et contact', p: [
-          "Nous pouvons modifier ces conditions. Les changements importants vous seront annoncés avant leur entrée en vigueur. Contact : [À CONFIRMER : adresse e-mail].",
+          "Nous pouvons modifier ces conditions. Les changements importants vous seront annoncés avant leur entrée en vigueur. Contact : ramatoulaye@jaramatech.com.",
         ] },
       ],
     },
@@ -191,7 +191,7 @@ const en: LegalSet = {
       sections: [
         { h: 'Who we are', p: [
           'jaajef.tech is a platform for developers, designers and tech enthusiasts in Senegal and the diaspora. It is run by [TO CONFIRM: name of the organisation, address].',
-          'For any question about your data: [TO CONFIRM: contact e-mail].',
+          'For any question about your data: ramatoulaye@jaramatech.com.',
         ] },
         { h: 'What we collect', p: [
           'Your account: e-mail address and password. The password is never kept in plain text. If you sign in with GitHub, we receive your GitHub identifier and e-mail address.',
@@ -284,7 +284,7 @@ const en: LegalSet = {
           'These terms are governed by Senegalese law. [TO CONFIRM: competent court.]',
         ] },
         { h: 'Changes and contact', p: [
-          'We may change these terms. Important changes will be announced before they apply. Contact: [TO CONFIRM: e-mail address].',
+          'We may change these terms. Important changes will be announced before they apply. Contact: ramatoulaye@jaramatech.com.',
         ] },
       ],
     },
