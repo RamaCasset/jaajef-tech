@@ -1300,10 +1300,14 @@ def ip_valide(texte):
     for m in morceaux:
         if not m.isdigit():
             return False
+        if len(m) > 1 and m[0] == ""0"":
+            return False
         if int(m) > 255:
             return False
     return True
 ```
+
+Chaque morceau doit être un nombre de 0 à 255 **sans zéro au début** : `0` est valide, mais `01` ne l'est pas.
 
 Pensez aux cas bizarres : une chaîne vide, deux points qui se suivent (`1..2.3`), des espaces. Plus vous testez de cas, plus la fonction est fiable.
 
@@ -1324,7 +1328,7 @@ Les attaquants envoient des données mal formées pour faire planter ou tromper 
 
 ## Essayez
 
-Écrivez `ip_valide` et testez-la avec `1.2.3.4`, `256.0.0.1`, `1.2.3` et `1.2.3.x`. C'est la quête.",bagne,11,adresse-ip-valide
+Écrivez `ip_valide` et testez-la avec `1.2.3.4`, `256.0.0.1`, `1.2.3`, `1.2.3.x` et `1.2.03.4`. C'est la quête.",bagne,11,adresse-ip-valide
 devenir-buur-linguere,6,Ne jamais faire confiance à l'entrée,"# Valider les entrées
 
 Tout ce qui vient de l'extérieur de votre programme peut être piégé : un champ de formulaire, un paramètre d'adresse, un fichier téléversé, une réponse d'une autre application. La règle de base de la sécurité informatique : **ne jamais faire confiance à une entrée**.
