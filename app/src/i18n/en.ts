@@ -671,6 +671,7 @@ export const en: Messages = {
     footNote: "Every quest counts. Go at your own pace.",
     guide: "Quest guide",
     weekDays: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
+    drip: (day: number, total: number): string => (day >= total ? 'Every quest is open.' : `Day ${day} of ${total}: a new quest every day.`),
     dailyEyebrow: 'Quest of the day',
     dailyLeft: (h: number, m: number): string => (h > 0 ? `${h} h left` : `${m} min left`),
     dailyHint: 'A small step for today.',

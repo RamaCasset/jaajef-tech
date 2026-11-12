@@ -545,7 +545,7 @@ export type DailyQuest = {
   est_minutes: number
   xp_reward: number
   kopek_reward: number
-  source: 'scheduled' | 'automatic'
+  source: 'scheduled' | 'automatic' | 'drip'
   day: string
   seconds_left: number
   status: 'in_progress' | 'solved' | null
@@ -555,6 +555,12 @@ export type DailyQuest = {
 export async function getDailyQuest(): Promise<DailyQuest | null> {
   const rows = await rpc<DailyQuest[] | null>('quest_of_the_day')
   return rows && rows.length > 0 ? rows[0] : null
+}
+
+/** How far the member is in the one-quest-a-day unlock. Null when no quest has a drip day. */
+export type QuestDrip = { day: number; total: number }
+export async function getQuestDrip(): Promise<QuestDrip | null> {
+  return (await rpc<QuestDrip | null>('my_quest_drip')) ?? null
 }
 
 export type StreakInfo = {

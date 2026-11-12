@@ -5,7 +5,7 @@ import { Icon } from '../components/Icon'
 import { FlameTile, StreakDay } from '../components/StreakIcons'
 import { useAuth } from '../auth/AuthContext'
 import { useDebounced } from '../hooks'
-import { getDailyQuest, getMyStreak, getXpPerLevel, listMyQuestProgress, listQuests, type DailyQuest, type MyQuestProgress, type QuestFilters, type QuestSummary, type StreakInfo } from '../lib/api'
+import { getDailyQuest, getMyStreak, getQuestDrip, getXpPerLevel, listMyQuestProgress, listQuests, type DailyQuest, type MyQuestProgress, type QuestDrip, type QuestFilters, type QuestSummary, type StreakInfo } from '../lib/api'
 import { Companion } from '../components/Companion'
 import mascot from '../assets/art/mascot.png'
 import baobabArt from '../assets/art/baobab.svg'
@@ -166,8 +166,16 @@ export function Quests() {
   const [progress, setProgress] = useState<MyQuestProgress[]>([])
   const [failed, setFailed] = useState(false)
   const [reload, setReload] = useState(0)
+  const [drip, setDrip] = useState<QuestDrip | null>(null)
 
   const set = <K extends keyof QuestFilters>(k: K, v: QuestFilters[K]) => setFilters((f) => ({ ...f, [k]: v }))
+
+  useEffect(() => {
+    let alive = true
+    // A bonus line: if it cannot load, the list below still works.
+    Promise.resolve().then(() => (userId ? getQuestDrip() : null)).then((d) => { if (alive) setDrip(d ?? null) }).catch(() => undefined)
+    return () => { alive = false }
+  }, [userId])
 
   useEffect(() => {
     let alive = true
@@ -216,6 +224,7 @@ export function Quests() {
         <div className="quest-section-head">
           <h2>{fr.quests.nextAdventure}</h2>
           {quests ? <span className="muted tiny">{fr.quests.count(quests.length)}</span> : null}
+          {drip ? <span className="muted tiny">{fr.quests.drip(drip.day, drip.total)}</span> : null}
           <Link className="quest-notebook-link tiny" to="/quetes/carnet">{fr.quests.notebookLink(progress.filter((x) => x.status === 'solved').length)}</Link>
         </div>
         <div className="quest-tabs" role="tablist" aria-label={fr.quests.nextAdventure}>
