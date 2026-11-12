@@ -1,7 +1,7 @@
 /**
  * The four legal texts (privacy, terms, community rules, job rules), in French and English.
  * DRAFT: written to match what the app really does today. A lawyer must review them before launch,
- * and every [TO CONFIRM] / [À CONFIRMER] marker must be filled in. See docs/POLICIES_TO_CONFIRM.md.
+ * See docs/POLICIES_TO_CONFIRM.md.
  */
 export type LegalDocKey = 'privacy' | 'terms' | 'rules' | 'jobs'
 export type LegalDoc = { title: string; intro: string; sections: { h: string; p: string[] }[] }
@@ -24,7 +24,7 @@ const fr: LegalSet = {
       intro: "jaajef.tech respecte votre vie privée. Cette page explique, simplement, quelles informations nous gardons, pourquoi, qui peut les voir et comment vous gardez le contrôle.",
       sections: [
         { h: 'Qui sommes-nous ?', p: [
-          "jaajef.tech est une plateforme pour les développeurs, designers et passionnés de technologie, au Sénégal et dans la diaspora. Elle est éditée par [À CONFIRMER : nom de la structure, adresse].",
+          "jaajef.tech est une plateforme pour les développeurs, designers et passionnés de technologie, au Sénégal et dans la diaspora. Elle est éditée par Jarama Tech SAS, Sicap Liberté 1, villa 1062, Dakar, Sénégal.",
           "Pour toute question sur vos données : ramatoulaye@jaramatech.com.",
         ] },
         { h: 'Ce que nous recueillons', p: [
@@ -56,17 +56,17 @@ const fr: LegalSet = {
           "Avec GitHub, c'est pareil : nous recevons votre identifiant GitHub, votre adresse e-mail et votre photo. Si vous importez un projet, nous lisons seulement vos dépôts publics.",
         ] },
         { h: 'Les services qui nous aident', p: [
-          "Pour fonctionner, nous nous appuyons sur : Supabase (base de données, connexion, stockage des fichiers), Vercel (hébergement du site), E2B (exécution isolée du code des quêtes : le code que vous envoyez y est exécuté puis effacé), PayDunya (paiements), GitHub (connexion et lecture de vos dépôts publics si vous les importez) et [À CONFIRMER : service d'envoi d'e-mails].",
+          "Pour fonctionner, nous nous appuyons sur : Supabase (base de données, connexion, stockage des fichiers), Vercel (hébergement du site), E2B (exécution isolée du code des quêtes : le code que vous envoyez y est exécuté puis effacé), PayDunya (paiements), GitHub (connexion et lecture de vos dépôts publics si vous les importez) et Resend (envoi d'e-mails).",
           "Certains de ces services sont situés hors du Sénégal. Nous ne leur confions que ce qui est nécessaire à leur mission.",
         ] },
         { h: 'Combien de temps nous gardons vos données', p: [
           "Tant que votre compte existe. Vous pouvez demander la suppression de votre compte dans vos paramètres : vous avez 14 jours pour changer d'avis, puis votre compte, votre profil, vos messages, vos projets et vos fichiers sont supprimés. Seule une trace anonyme prouve que la suppression a eu lieu.",
           "Vous pouvez aussi télécharger une copie de vos données à tout moment.",
-          "Les journaux techniques sont gardés [À CONFIRMER : durée] puis effacés.",
+          "Les journaux techniques sont gardés 90 jours puis effacés.",
         ] },
         { h: 'Vos droits', p: [
           "Vous pouvez consulter, corriger, télécharger et supprimer vos données, vous opposer à certains usages et retirer votre accord. La plupart de ces actions se font seul, dans vos paramètres. Sinon, écrivez-nous.",
-          "Au Sénégal, la protection des données personnelles est encadrée par la loi n° 2008-12 et surveillée par la Commission de protection des données personnelles (CDP), auprès de laquelle vous pouvez aussi déposer une plainte. [À CONFIRMER : déclaration à la CDP.]",
+          "Au Sénégal, la protection des données personnelles est encadrée par la loi n° 2008-12 et surveillée par la Commission de protection des données personnelles (CDP), auprès de laquelle vous pouvez aussi déposer une plainte.",
         ] },
         { h: 'Sécurité', p: [
           "Les accès sont protégés par des règles côté serveur : chaque membre ne peut lire que ce qu'il a le droit de voir. Les fichiers privés sont dans un stockage fermé. Aucun système n'est parfait : si un incident touche vos données, nous vous le dirons.",
@@ -75,7 +75,7 @@ const fr: LegalSet = {
           "Nous utilisons uniquement ce qui est nécessaire : garder votre connexion, votre langue et votre thème de couleurs. Pas de cookies publicitaires ni de suivi par des tiers.",
         ] },
         { h: 'Les jeunes', p: [
-          "jaajef.tech est réservé aux personnes de [À CONFIRMER : 16] ans et plus. En dessous, l'accord d'un parent ou tuteur est nécessaire.",
+          "jaajef.tech est réservé aux personnes de 16 ans et plus. En dessous, l'accord d'un parent ou tuteur est nécessaire.",
         ] },
         { h: 'Changements', p: [
           "Si ce texte change de façon importante, nous vous le dirons dans l'application avant qu'il s'applique.",
@@ -102,7 +102,7 @@ const fr: LegalSet = {
           "Le code des quêtes s'exécute dans un espace isolé, avec des limites de temps et de mémoire. N'essayez pas d'en sortir, de l'attaquer ou de l'utiliser pour autre chose qu'apprendre.",
         ] },
         { h: 'Kopeks, Souk et paiements', p: [
-          "Les Kopeks sont des points virtuels du jeu. Ils n'ont pas de valeur en argent et ne sont pas remboursables en espèces, sauf disposition légale contraire. [À CONFIRMER : politique de remboursement.]",
+          "Les Kopeks sont des points virtuels du jeu. Ils n'ont pas de valeur en argent et ne sont pas remboursables en espèces, sauf disposition légale contraire.",
           "Les Kopeks achetés sont payés par notre prestataire de paiement. Les objets du Souk servent à personnaliser votre expérience.",
         ] },
         { h: "Offres d'emploi et missions", p: [
@@ -116,7 +116,7 @@ const fr: LegalSet = {
           "Vous pouvez supprimer votre compte quand vous voulez. Nous pouvons suspendre ou fermer un compte qui ne respecte pas ces règles.",
         ] },
         { h: 'Droit applicable', p: [
-          "Ces conditions sont régies par le droit sénégalais. [À CONFIRMER : tribunal compétent.]",
+          "Ces conditions sont régies par le droit sénégalais.",
         ] },
         { h: 'Changements et contact', p: [
           "Nous pouvons modifier ces conditions. Les changements importants vous seront annoncés avant leur entrée en vigueur. Contact : ramatoulaye@jaramatech.com.",
@@ -191,7 +191,7 @@ const en: LegalSet = {
       intro: 'jaajef.tech respects your privacy. This page explains, simply, what information we keep, why, who can see it and how you stay in control.',
       sections: [
         { h: 'Who we are', p: [
-          'jaajef.tech is a platform for developers, designers and tech enthusiasts in Senegal and the diaspora. It is run by [TO CONFIRM: name of the organisation, address].',
+          'jaajef.tech is a platform for developers, designers and tech enthusiasts in Senegal and the diaspora. It is run by Jarama Tech SAS, Sicap Liberté 1, villa 1062, Dakar, Senegal.',
           'For any question about your data: ramatoulaye@jaramatech.com.',
         ] },
         { h: 'What we collect', p: [
@@ -223,17 +223,17 @@ const en: LegalSet = {
           "GitHub works the same way: we receive your GitHub identifier, e-mail address and picture. If you import a project, we only read your public repositories.",
         ] },
         { h: 'Services that help us', p: [
-          'To run, we rely on: Supabase (database, sign-in, file storage), Vercel (site hosting), E2B (isolated running of quest code: the code you send is run there and then erased), PayDunya (payments), GitHub (sign-in and reading your public repositories if you import them) and [TO CONFIRM: e-mail sending service].',
+          'To run, we rely on: Supabase (database, sign-in, file storage), Vercel (site hosting), E2B (isolated running of quest code: the code you send is run there and then erased), PayDunya (payments), GitHub (sign-in and reading your public repositories if you import them) and Resend (sending e-mails).',
           'Some of these services are located outside Senegal. We only give them what they need to do their job.',
         ] },
         { h: 'How long we keep your data', p: [
           'As long as your account exists. You can ask to delete your account in your settings: you have 14 days to change your mind, then your account, profile, messages, projects and files are deleted. Only an anonymous trace proves the deletion happened.',
           'You can also download a copy of your data at any time.',
-          'Technical logs are kept for [TO CONFIRM: duration] and then erased.',
+          'Technical logs are kept for 90 days and then erased.',
         ] },
         { h: 'Your rights', p: [
           'You can view, correct, download and delete your data, object to some uses and withdraw your consent. Most of this you can do yourself in your settings. Otherwise, write to us.',
-          'In Senegal, personal data protection is governed by law no. 2008-12 and overseen by the Commission de protection des données personnelles (CDP), where you can also file a complaint. [TO CONFIRM: CDP declaration.]',
+          'In Senegal, personal data protection is governed by law no. 2008-12 and overseen by the Commission de protection des données personnelles (CDP), where you can also file a complaint.',
         ] },
         { h: 'Security', p: [
           'Access is protected by rules on the server: each member can only read what they are allowed to see. Private files are in a closed storage. No system is perfect: if an incident affects your data, we will tell you.',
@@ -242,7 +242,7 @@ const en: LegalSet = {
           'We only use what is necessary: keeping you signed in, your language and your colour theme. No advertising cookies and no third-party tracking.',
         ] },
         { h: 'Young people', p: [
-          'jaajef.tech is for people aged [TO CONFIRM: 16] and over. Below that, a parent or guardian must agree.',
+          'jaajef.tech is for people aged 16 and over. Below that, a parent or guardian must agree.',
         ] },
         { h: 'Changes', p: [
           'If this text changes in an important way, we will tell you in the app before it applies.',
@@ -269,7 +269,7 @@ const en: LegalSet = {
           'Quest code runs in an isolated space, with time and memory limits. Do not try to escape it, attack it or use it for anything other than learning.',
         ] },
         { h: 'Kopeks, the Souk and payments', p: [
-          'Kopeks are virtual points in the game. They have no cash value and cannot be refunded in cash, unless the law says otherwise. [TO CONFIRM: refund policy.]',
+          'Kopeks are virtual points in the game. They have no cash value and cannot be refunded in cash, unless the law says otherwise.',
           'Purchased Kopeks are paid through our payment provider. Souk items personalise your experience.',
         ] },
         { h: 'Job offers and missions', p: [
@@ -283,7 +283,7 @@ const en: LegalSet = {
           'You can delete your account whenever you want. We may suspend or close an account that does not follow these rules.',
         ] },
         { h: 'Applicable law', p: [
-          'These terms are governed by Senegalese law. [TO CONFIRM: competent court.]',
+          'These terms are governed by Senegalese law.',
         ] },
         { h: 'Changes and contact', p: [
           'We may change these terms. Important changes will be announced before they apply. Contact: ramatoulaye@jaramatech.com.',
