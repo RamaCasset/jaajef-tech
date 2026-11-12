@@ -12,6 +12,7 @@ type AuthState = {
   signIn: (email: string, password: string) => Promise<void>
   signUp: (email: string, password: string) => Promise<SignUpResult>
   signInWithGithub: () => Promise<void>
+  signInWithGoogle: () => Promise<void>
   requestPasswordReset: (email: string) => Promise<void>
   updatePassword: (newPassword: string) => Promise<void>
   signOut: () => Promise<void>
@@ -61,6 +62,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     async signInWithGithub() {
       const { error } = await supabase.auth.signInWithOAuth({ provider: 'github', options: { redirectTo: `${window.location.origin}/la-cite` } })
+      if (error) throw new Error(error.message)
+    },
+    async signInWithGoogle() {
+      const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${window.location.origin}/la-cite` } })
       if (error) throw new Error(error.message)
     },
     async requestPasswordReset(email) {

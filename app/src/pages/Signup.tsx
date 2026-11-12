@@ -3,6 +3,7 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { GithubButton } from '../components/GithubButton'
+import { GoogleButton } from '../components/GoogleButton'
 import { SiteFooter } from '../components/SiteFooter'
 import { Logo } from '../components/Logo'
 import { Stepper } from '../components/Stepper'
@@ -63,6 +64,7 @@ export function Signup() {
           {fr.signup.submit} →
         </button>
         <GithubButton label={fr.signup.github} onError={setError} />
+        <GoogleButton label={fr.signup.google} onError={setError} />
         <p className="tiny muted" style={{ marginTop: 12 }}>
           {fr.signup.agreeBefore}<Link to="/conditions">{fr.signup.terms}</Link>{fr.signup.agreeMiddle}<Link to="/confidentialite">{fr.signup.privacy}</Link>{fr.signup.agreeAfter}
         </p>

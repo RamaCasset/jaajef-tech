@@ -3,6 +3,7 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { GithubButton } from '../components/GithubButton'
+import { GoogleButton } from '../components/GoogleButton'
 import { SiteFooter } from '../components/SiteFooter'
 import { Logo } from '../components/Logo'
 import { fr } from '../i18n/fr'
@@ -60,6 +61,7 @@ export function Login() {
           {fr.login.submit} →
         </button>
         <GithubButton label={fr.login.github} onError={setError} />
+        <GoogleButton label={fr.login.google} onError={setError} />
         <hr style={{ border: 0, borderTop: '1px solid var(--line)', margin: '24px 0 16px' }} />
         <p className="muted" style={{ textAlign: 'center', margin: 0 }}>
           {fr.login.noAccount} <Link to="/inscription">{fr.login.signUp}</Link>

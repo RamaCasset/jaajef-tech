@@ -6,9 +6,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const signIn = vi.fn()
 const signUp = vi.fn()
 const signInWithGithub = vi.fn()
+const signInWithGoogle = vi.fn()
 
 vi.mock('../auth/AuthContext', () => ({
-  useAuth: () => ({ signIn, signUp, signInWithGithub, loading: false, session: null, member: null, signOut: vi.fn(), refreshMember: vi.fn() }),
+  useAuth: () => ({ signIn, signUp, signInWithGithub, signInWithGoogle, loading: false, session: null, member: null, signOut: vi.fn(), refreshMember: vi.fn() }),
 }))
 
 import { Login } from '../pages/Login'
@@ -26,7 +27,7 @@ function at(path: string, ui: JSX.Element, target: string) {
   )
 }
 
-beforeEach(() => { signIn.mockReset(); signUp.mockReset(); signInWithGithub.mockReset() })
+beforeEach(() => { signIn.mockReset(); signUp.mockReset(); signInWithGithub.mockReset(); signInWithGoogle.mockReset() })
 
 describe('Login', () => {
   it('signs in and goes to the city', async () => {
@@ -67,6 +68,22 @@ describe('GitHub button', () => {
     signInWithGithub.mockRejectedValue(new Error('boom'))
     at('/inscription', <Signup />, '/inscription/clan')
     await userEvent.click(screen.getByRole('button', { name: "S'inscrire avec GitHub" }))
+    expect(await screen.findByRole('alert')).toBeInTheDocument()
+  })
+})
+
+describe('Google button', () => {
+  it('is on the sign in page and starts the Google sign in', async () => {
+    signInWithGoogle.mockResolvedValue(undefined)
+    at('/connexion', <Login />, '/la-cite')
+    await userEvent.click(screen.getByRole('button', { name: 'Se connecter avec Google' }))
+    expect(signInWithGoogle).toHaveBeenCalledTimes(1)
+  })
+
+  it('is on the sign up page too, and shows a message if it fails', async () => {
+    signInWithGoogle.mockRejectedValue(new Error('boom'))
+    at('/inscription', <Signup />, '/inscription/clan')
+    await userEvent.click(screen.getByRole('button', { name: "S'inscrire avec Google" }))
     expect(await screen.findByRole('alert')).toBeInTheDocument()
   })
 })

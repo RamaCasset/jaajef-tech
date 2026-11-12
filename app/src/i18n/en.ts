@@ -45,6 +45,7 @@ export const en: Messages = {
     signUp: 'Sign up',
     or: 'or',
     github: 'Sign in with GitHub',
+    google: 'Sign in with Google',
   },
   forgotPassword: {
     eyebrow: 'Sign in / Password',
@@ -76,6 +77,7 @@ export const en: Messages = {
     privacy: 'Privacy policy',
     agreeAfter: '.',
     github: 'Sign up with GitHub',
+    google: "Sign up with Google",
     eyebrow: 'Character creation / Step 1 of 3',
     title: 'Create your identity',
     subtitle: 'An account to enter the City.',
