@@ -23,7 +23,6 @@ const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replac
 function article(lang, doc, set) {
   return `<article lang="${lang}" id="${lang}">
 <h1>${esc(doc.title)}</h1>
-<p class="muted">${esc(set.draft)}</p>
 <p class="muted">${esc(set.updated)}</p>
 <p>${esc(doc.intro)}</p>
 ${doc.sections.map((s) => `<h2>${esc(s.h)}</h2>\n${s.p.map((t) => `<p>${esc(t)}</p>`).join('\n')}`).join('\n')}
