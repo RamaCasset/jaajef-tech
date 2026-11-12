@@ -11,7 +11,26 @@ Complétez `sum_evens(values)`. Renvoyez la somme des nombres pairs de la liste,
 - `[1, 3]` donne `0`",griot_du_code,ndongo,python,Boucles,5,100,20,sum_evens,"def sum_evens(values):
     # votre code ici
     pass
-",1,Un nombre est pair quand le reste de sa division par 2 est 0.,"En Python, le reste de la division s'écrit avec le signe %.","Gardez un total, parcourez la liste avec for, et ajoutez seulement si n % 2 == 0.",On parcourt la liste et on teste chaque nombre avec n % 2 == 0. Un total qui commence à 0 donne 0 quand rien ne correspond.,non,11
+",1,Un nombre est pair quand le reste de sa division par 2 est 0.,"En Python, le reste de la division s'écrit avec le signe %.","Gardez un total, parcourez la liste avec for, et ajoutez seulement si n % 2 == 0.","## L'idée
+
+On part d'un total à zéro, on parcourt la liste et on n'ajoute que les nombres pairs. Un nombre est pair quand le reste de sa division par 2 vaut zéro. Une liste sans nombre pair donne naturellement 0.
+
+## La solution
+
+```python
+def sum_evens(values):
+    total = 0
+    for n in values:
+        if n % 2 == 0:
+            total += n
+    return total
+```
+
+## Ce qu'il faut retenir
+
+- `%` donne le reste d'une division : `8 % 2` vaut `0`.
+- Le total commence à zéro avant la boucle, jamais à l'intérieur.
+- `+=` est un raccourci pour `total = total + n`.",non,11
 salutation-du-marche,Salutation du marché,Accueille chaque visiteur par son prénom.,"À l'entrée du marché, chaque visiteur est salué par son prénom.
 
 ## Votre mission
@@ -24,7 +43,25 @@ Complétez `greet(name)`. Renvoyez `Salam, <prénom> !`. Si le prénom est vide 
 - `""  ""` donne `""Salam, étranger !""`",griot_du_code,ndongo,python,Texte,5,100,20,greet,"def greet(name):
     # votre code ici
     pass
-",2,Une chaîne a une méthode qui enlève les espaces autour : strip().,Testez si la chaîne nettoyée est vide avec une condition if.,"Pour insérer le prénom, utilisez une f-string : f""Salam, {n} !"".","strip() enlève les espaces au début et à la fin. Une chaîne vide est « fausse » dans un if, ce qui permet de traiter le cas du prénom manquant.",non,3
+",2,Une chaîne a une méthode qui enlève les espaces autour : strip().,Testez si la chaîne nettoyée est vide avec une condition if.,"Pour insérer le prénom, utilisez une f-string : f""Salam, {n} !"".","## L'idée
+
+On enlève d'abord les espaces autour du prénom. Une chaîne vide est « fausse » dans un `if`, ce qui permet de traiter le cas du prénom manquant. Sinon, une f-string insère le prénom dans la phrase.
+
+## La solution
+
+```python
+def greet(name):
+    n = name.strip()
+    if not n:
+        return ""Salam, étranger !""
+    return f""Salam, {n} !""
+```
+
+## Ce qu'il faut retenir
+
+- `strip()` enlève les espaces au début et à la fin.
+- `if not n:` signifie « si n est vide ».
+- Une f-string (`f""...{n}...""`) insère une variable dans un texte.",non,3
 compter-les-voyelles,Compter les voyelles,Combien de voyelles dans un proverbe ?,"Le Griot compte les voyelles de chaque proverbe pour trouver son rythme.
 
 ## Votre mission
@@ -37,7 +74,27 @@ Complétez `count_vowels(text)`. Comptez les voyelles `a e i o u y`, avec ou san
 - `""Été""` donne `2`",griot_du_code,ndongo,python,Texte,6,100,20,count_vowels,"def count_vowels(text):
     # votre code ici
     pass
-",3,Passez le texte en minuscules avec lower() pour ne pas gérer deux cas.,Gardez les voyelles dans une chaîne et testez avec `c in voyelles`.,Pensez aux accents : à â é è ê ë î ï ô ù û ü doivent compter aussi.,"On met tout en minuscules, puis on compte chaque caractère présent dans la chaîne des voyelles. Y compris les voyelles accentuées.",non,7
+",3,Passez le texte en minuscules avec lower() pour ne pas gérer deux cas.,Gardez les voyelles dans une chaîne et testez avec `c in voyelles`.,Pensez aux accents : à â é è ê ë î ï ô ù û ü doivent compter aussi.,"## L'idée
+
+On passe le texte en minuscules pour traiter les majuscules, puis on parcourt chaque lettre. Si elle figure dans la liste des voyelles (accents compris), on ajoute 1.
+
+## La solution
+
+```python
+def count_vowels(text):
+    voyelles = ""aeiouyàâäéèêëîïôöùûüÿ""
+    total = 0
+    for lettre in text.lower():
+        if lettre in voyelles:
+            total += 1
+    return total
+```
+
+## Ce qu'il faut retenir
+
+- Écrire la liste des voyelles accentuées une fois, dans une variable, rend le code lisible.
+- `for lettre in texte` parcourt un texte lettre par lettre.
+- `lower()` avant de comparer évite de gérer les majuscules à part.",non,7
 le-plus-grand-ecart,Le plus grand écart,L'écart entre la plus haute et la plus basse vente.,"Le marchand veut connaître l'écart entre sa meilleure et sa pire journée.
 
 ## Votre mission
@@ -50,7 +107,24 @@ Complétez `max_gap(values)`. Renvoyez la différence entre la plus grande et la
 - `[]` donne `0`",griot_du_code,ndongo,python,Listes,5,100,20,max_gap,"def max_gap(values):
     # votre code ici
     pass
-",4,Python sait trouver la plus grande valeur avec max() et la plus petite avec min().,Attention : max([]) provoque une erreur. Traitez la liste vide d'abord.,Renvoyez max(values) - min(values) quand la liste n'est pas vide.,"max() et min() parcourent la liste pour vous. Le seul piège est la liste vide, à traiter avant.",non,15
+",4,Python sait trouver la plus grande valeur avec max() et la plus petite avec min().,Attention : max([]) provoque une erreur. Traitez la liste vide d'abord.,Renvoyez max(values) - min(values) quand la liste n'est pas vide.,"## L'idée
+
+L'écart est la différence entre la plus grande et la plus petite valeur. Pour une liste vide, `max` et `min` plantent : on renvoie 0 avant.
+
+## La solution
+
+```python
+def max_gap(values):
+    if not values:
+        return 0
+    return max(values) - min(values)
+```
+
+## Ce qu'il faut retenir
+
+- `max` et `min` évitent d'écrire une boucle.
+- Le cas vide se traite en premier.
+- L'écart (ou étendue) dit à quel point les valeurs sont dispersées.",non,15
 mot-palindrome,Mot palindrome,Se lit pareil dans les deux sens ?,"Un palindrome se lit de la même façon à l'endroit et à l'envers.
 
 ## Votre mission
@@ -64,7 +138,23 @@ Complétez `is_palindrome(text)`. Renvoyez `True` si le texte est un palindrome,
 - `""Dakar""` donne `False`",griot_du_code,ndongo,python,Texte,7,120,25,is_palindrome,"def is_palindrome(text):
     # votre code ici
     pass
-",5,Gardez seulement les lettres et les chiffres : c.isalnum().,Mettez tout en minuscules avant de comparer.,Une liste ou une chaîne à l'envers s'obtient avec [::-1].,"On nettoie le texte (lettres et chiffres en minuscules), puis on le compare à lui-même à l'envers.",non,13
+",5,Gardez seulement les lettres et les chiffres : c.isalnum().,Mettez tout en minuscules avant de comparer.,Une liste ou une chaîne à l'envers s'obtient avec [::-1].,"## L'idée
+
+On garde seulement les lettres et les chiffres, en minuscules. Le texte est un palindrome si cette liste est identique à elle-même lue à l'envers.
+
+## La solution
+
+```python
+def is_palindrome(text):
+    lettres = [c.lower() for c in text if c.isalnum()]
+    return lettres == lettres[::-1]
+```
+
+## Ce qu'il faut retenir
+
+- `texte[::-1]` (ou `liste[::-1]`) renvoie la séquence à l'envers.
+- Filtrer avec `isalnum()` ignore les espaces et la ponctuation.
+- Pour un texte accentué, comparer tel quel suffit : « é » reste « é ».",non,13
 grouper-par-longueur,Grouper par longueur,Range les mots selon leur nombre de lettres.,"Le Griot range les mots du jour par taille.
 
 ## Votre mission
@@ -76,7 +166,25 @@ Complétez `group_by_length(words)`. Renvoyez un dictionnaire dont les clés son
 `[""sol"", ""mer"", ""vent""]` donne `{""3"": [""sol"", ""mer""], ""4"": [""vent""]}`",griot_du_code,bagne,python,Dictionnaires,9,150,30,group_by_length,"def group_by_length(words):
     # votre code ici
     pass
-",6,Un dictionnaire vide se crée avec {}.,La longueur d'un mot : len(mot). Transformez-la en texte avec str().,"d.setdefault(cle, []) donne la liste de la clé, en la créant si besoin.",On construit un dictionnaire au fur et à mesure. setdefault évite de tester si la clé existe déjà.,non,22
+",6,Un dictionnaire vide se crée avec {}.,La longueur d'un mot : len(mot). Transformez-la en texte avec str().,"d.setdefault(cle, []) donne la liste de la clé, en la créant si besoin.","## L'idée
+
+On parcourt les mots. La clé est la longueur du mot, la valeur est la liste des mots de cette longueur. `setdefault` crée la liste la première fois, puis on y ajoute le mot. Les mots restent dans l'ordre où ils sont arrivés.
+
+## La solution
+
+```python
+def group_by_length(words):
+    groupes = {}
+    for mot in words:
+        groupes.setdefault(len(mot), []).append(mot)
+    return groupes
+```
+
+## Ce qu'il faut retenir
+
+- `d.setdefault(cle, [])` renvoie la valeur existante ou crée une liste vide.
+- En JSON, les clés d'un dictionnaire sont des textes : `3` et `""3""` se comparent comme égaux ici.
+- Regrouper puis résumer est le coeur de bien des analyses de données.",non,22
 fizzbuzz-de-la-cite,FizzBuzz de la Cité,"Le classique, version Cité.","Le tambour de la Cité joue un jeu de comptage.
 
 ## Votre mission
@@ -88,7 +196,32 @@ Complétez `fizzbuzz(n)`. Renvoyez la liste des nombres de 1 à n, en texte, sau
 `5` donne `[""1"", ""2"", ""Fizz"", ""4"", ""Buzz""]`",griot_du_code,bagne,python,Boucles,8,150,30,fizzbuzz,"def fizzbuzz(n):
     # votre code ici
     pass
-",7,"Parcourez range(1, n + 1).","Testez d'abord le cas « multiple de 15 », sinon il serait avalé par les autres.",Les nombres normaux doivent être renvoyés en texte : str(i).,L'ordre des tests compte : le cas le plus précis (3 et 5) passe avant les autres.,non,18
+",7,"Parcourez range(1, n + 1).","Testez d'abord le cas « multiple de 15 », sinon il serait avalé par les autres.",Les nombres normaux doivent être renvoyés en texte : str(i).,"## L'idée
+
+On parcourt les nombres de 1 à n. Il faut tester le cas « multiple de 3 et de 5 » en premier, sinon un multiple de 15 serait pris pour un simple « Fizz ».
+
+## La solution
+
+```python
+def fizzbuzz(n):
+    resultat = []
+    for i in range(1, n + 1):
+        if i % 15 == 0:
+            resultat.append(""FizzBuzz"")
+        elif i % 3 == 0:
+            resultat.append(""Fizz"")
+        elif i % 5 == 0:
+            resultat.append(""Buzz"")
+        else:
+            resultat.append(str(i))
+    return resultat
+```
+
+## Ce qu'il faut retenir
+
+- `range(1, n + 1)` va de 1 à n inclus, car la fin est exclue.
+- Un multiple de 3 et de 5 est un multiple de 15.
+- L'ordre des `elif` compte : le premier cas vrai gagne.",non,18
 inverser-les-mots,Inverser les mots,"Lis la phrase à rebours, mot par mot.","Un message arrive dans le désordre.
 
 ## Votre mission
@@ -100,7 +233,23 @@ Complétez `reverseWords(sentence)`. Renvoyez la phrase avec les mots dans l'ord
 `""la tech entre nous""` donne `""nous entre tech la""`",griot_du_code,ndongo,javascript,Texte,6,100,20,reverseWords,"function reverseWords(sentence) {
   // votre code ici
 }
-",8,"split(' ') coupe en mots, mais les espaces doubles créent des mots vides.",Essayez .trim().split(/\s+/) pour découper proprement.,"reverse() renverse un tableau, join(' ') le recolle.","On découpe en mots, on renverse le tableau, on recolle avec un espace.",non,16
+",8,"split(' ') coupe en mots, mais les espaces doubles créent des mots vides.",Essayez .trim().split(/\s+/) pour découper proprement.,"reverse() renverse un tableau, join(' ') le recolle.","## L'idée
+
+On coupe la phrase en mots, on retire les morceaux vides créés par les espaces en trop, on inverse l'ordre et on recolle avec un seul espace.
+
+## La solution
+
+```javascript
+function reverseWords(sentence) {
+  return sentence.split("" "").filter((m) => m !== """").reverse().join("" "");
+}
+```
+
+## Ce qu'il faut retenir
+
+- `split("" "")` coupe, `join("" "")` recolle.
+- `filter` retire les éléments qui ne conviennent pas.
+- Enchaîner les méthodes se lit de gauche à droite : couper, filtrer, inverser, recoller.",non,16
 doublons-du-marche,Doublons du marché,Retire les doublons et trie.,"Le marchand a noté deux fois les mêmes prix.
 
 ## Votre mission
@@ -112,7 +261,23 @@ Complétez `uniqueSorted(values)`. Renvoyez un tableau sans doublons, trié du p
 `[3, 1, 3, 2, 1]` donne `[1, 2, 3]`",griot_du_code,ndongo,javascript,Tableaux,7,100,20,uniqueSorted,"function uniqueSorted(values) {
   // votre code ici
 }
-",9,Un Set garde chaque valeur une seule fois.,Transformez le Set en tableau avec [...new Set(values)].,"Attention : sort() trie en texte par défaut. Donnez-lui (a, b) => a - b.","Set supprime les doublons. Le tri doit être numérique : sans fonction de comparaison, 10 passerait avant 2.",non,17
+",9,Un Set garde chaque valeur une seule fois.,Transformez le Set en tableau avec [...new Set(values)].,"Attention : sort() trie en texte par défaut. Donnez-lui (a, b) => a - b.","## L'idée
+
+Un `Set` ne garde qu'une copie de chaque valeur. On le retransforme en tableau, puis on le trie. Il faut donner une fonction de tri numérique, sinon JavaScript trie comme du texte.
+
+## La solution
+
+```javascript
+function uniqueSorted(values) {
+  return [...new Set(values)].sort((a, b) => a - b);
+}
+```
+
+## Ce qu'il faut retenir
+
+- `new Set(tableau)` supprime les doublons.
+- `sort((a, b) => a - b)` trie des nombres du plus petit au plus grand.
+- Sans fonction, `[10, 9, 1].sort()` donne `[1, 10, 9]`, car le tri est alphabétique.",non,17
 total-du-panier,Total du panier,Additionne prix fois quantité.,"Au Souk, chaque article a un prix (en entier) et une quantité.
 
 ## Votre mission
@@ -124,7 +289,27 @@ Complétez `cartTotal(items)`. `items` est un tableau d'objets `{ price, qty }`.
 `[{price: 10, qty: 2}, {price: 5, qty: 1}]` donne `25`",griot_du_code,bagne,javascript,Objets,8,150,30,cartTotal,"function cartTotal(items) {
   // votre code ici
 }
-",10,Gardez un total qui commence à 0.,Parcourez avec for...of ou avec reduce.,À chaque tour : total += item.price * item.qty.,reduce (ou une boucle) accumule un total. Un panier vide donne 0 sans cas particulier.,non,25
+",10,Gardez un total qui commence à 0.,Parcourez avec for...of ou avec reduce.,À chaque tour : total += item.price * item.qty.,"## L'idée
+
+On parcourt les articles. Pour chacun, on multiplie le prix par la quantité, et on ajoute ce montant au total.
+
+## La solution
+
+```javascript
+function cartTotal(items) {
+  let total = 0;
+  for (const item of items) {
+    total += item.price * item.qty;
+  }
+  return total;
+}
+```
+
+## Ce qu'il faut retenir
+
+- `for (const x of tableau)` parcourt un tableau en JavaScript.
+- `item.price` lit une propriété d'un objet.
+- On pourrait aussi écrire `items.reduce((t, i) => t + i.price * i.qty, 0)`.",non,25
 moyenne-des-ventes,Moyenne des ventes,"La moyenne, arrondie à deux décimales.","Le Saltigué lit les chiffres de la semaine.
 
 ## Votre mission
@@ -136,7 +321,24 @@ Complétez `mean(values)`. Renvoyez la moyenne arrondie à 2 décimales, ou 0 si
 `[2, 3, 6]` donne `3.67`",saltigue,ndongo,python,Statistiques,5,100,20,mean,"def mean(values):
     # votre code ici
     pass
-",1,"La moyenne, c'est la somme divisée par le nombre de valeurs : sum() et len().",Traitez la liste vide avant de diviser.,"round(x, 2) arrondit à deux décimales.","sum / len, arrondi. Diviser par zéro est le piège de la liste vide.",non,5
+",1,"La moyenne, c'est la somme divisée par le nombre de valeurs : sum() et len().",Traitez la liste vide avant de diviser.,"round(x, 2) arrondit à deux décimales.","## L'idée
+
+La moyenne est la somme divisée par le nombre de valeurs. Une liste vide ferait une division par zéro : on la traite d'abord et on renvoie 0.
+
+## La solution
+
+```python
+def mean(values):
+    if not values:
+        return 0
+    return round(sum(values) / len(values), 2)
+```
+
+## Ce qu'il faut retenir
+
+- `sum` et `len` évitent d'écrire la boucle.
+- `round(x, 2)` arrondit à 2 décimales.
+- Se demander « et si la liste est vide ? » évite beaucoup de plantages.",non,5
 valeur-mediane,Valeur médiane,Le chiffre du milieu.,"La médiane est plus juste que la moyenne quand une valeur est extrême.
 
 ## Votre mission
@@ -149,7 +351,29 @@ Complétez `median(values)`. Triez les valeurs. S'il y en a un nombre impair, re
 - `[4, 1, 3, 2]` donne `2.5`",saltigue,bagne,python,Statistiques,8,150,30,median,"def median(values):
     # votre code ici
     pass
-",2,sorted(values) renvoie une copie triée.,Le milieu est à l'indice len(s) // 2.,"Pour un nombre pair, prenez les indices m - 1 et m, et faites leur moyenne.","Trier d'abord, puis choisir selon la parité du nombre de valeurs.",non,19
+",2,sorted(values) renvoie une copie triée.,Le milieu est à l'indice len(s) // 2.,"Pour un nombre pair, prenez les indices m - 1 et m, et faites leur moyenne.","## L'idée
+
+On trie les valeurs. Avec un nombre impair de valeurs, la médiane est celle du milieu. Avec un nombre pair, c'est la moyenne des deux valeurs du milieu.
+
+## La solution
+
+```python
+def median(values):
+    if not values:
+        return 0
+    v = sorted(values)
+    n = len(v)
+    milieu = n // 2
+    if n % 2 == 1:
+        return v[milieu]
+    return (v[milieu - 1] + v[milieu]) / 2
+```
+
+## Ce qu'il faut retenir
+
+- `n // 2` est la division entière : `7 // 2` vaut `3`.
+- `sorted` renvoie une copie triée et laisse la liste d'origine intacte.
+- La médiane résiste aux valeurs extrêmes, la moyenne non.",non,19
 valeur-la-plus-frequente,Valeur la plus fréquente,Qui apparaît le plus souvent ?,"Quel plat revient le plus souvent dans les commandes ?
 
 ## Votre mission
@@ -162,7 +386,27 @@ Complétez `most_common(values)`. Renvoyez la valeur qui apparaît le plus de fo
 - `[4, 4, 1, 1]` donne `1`",saltigue,bagne,python,Statistiques,8,150,30,most_common,"def most_common(values):
     # votre code ici
     pass
-",3,Comptez chaque valeur dans un dictionnaire.,Trouvez le plus grand nombre d'apparitions avec max(compteurs.values()).,"Parmi les valeurs qui ont ce compte, prenez min().","On compte, on repère le meilleur score, puis on départage les égalités avec min().",non,23
+",3,Comptez chaque valeur dans un dictionnaire.,Trouvez le plus grand nombre d'apparitions avec max(compteurs.values()).,"Parmi les valeurs qui ont ce compte, prenez min().","## L'idée
+
+On compte chaque valeur avec un dictionnaire. On repère le plus grand compte. S'il y a égalité, on garde la plus petite des valeurs concernées.
+
+## La solution
+
+```python
+def most_common(values):
+    compte = {}
+    for v in values:
+        compte[v] = compte.get(v, 0) + 1
+    plus_grand = max(compte.values())
+    candidats = [v for v, c in compte.items() if c == plus_grand]
+    return min(candidats)
+```
+
+## Ce qu'il faut retenir
+
+- `compte.get(v, 0) + 1` évite l'erreur d'une clé absente.
+- Il faut toujours fixer une règle claire pour les égalités.
+- Une compréhension de liste (`[... for ... if ...]`) filtre en une ligne.",non,23
 normaliser-les-scores,Normaliser les scores,Ramène tout entre 0 et 1.,"Pour comparer des notes sur des échelles différentes, on les ramène entre 0 et 1.
 
 ## Votre mission
@@ -174,7 +418,29 @@ Complétez `normalize(values)`. Chaque valeur devient `(x - min) / (max - min)`,
 `[10, 20, 30]` donne `[0.0, 0.5, 1.0]`",saltigue,bagne,python,Données,9,150,30,normalize,"def normalize(values):
     # votre code ici
     pass
-",4,"Calculez min et max une seule fois, avant la boucle.","Si max == min, la division serait par zéro : renvoyez des 0.","Une liste en compréhension : [round((x - lo) / (hi - lo), 2) for x in values].",Le min devient 0 et le max devient 1. Le cas où tout est égal est à traiter avant de diviser.,non,27
+",4,"Calculez min et max une seule fois, avant la boucle.","Si max == min, la division serait par zéro : renvoyez des 0.","Une liste en compréhension : [round((x - lo) / (hi - lo), 2) for x in values].","## L'idée
+
+On ramène chaque valeur entre 0 et 1 avec `(x - min) / (max - min)`. Deux cas se traitent à part : la liste vide, et la liste où toutes les valeurs sont égales (l'écart vaut 0 et la division échouerait).
+
+## La solution
+
+```python
+def normalize(values):
+    if not values:
+        return []
+    petit = min(values)
+    grand = max(values)
+    ecart = grand - petit
+    if ecart == 0:
+        return [0.0 for _ in values]
+    return [round((v - petit) / ecart, 2) for v in values]
+```
+
+## Ce qu'il faut retenir
+
+- Le plus petit devient 0, le plus grand devient 1.
+- On arrondit à la fin, pas pendant le calcul.
+- Penser aux cas limites : vide, une seule valeur, valeurs identiques.",non,27
 mot-de-passe-solide,Mot de passe solide,Note la force d'un mot de passe.,"Le gardien de la Cité juge la force des mots de passe.
 
 ## Votre mission
@@ -182,7 +448,37 @@ mot-de-passe-solide,Mot de passe solide,Note la force d'un mot de passe.,"Le gar
 Complétez `password_strength(password)`. Comptez un point pour chaque règle respectée : au moins 8 caractères ; au moins 12 caractères ; des lettres et des chiffres ; une majuscule et une minuscule ; un caractère spécial (ni lettre ni chiffre). Renvoyez `""faible""` pour 0 à 2 points, `""moyen""` pour 3, `""fort""` pour 4 ou 5.",buur_linguere,ndongo,python,Sécurité,8,120,25,password_strength,"def password_strength(password):
     # votre code ici
     pass
-",1,Calculez un score qui commence à 0 et augmente à chaque règle.,"Pour tester « il existe un chiffre », utilisez any(c.isdigit() for c in password).",c.isalnum() est faux pour un caractère spécial.,Chaque règle est un test indépendant qui ajoute un point. Le résultat dépend ensuite du total.,non,12
+",1,Calculez un score qui commence à 0 et augmente à chaque règle.,"Pour tester « il existe un chiffre », utilisez any(c.isdigit() for c in password).",c.isalnum() est faux pour un caractère spécial.,"## L'idée
+
+Chaque règle respectée vaut un point. `any(...)` répond « au moins un caractère remplit la condition ». À la fin, le nombre de points donne le niveau.
+
+## La solution
+
+```python
+def password_strength(password):
+    points = 0
+    if len(password) >= 8:
+        points += 1
+    if len(password) >= 12:
+        points += 1
+    if any(c.isalpha() for c in password) and any(c.isdigit() for c in password):
+        points += 1
+    if any(c.isupper() for c in password) and any(c.islower() for c in password):
+        points += 1
+    if any(not c.isalnum() for c in password):
+        points += 1
+    if points <= 2:
+        return ""faible""
+    if points == 3:
+        return ""moyen""
+    return ""fort""
+```
+
+## Ce qu'il faut retenir
+
+- `isalpha()`, `isdigit()`, `isupper()`, `islower()` testent une lettre à la fois.
+- Un caractère spécial est ni lettre ni chiffre : `not c.isalnum()`.
+- La longueur compte plus que les symboles : une phrase de passe longue est plus solide qu'un mot court compliqué.",non,12
 chiffre-de-cesar,Chiffre de César,Décale chaque lettre de l'alphabet.,"Un message codé circule dans la Cité.
 
 ## Votre mission
@@ -194,7 +490,31 @@ Complétez `caesar(data)`. `data` est un dictionnaire `{""text"": ..., ""shift""
 `{""text"": ""abc xyz"", ""shift"": 3}` donne `""def abc""`",buur_linguere,bagne,python,Cryptographie,10,150,30,caesar,"def caesar(data):
     # votre code ici
     pass
-",2,"ord(c) donne le numéro d'un caractère, chr(n) fait l'inverse.",Pour une minuscule : (ord(c) - ord('a') + shift) % 26 + ord('a').,Faites la même chose pour les majuscules avec ord('A').,"Le modulo 26 fait revenir au début de l'alphabet, y compris pour un décalage négatif en Python.",non,24
+",2,"ord(c) donne le numéro d'un caractère, chr(n) fait l'inverse.",Pour une minuscule : (ord(c) - ord('a') + shift) % 26 + ord('a').,Faites la même chose pour les majuscules avec ord('A').,"## L'idée
+
+Chaque lettre devient un numéro (A ou a = 0), on lui ajoute le décalage, on revient au début de l'alphabet avec `% 26`, puis on reconvertit en lettre. Les autres caractères restent tels quels.
+
+## La solution
+
+```python
+def caesar(data):
+    texte = data[""text""]
+    decalage = data[""shift""]
+    resultat = """"
+    for c in texte:
+        if c.isalpha() and c.isascii():
+            base = ord(""A"") if c.isupper() else ord(""a"")
+            resultat += chr((ord(c) - base + decalage) % 26 + base)
+        else:
+            resultat += c
+    return resultat
+```
+
+## Ce qu'il faut retenir
+
+- `ord` donne le numéro d'un caractère, `chr` fait l'inverse.
+- `% 26` fait revenir après Z, et gère aussi les décalages négatifs en Python.
+- César se casse en quelques secondes : n'inventez jamais votre propre chiffrement.",non,24
 masquer-l-email,Masquer l'e-mail,Cache l'identifiant d'une adresse.,"Pour protéger les membres, on ne montre pas leur adresse en entier.
 
 ## Votre mission
@@ -206,7 +526,23 @@ Complétez `mask_email(email)`. Gardez la première lettre avant le `@`, remplac
 `""moussa@exemple.sn""` donne `""m*****@exemple.sn""`",buur_linguere,ndongo,python,Vie privée,6,100,20,mask_email,"def mask_email(email):
     # votre code ici
     pass
-",3,split('@') coupe l'adresse en deux morceaux.,Le nombre d'étoiles est la longueur de l'identifiant moins 1.,Une chaîne se répète avec '*' * n.,"On sépare identifiant et domaine, on garde une lettre, on remplace le reste.",non,9
+",3,split('@') coupe l'adresse en deux morceaux.,Le nombre d'étoiles est la longueur de l'identifiant moins 1.,Une chaîne se répète avec '*' * n.,"## L'idée
+
+On coupe l'adresse en deux autour du `@`. On garde la première lettre de l'identifiant, on remplace les autres par des étoiles, puis on remet le domaine.
+
+## La solution
+
+```python
+def mask_email(email):
+    nom, domaine = email.split(""@"")
+    return nom[0] + ""*"" * (len(nom) - 1) + ""@"" + domaine
+```
+
+## Ce qu'il faut retenir
+
+- `split(""@"")` renvoie une liste de deux morceaux, qu'on range directement dans deux variables.
+- Le nombre d'étoiles vaut la longueur de l'identifiant moins la lettre gardée.
+- Moins on montre de données, moins on en perd en cas de fuite.",non,9
 adresse-ip-valide,Adresse IP valide,Vérifie une adresse IPv4.,"Le pare-feu de la Cité n'accepte que des adresses valides.
 
 ## Votre mission
@@ -219,7 +555,32 @@ Complétez `is_valid_ipv4(text)`. Une adresse IPv4 valide a 4 nombres séparés 
 - `""256.1.1.1""` donne `False`",buur_linguere,bagne,python,Réseau,10,150,30,is_valid_ipv4,"def is_valid_ipv4(text):
     # votre code ici
     pass
-",4,split('.') doit donner exactement 4 morceaux.,Chaque morceau doit être fait de chiffres : x.isdigit().,"Refusez un morceau de plus d'un caractère qui commence par '0', et tout nombre au-dessus de 255.","On valide morceau par morceau : nombre de morceaux, chiffres seulement, pas de zéro de tête, valeur au plus 255.",non,21
+",4,split('.') doit donner exactement 4 morceaux.,Chaque morceau doit être fait de chiffres : x.isdigit().,"Refusez un morceau de plus d'un caractère qui commence par '0', et tout nombre au-dessus de 255.","## L'idée
+
+On coupe l'adresse aux points. Elle doit avoir exactement quatre morceaux. Chaque morceau doit être un nombre entier, sans zéro inutile au début, et pas plus grand que 255.
+
+## La solution
+
+```python
+def is_valid_ipv4(text):
+    morceaux = text.split(""."")
+    if len(morceaux) != 4:
+        return False
+    for m in morceaux:
+        if not m.isdigit():
+            return False
+        if len(m) > 1 and m[0] == ""0"":
+            return False
+        if int(m) > 255:
+            return False
+    return True
+```
+
+## Ce qu'il faut retenir
+
+- Toujours vérifier la forme avant la valeur : `int(""a"")` planterait.
+- `""0""` est valide, `""01""` ne l'est pas.
+- Ne jamais faire confiance à une entrée : on vérifie tout ce qui vient de l'extérieur.",non,21
 le-prix-des-mangues,Le prix des mangues,Calcule le prix d'un achat à partir d'un poids et d'un prix au kilo.,"À Sandaga, une vendeuse pèse les mangues puis annonce le prix.
 
 ## Votre mission
@@ -232,7 +593,24 @@ Complétez `fruit_price(achat)`. L'argument est un dictionnaire avec `kilos` et 
 - `{""kilos"": 0, ""price_per_kilo"": 700}` donne `0`",griot_du_code,ndongo,python,Variables,5,100,20,fruit_price,"def fruit_price(achat):
     # votre code ici
     pass
-",11,"Un dictionnaire se lit avec des crochets : achat[""kilos""].",Rangez chaque valeur dans une variable avec un bon nom.,Le total est kilos * price_per_kilo : renvoyez-le avec return.,"On lit deux valeurs dans le dictionnaire, on les range sous des noms clairs, puis on les multiplie. Une variable garde une valeur sous un nom.",non,1
+",11,"Un dictionnaire se lit avec des crochets : achat[""kilos""].",Rangez chaque valeur dans une variable avec un bon nom.,Le total est kilos * price_per_kilo : renvoyez-le avec return.,"## L'idée
+
+L'argument est un dictionnaire. On lit les deux valeurs avec leurs clés, on les range dans des variables aux noms clairs, puis on les multiplie.
+
+## La solution
+
+```python
+def fruit_price(achat):
+    kilos = achat[""kilos""]
+    prix_du_kilo = achat[""price_per_kilo""]
+    return kilos * prix_du_kilo
+```
+
+## Ce qu'il faut retenir
+
+- Une variable garde une valeur sous un nom : `kilos` se lit mieux que `achat[""kilos""]` répété partout.
+- Un dictionnaire se lit avec des crochets et la clé entre guillemets.
+- Piège courant : écrire `=` au lieu de `*`. `=` range une valeur, il ne calcule pas.",non,1
 le-tarif-du-concert,Le tarif du concert,Choisit le prix du billet selon l'âge.,"Le concert applique trois tarifs selon l'âge.
 
 ## Votre mission
@@ -250,7 +628,27 @@ Complétez `ticket_price(age)`.
 - `60` donne `700`",griot_du_code,ndongo,python,Conditions,6,100,20,ticket_price,"def ticket_price(age):
     # votre code ici
     pass
-",12,"Il y a trois cas : pensez à if, elif et else.","Testez d'abord age < 12, puis age < 60.","Les bornes comptent : 12 est adulte, 60 est senior.","On teste les cas dans l'ordre. Python s'arrête au premier cas vrai, donc le deuxième test n'a besoin de vérifier que la limite haute.",non,4
+",12,"Il y a trois cas : pensez à if, elif et else.","Testez d'abord age < 12, puis age < 60.","Les bornes comptent : 12 est adulte, 60 est senior.","## L'idée
+
+Il y a trois cas. Python lit les conditions de haut en bas et s'arrête au premier cas vrai. Le `elif` n'a donc besoin de tester que la limite haute : si on arrive là, l'âge est déjà de 12 ans ou plus.
+
+## La solution
+
+```python
+def ticket_price(age):
+    if age < 12:
+        return 500
+    elif age < 60:
+        return 1000
+    else:
+        return 700
+```
+
+## Ce qu'il faut retenir
+
+- Les bornes comptent : 12 ans est un adulte (`< 12` est faux), 60 ans est un senior.
+- `if`, `elif`, `else` choisissent un seul chemin.
+- Teste toujours les valeurs aux limites : 11, 12, 59, 60.",non,4
 compter-les-mots,Compter les mots,Compte combien de fois chaque mot apparaît dans une phrase.,"La radio du quartier veut savoir quels mots reviennent le plus.
 
 ## Votre mission
@@ -263,7 +661,27 @@ Complétez `count_words(text)`. Renvoyez un dictionnaire : chaque mot en minuscu
 - `""""` donne `{}`",griot_du_code,bagne,python,Dictionnaires,9,150,30,count_words,"def count_words(text):
     # votre code ici
     pass
-",13,"Mettez le texte en minuscules avec lower(), puis coupez-le avec split().","Enlevez la ponctuation autour de chaque mot avec strip("".,;:!?"").","Comptez avec compte[mot] = compte.get(mot, 0) + 1.","On nettoie chaque mot, puis on compte avec un dictionnaire : get(mot, 0) renvoie 0 si le mot n'a pas encore été vu.",non,26
+",13,"Mettez le texte en minuscules avec lower(), puis coupez-le avec split().","Enlevez la ponctuation autour de chaque mot avec strip("".,;:!?"").","Comptez avec compte[mot] = compte.get(mot, 0) + 1.","## L'idée
+
+On passe tout en minuscules, on coupe aux espaces, puis on nettoie la ponctuation autour de chaque mot. On compte avec un dictionnaire. Un mot vide (une ponctuation seule) est ignoré.
+
+## La solution
+
+```python
+def count_words(text):
+    compte = {}
+    for mot in text.lower().split():
+        mot = mot.strip("".,;:!?"")
+        if mot:
+            compte[mot] = compte.get(mot, 0) + 1
+    return compte
+```
+
+## Ce qu'il faut retenir
+
+- `split()` sans argument coupe aux espaces et ignore les espaces en trop.
+- `strip("".,;:!?"")` enlève ces signes au bord du mot.
+- `compte.get(mot, 0) + 1` compte sans erreur.",non,26
 le-resume-des-ventes,Le résumé des ventes,"Résume une série de chiffres : nombre, total, plus petit, plus grand.","Avant toute analyse, on résume les données.
 
 ## Votre mission
@@ -276,7 +694,29 @@ Complétez `summarize(values)`. Renvoyez un dictionnaire avec `count` (combien d
 - `[]` donne `{""count"": 0, ""total"": 0, ""min"": 0, ""max"": 0}`",saltigue,ndongo,python,Statistiques,6,100,20,summarize,"def summarize(values):
     # votre code ici
     pass
-",5,"len, sum, min et max font presque tout le travail.",Attention : min([]) et max([]) provoquent une erreur.,"Testez d'abord si la liste est vide, et renvoyez le dictionnaire de zéros.","Quatre fonctions toutes faites donnent le résumé. Le cas de la liste vide se traite à part, sinon min et max plantent.",non,8
+",5,"len, sum, min et max font presque tout le travail.",Attention : min([]) et max([]) provoquent une erreur.,"Testez d'abord si la liste est vide, et renvoyez le dictionnaire de zéros.","## L'idée
+
+Quatre fonctions toutes faites donnent le résumé. Le cas de la liste vide se traite à part : `min([])` et `max([])` provoquent une erreur.
+
+## La solution
+
+```python
+def summarize(values):
+    if not values:
+        return {""count"": 0, ""total"": 0, ""min"": 0, ""max"": 0}
+    return {
+        ""count"": len(values),
+        ""total"": sum(values),
+        ""min"": min(values),
+        ""max"": max(values),
+    }
+```
+
+## Ce qu'il faut retenir
+
+- Un dictionnaire de résultats est plus clair que quatre variables séparées.
+- Toujours traiter la liste vide avant `min` et `max`.
+- Résumer avant d'analyser permet de repérer des valeurs étranges.",non,8
 les-valeurs-qui-sortent-du-lot,Les valeurs qui sortent du lot,Repère les valeurs très éloignées de la moyenne.,"Dans une série de ventes, une journée sort parfois du lot : jour de fête, erreur de saisie. Il faut la repérer pour la vérifier.
 
 ## Votre mission
@@ -292,7 +732,30 @@ Complétez `outliers(values)`. Calculez la moyenne `m` puis l'écart type `sd` :
 def outliers(values):
     # votre code ici
     pass
-",6,Calculez d'abord la moyenne : sum(values) / len(values).,L'écart type : math.sqrt(sum((x - m) ** 2 for x in values) / len(values)).,"Gardez x si abs(x - m) > 2 * sd, puis triez avec sorted.","La moyenne et l'écart type mesurent le centre et la dispersion. Une valeur à plus de deux écarts types du centre est inhabituelle : on la signale pour la vérifier, on ne la supprime pas.",non,32
+",6,Calculez d'abord la moyenne : sum(values) / len(values).,L'écart type : math.sqrt(sum((x - m) ** 2 for x in values) / len(values)).,"Gardez x si abs(x - m) > 2 * sd, puis triez avec sorted.","## L'idée
+
+On calcule la moyenne, puis l'écart type, qui mesure la dispersion habituelle. Une valeur à plus de deux écarts types de la moyenne est inhabituelle. On les renvoie triées pour pouvoir les vérifier.
+
+## La solution
+
+```python
+import math
+
+def outliers(values):
+    if not values:
+        return []
+    m = sum(values) / len(values)
+    ecart_type = math.sqrt(sum((x - m) ** 2 for x in values) / len(values))
+    if ecart_type == 0:
+        return []
+    return sorted(x for x in values if abs(x - m) > 2 * ecart_type)
+```
+
+## Ce qu'il faut retenir
+
+- Si l'écart type vaut 0, toutes les valeurs sont égales : rien ne sort du lot.
+- Une valeur inhabituelle se vérifie, elle ne se supprime pas : c'est peut-être un vrai grand jour.
+- `math.sqrt` calcule une racine carrée.",non,32
 le-total-par-produit,Le total par produit,"Additionne les ventes de chaque produit, comme un GROUP BY.","Le carnet du marchand contient une ligne par vente : un produit et une quantité. Pour le bilan, il faut le total par produit. C'est ce que fait `GROUP BY` en SQL.
 
 ## Votre mission
@@ -305,7 +768,25 @@ Complétez `group_totals(rows)`. Chaque ligne est une liste `[produit, quantité
 - `[]` donne `{}`",saltigue,bagne,python,Données,8,150,30,group_totals,"def group_totals(rows):
     # votre code ici
     pass
-",7,"Parcourez les lignes avec for produit, quantite in rows.",Un dictionnaire sert de carnet : totaux[produit].,"Utilisez totaux.get(produit, 0) + quantite pour ajouter.",On parcourt les lignes et on cumule dans un dictionnaire. SQL fait la même chose avec GROUP BY et SUM.,non,29
+",7,"Parcourez les lignes avec for produit, quantite in rows.",Un dictionnaire sert de carnet : totaux[produit].,"Utilisez totaux.get(produit, 0) + quantite pour ajouter.","## L'idée
+
+Chaque ligne est un couple produit-quantité. On les parcourt et on cumule la quantité dans un dictionnaire dont la clé est le produit. C'est exactement ce que fait `SELECT produit, SUM(quantite) ... GROUP BY produit` en SQL.
+
+## La solution
+
+```python
+def group_totals(rows):
+    totaux = {}
+    for produit, quantite in rows:
+        totaux[produit] = totaux.get(produit, 0) + quantite
+    return totaux
+```
+
+## Ce qu'il faut retenir
+
+- `for produit, quantite in rows` déballe chaque couple.
+- `totaux.get(produit, 0)` renvoie 0 pour un produit jamais vu.
+- Regrouper puis additionner est le geste de base de l'analyse de données.",non,29
 les-deux-plus-chers,Les deux plus chers,"Trouve les deux produits les plus chers, comme ORDER BY et LIMIT.","Le marchand veut afficher ses deux produits les plus chers. En SQL on écrirait `ORDER BY prix DESC LIMIT 2`.
 
 ## Votre mission
@@ -317,7 +798,23 @@ Complétez `top_two(rows)`. Chaque ligne est un dictionnaire avec `produit` et `
 - `[{""produit"": ""mangues"", ""prix"": 500}, {""produit"": ""papayes"", ""prix"": 800}, {""produit"": ""oranges"", ""prix"": 300}]` donne `[""papayes"", ""mangues""]`",saltigue,bagne,python,Données,8,150,30,top_two,"def top_two(rows):
     # votre code ici
     pass
-",8,sorted accepte un argument key= qui dit sur quoi trier.,"Pour trier du plus grand au plus petit puis par nom, utilisez la clé (-prix, produit).","Gardez les deux premiers avec [:2], puis extrayez les noms.","Trier avec une clé composée (-prix, produit) classe du plus cher au moins cher, puis par nom. Le découpage [:2] joue le rôle de LIMIT 2.",non,31
+",8,sorted accepte un argument key= qui dit sur quoi trier.,"Pour trier du plus grand au plus petit puis par nom, utilisez la clé (-prix, produit).","Gardez les deux premiers avec [:2], puis extrayez les noms.","## L'idée
+
+On trie les lignes avec une clé composée : le prix en négatif pour aller du plus cher au moins cher, puis le nom pour départager les égalités. Le découpage `[:2]` garde les deux premiers, comme `LIMIT 2` en SQL.
+
+## La solution
+
+```python
+def top_two(rows):
+    tries = sorted(rows, key=lambda r: (-r[""prix""], r[""produit""]))
+    return [r[""produit""] for r in tries[:2]]
+```
+
+## Ce qu'il faut retenir
+
+- Mettre un signe moins devant un nombre inverse l'ordre du tri.
+- `tries[:2]` fonctionne même s'il y a moins de deux éléments.
+- En SQL : `ORDER BY prix DESC, produit LIMIT 2`.",non,31
 reperer-l-hamecon,Repérer l'hameçonnage,Compte les signes suspects d'un message.,"Un faux SMS de « votre banque » arrive. Pour aider les membres, on veut compter ses signes suspects.
 
 ## Votre mission
@@ -337,7 +834,28 @@ Chaque signe compte une fois, même s'il apparaît plusieurs fois.
 - `""Rendez-vous demain""` donne `0`",buur_linguere,ndongo,python,Sécurité,6,100,20,phishing_signs,"def phishing_signs(message):
     # votre code ici
     pass
-",5,Mettez le message en minuscules avec lower().,"L'opérateur in teste si un texte en contient un autre : ""urgent"" in m.",Faites une liste des signes et comptez ceux qui sont dans le message.,"Les attaques visent souvent les personnes : l'urgence, un lien et une demande de mot de passe sont des signes classiques. Un programme peut les compter, mais le jugement final reste humain.",non,2
+",5,Mettez le message en minuscules avec lower().,"L'opérateur in teste si un texte en contient un autre : ""urgent"" in m.",Faites une liste des signes et comptez ceux qui sont dans le message.,"## L'idée
+
+On met le message en minuscules pour ignorer les majuscules, puis on parcourt la liste des signes suspects. Chaque signe présent ajoute un point, une seule fois, même s'il apparaît plusieurs fois.
+
+## La solution
+
+```python
+def phishing_signs(message):
+    m = message.lower()
+    signes = [""cliquez ici"", ""urgent"", ""http://"", ""mot de passe""]
+    total = 0
+    for signe in signes:
+        if signe in m:
+            total += 1
+    return total
+```
+
+## Ce qu'il faut retenir
+
+- `in` teste si un texte en contient un autre.
+- Compter les signes (et non les occurrences) évite qu'un message qui répète « urgent » dix fois compte dix.
+- Un programme repère des indices, mais le jugement final reste humain : un vrai message peut contenir « urgent ».",non,2
 le-videur-de-formulaire,Le videur de formulaire,Accepte seulement un âge valide.,"Un formulaire reçoit n'importe quoi : un nombre, un texte, rien du tout. Il faut ne laisser passer que ce qui est attendu.
 
 ## Votre mission
@@ -351,7 +869,24 @@ Complétez `valid_age(value)`. Renvoyez `True` seulement si `value` est un nombr
 - `121` donne `False`",buur_linguere,bagne,python,Sécurité,8,150,30,valid_age,"def valid_age(value):
     # votre code ici
     pass
-",6,"isinstance(value, int) teste si c'est un entier.","En Python, True est aussi un int : testez isinstance(value, bool) pour l'exclure.",Combinez le type et la plage : 0 <= value <= 120.,"On vérifie d'abord le type, puis la plage. Les entrées extérieures ne sont jamais de confiance : on accepte uniquement ce qui est attendu.",non,30
+",6,"isinstance(value, int) teste si c'est un entier.","En Python, True est aussi un int : testez isinstance(value, bool) pour l'exclure.",Combinez le type et la plage : 0 <= value <= 120.,"## L'idée
+
+On vérifie d'abord le type : seul un entier est accepté, et un booléen est écarté explicitement car en Python `True` est aussi un `int`. Ensuite on vérifie la plage.
+
+## La solution
+
+```python
+def valid_age(value):
+    if isinstance(value, bool) or not isinstance(value, int):
+        return False
+    return 0 <= value <= 120
+```
+
+## Ce qu'il faut retenir
+
+- Vérifier le type avant la valeur évite les erreurs.
+- `isinstance(value, bool)` écarte `True` et `False`.
+- On décrit ce qu'on accepte plutôt que tout ce qu'on refuse.",non,30
 cacher-le-numero,Cacher le numéro,Masque un numéro de téléphone en gardant les deux premiers et deux derniers chiffres.,"Sur un profil public, on ne montre pas le numéro entier.
 
 ## Votre mission
@@ -364,7 +899,24 @@ Complétez `mask_phone(number)`. L'argument est un texte de chiffres. Gardez les
 - `""1234""` donne `""****""`",buur_linguere,ndongo,python,Vie privée,6,100,20,mask_phone,"def mask_phone(number):
     # votre code ici
     pass
-",7,Les deux premiers caractères : number[:2]. Les deux derniers : number[-2:].,"Le milieu a len(number) - 4 caractères : multipliez ""*"" par ce nombre.",Traitez d'abord le cas où le texte est trop court.,"On montre le minimum utile. Le découpage garde le début et la fin, et le milieu est remplacé par des étoiles.",non,6
+",7,Les deux premiers caractères : number[:2]. Les deux derniers : number[-2:].,"Le milieu a len(number) - 4 caractères : multipliez ""*"" par ce nombre.",Traitez d'abord le cas où le texte est trop court.,"## L'idée
+
+On garde les deux premiers et les deux derniers caractères, et on remplace tout le milieu par des étoiles. Si le texte est trop court pour qu'il reste un milieu, on cache tout.
+
+## La solution
+
+```python
+def mask_phone(number):
+    if len(number) <= 4:
+        return ""*"" * len(number)
+    return number[:2] + ""*"" * (len(number) - 4) + number[-2:]
+```
+
+## Ce qu'il faut retenir
+
+- `number[:2]` donne le début, `number[-2:]` donne la fin.
+- Multiplier un texte le répète : `""*"" * 5` donne `*****`.
+- Montrer le minimum utile protège la vie privée.",non,6
 images-sans-alt,Images sans texte alternatif,Compte les images d'une page qui n'ont pas d'attribut alt.,"Une personne aveugle ne voit pas les images : le texte alternatif `alt` les décrit. Il faut vérifier qu'aucune image n'en manque.
 
 ## Votre mission
@@ -380,7 +932,28 @@ Complétez `images_without_alt(html)`. L'argument est le code HTML d'une page. R
 def images_without_alt(html):
     # votre code ici
     pass
-",1,"re.findall(r""<img\b[^>]*>"", html, re.I) trouve toutes les balises img.","Pour chaque balise, cherchez alt avec re.search(r""\balt\s*="", tag, re.I).",Comptez celles pour lesquelles la recherche ne trouve rien.,"Une expression régulière isole chaque balise img, puis on cherche l'attribut alt. L'absence d'alt est le défaut à signaler ; un alt vide est un choix légitime pour une image décorative.",non,20
+",1,"re.findall(r""<img\b[^>]*>"", html, re.I) trouve toutes les balises img.","Pour chaque balise, cherchez alt avec re.search(r""\balt\s*="", tag, re.I).",Comptez celles pour lesquelles la recherche ne trouve rien.,"## L'idée
+
+Une expression régulière isole chaque balise `<img ...>`. Pour chacune, on cherche l'attribut `alt`. Une balise sans `alt` ajoute 1. Un `alt` vide compte comme présent : c'est le choix légitime pour une image décorative.
+
+## La solution
+
+```python
+import re
+
+def images_without_alt(html):
+    total = 0
+    for balise in re.findall(r""<img\b[^>]*>"", html, re.I):
+        if not re.search(r""\balt\s*="", balise, re.I):
+            total += 1
+    return total
+```
+
+## Ce qu'il faut retenir
+
+- `re.I` ignore les majuscules, car `<IMG ALT=...>` est du HTML valide.
+- `\b` marque une frontière de mot : il évite de confondre `alt` avec un autre attribut qui en contient les lettres.
+- Un texte alternatif permet à une personne aveugle de comprendre l'image.",non,20
 de-hexa-vers-rgb,De l'hexadécimal au RGB,Convertit une couleur CSS #rrggbb en trois nombres.,"En CSS, la couleur dorée du site s'écrit `#f0b24a`. Ces six caractères sont trois nombres écrits en base 16 : rouge, vert, bleu.
 
 ## Votre mission
@@ -393,7 +966,28 @@ Complétez `hexToRgb(hex)`. Renvoyez un tableau `[rouge, vert, bleu]` de trois n
 - `""#000000""` donne `[0, 0, 0]`",forgeron,ndongo,javascript,Couleurs,8,100,20,hexToRgb,"function hexToRgb(hex) {
   // votre code ici
 }
-",2,Enlevez le # avec hex.slice(1).,"Chaque couleur occupe deux caractères : slice(0, 2), slice(2, 4), slice(4, 6).","parseInt(texte, 16) convertit de la base 16 en nombre.","On découpe la chaîne en trois morceaux de deux caractères et on convertit chacun de la base 16 vers un nombre avec parseInt(..., 16).",non,14
+",2,Enlevez le # avec hex.slice(1).,"Chaque couleur occupe deux caractères : slice(0, 2), slice(2, 4), slice(4, 6).","parseInt(texte, 16) convertit de la base 16 en nombre.","## L'idée
+
+On enlève le `#`, puis on découpe les six caractères en trois morceaux de deux. Chaque morceau est un nombre écrit en base 16, que `parseInt(..., 16)` convertit.
+
+## La solution
+
+```javascript
+function hexToRgb(hex) {
+  const h = hex.slice(1);
+  return [
+    parseInt(h.slice(0, 2), 16),
+    parseInt(h.slice(2, 4), 16),
+    parseInt(h.slice(4, 6), 16),
+  ];
+}
+```
+
+## Ce qu'il faut retenir
+
+- `parseInt(texte, 16)` convertit de la base 16 en nombre.
+- `slice(début, fin)` coupe un texte, la fin est exclue.
+- La couleur est écrite en rouge, vert, bleu : deux caractères chacun.",non,14
 le-contraste-des-couleurs,Le contraste des couleurs,Calcule le rapport de contraste entre deux couleurs.,"Pour qu'un texte se lise, le contraste entre le texte et le fond doit être d'au moins 4,5 pour 1. On le calcule avec une formule de luminance.
 
 ## Votre mission
@@ -412,7 +1006,32 @@ Soit `clair` la plus grande luminance et `sombre` la plus petite. Renvoyez `(cla
 - `[""#ffffff"", ""#ffffff""]` donne `1.0`",forgeron,bagne,python,Accessibilité,10,150,30,contrast,"def contrast(couleurs):
     # votre code ici
     pass
-",3,Écrivez d'abord une fonction qui calcule la luminance d'une seule couleur.,"Pour lire les composantes : int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16) après avoir enlevé le #.","Le rapport divise la plus grande luminance par la plus petite, chacune augmentée de 0.05.","La luminance mesure à quel point une couleur paraît claire à l'oeil. Le rapport entre deux luminances donne le contraste : 21 est le maximum (noir sur blanc), 4,5 est le minimum recommandé pour un texte normal.",non,28
+",3,Écrivez d'abord une fonction qui calcule la luminance d'une seule couleur.,"Pour lire les composantes : int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16) après avoir enlevé le #.","Le rapport divise la plus grande luminance par la plus petite, chacune augmentée de 0.05.","## L'idée
+
+On calcule la luminance de chaque couleur, c'est-à-dire sa clarté perçue. Le contraste est le rapport entre la plus claire et la plus sombre, chacune augmentée de 0,05. Écrire une petite fonction `luminance` sépare bien les deux étapes.
+
+## La solution
+
+```python
+def contrast(couleurs):
+    def luminance(hexa):
+        h = hexa.lstrip(""#"")
+        rgb = [int(h[i:i + 2], 16) / 255 for i in (0, 2, 4)]
+        rgb = [c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4 for c in rgb]
+        return 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]
+
+    a = luminance(couleurs[0])
+    b = luminance(couleurs[1])
+    clair = max(a, b)
+    sombre = min(a, b)
+    return round((clair + 0.05) / (sombre + 0.05), 2)
+```
+
+## Ce qu'il faut retenir
+
+- Le résultat va de 1 (aucun contraste) à 21 (noir sur blanc).
+- Un texte normal demande au moins 4,5 pour 1.
+- Une fonction dans une fonction (`luminance`) garde le code lisible.",non,28
 la-mise-en-page-du-site,La mise en page du site,Choisit le nombre de colonnes selon la largeur de l'écran.,"Une page responsive change de mise en page selon la largeur de l'écran.
 
 ## Votre mission
@@ -429,4 +1048,22 @@ Complétez `pickLayout(width)`. `width` est la largeur de l'écran en pixels. Re
 - `1280` donne `""trois colonnes""`",forgeron,ndongo,javascript,Responsive,6,100,20,pickLayout,"function pickLayout(width) {
   // votre code ici
 }
-",4,"Pensez à if, else if et else.",Testez d'abord le plus petit écran : width <= 600.,"Les bornes comptent : 600 est encore une colonne, 900 deux colonnes.",C'est la même logique qu'un @media en CSS : on teste les seuils du plus petit écran au plus grand.,non,10
+",4,"Pensez à if, else if et else.",Testez d'abord le plus petit écran : width <= 600.,"Les bornes comptent : 600 est encore une colonne, 900 deux colonnes.","## L'idée
+
+On teste les seuils du plus petit écran au plus grand, comme le ferait une règle `@media` en CSS. Le premier test vrai donne la réponse.
+
+## La solution
+
+```javascript
+function pickLayout(width) {
+  if (width <= 600) return ""colonne"";
+  if (width <= 900) return ""deux colonnes"";
+  return ""trois colonnes"";
+}
+```
+
+## Ce qu'il faut retenir
+
+- `<=` inclut la limite : 600 est encore une colonne.
+- On écrit d'abord le cas le plus petit, puis on élargit (« mobile d'abord »).
+- Teste les valeurs aux limites : 600, 601, 900, 901.",non,10
