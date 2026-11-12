@@ -735,7 +735,7 @@ export const en: Messages = {
       running: 'Checking…',
       saveDraft: 'Save the draft',
       draftSaved: 'Draft saved.',
-      solvedLocked: 'Quest solved: the code can no longer be changed.',
+      solvedLocked: 'Quest solved: you can keep practising, the reward is paid only once.',
       results: 'Results',
       testsPassed: (done: number, total: number) => `${done} of ${total} tests passed`,
       passed: 'Passed',

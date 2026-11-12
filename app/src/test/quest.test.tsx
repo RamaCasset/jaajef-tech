@@ -115,7 +115,7 @@ describe('Quest page', () => {
     expect(refreshMember).not.toHaveBeenCalled()
   })
 
-  it('celebrates a solve, locks the editor, opens the explanation and refreshes the wallet', async () => {
+  it('celebrates a solve, keeps the editor open for practice, opens the explanation and refreshes the wallet', async () => {
     runQuest.mockResolvedValue(winning)
     mount()
     await screen.findByText('Somme d’une liste')
@@ -124,8 +124,8 @@ describe('Quest page', () => {
     expect(screen.getByText('+250 XP et +50 Kopeks')).toBeInTheDocument()
     expect(screen.getByText('Série : 3 jours')).toBeInTheDocument()
     expect(screen.getByText('Temps : 42 s')).toBeInTheDocument()
-    expect(editor().readOnly).toBe(true)
-    expect(screen.queryByRole('button', { name: 'Lancer les tests' })).toBeNull()
+    expect(editor().readOnly).toBe(false)
+    expect(screen.getByRole('button', { name: 'Lancer les tests' })).toBeEnabled()
     expect(await screen.findByText('On parcourt la liste et on additionne.')).toBeInTheDocument()
     expect(refreshMember).toHaveBeenCalled()
   })
@@ -147,14 +147,14 @@ describe('Quest page', () => {
     expect(await screen.findByText('Bonus quête du jour : +20 XP, +5 Kopeks')).toBeInTheDocument()
   })
 
-  it('opens an already solved quest read-only with its explanation and no hint button', async () => {
+  it('opens an already solved quest for practice, with its explanation and no hint button', async () => {
     startQuest.mockResolvedValue({ status: 'solved', code: 'def somme(l): return sum(l)', tests_passed: 2, tests_total: 2, started_at: 'x' })
     mount()
     expect(await screen.findByText('Vous avez déjà résolu cette quête.')).toBeInTheDocument()
-    expect(editor().readOnly).toBe(true)
+    expect(editor().readOnly).toBe(false)
     expect(await screen.findByText('On parcourt la liste et on additionne.')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Demander un indice' })).toBeNull()
-    expect(screen.queryByRole('button', { name: 'Lancer les tests' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Lancer les tests' })).toBeEnabled()
   })
 
   it('explains when every test passes but the solve came too fast', async () => {

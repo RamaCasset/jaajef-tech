@@ -140,6 +140,16 @@ export async function runQuest(request: Request, env: Env, fetchFn: typeof fetch
   })
   const passedCount = shown.filter((t) => t.passed).length
 
+  // A solved quest can be run again to practise: grade it, but record and pay nothing.
+  if (begun.body.practice === true) {
+    const allPassed = tests.length > 0 && passedCount === tests.length
+    return jsonResponse({
+      solved: allPassed, already_solved: true, practice: true,
+      ...(allPassed ? {} : { reason: 'tests_not_passed' }),
+      tests: shown, tests_passed: passedCount, tests_total: tests.length,
+    })
+  }
+
   const recorded = await rpc('record_graded_attempt', {
     p_user: userId, p_quest_id: questId, p_code: code, p_tests_passed: passedCount, p_tests_total: tests.length,
   }, env, fetchFn)

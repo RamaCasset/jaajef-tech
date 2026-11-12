@@ -735,7 +735,7 @@ export const frMessages = {
       running: 'Correction en cours…',
       saveDraft: 'Enregistrer le brouillon',
       draftSaved: 'Brouillon enregistré.',
-      solvedLocked: 'Quête résolue : le code ne peut plus être modifié.',
+      solvedLocked: 'Quête résolue : vous pouvez vous entraîner, la récompense n’est versée qu’une fois.',
       results: 'Résultats',
       testsPassed: (done: number, total: number) => `${done} sur ${total} tests réussis`,
       passed: 'Réussi',

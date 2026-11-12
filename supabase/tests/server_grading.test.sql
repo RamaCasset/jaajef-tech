@@ -102,7 +102,7 @@ begin
   raise notice 'OK 3: run limit per player per minute';
 end $$;
 
--- ---- 4. Grading: partial fails, full pays once, solved quests cannot run again ---------------------------
+-- ---- 4. Grading: partial fails, full pays once, a solved quest can only be practised ---------------------------
 do $$
 declare q uuid; r jsonb; xp0 bigint; u1 constant uuid := 'ee000000-0000-0000-0000-000000000001'; ok boolean;
 begin
@@ -115,10 +115,10 @@ begin
   if not (r ->> 'solved')::boolean then raise exception 'FAIL: all tests passed but not solved: %', r; end if;
   r := public.record_graded_attempt(u1, q, 'whole', 2, 2);
   if (select xp from public.profiles where id = u1) <> xp0 + 100 then raise exception 'FAIL: paid more than once'; end if;
-  ok := false;
-  begin perform public.begin_quest_run(u1, q); exception when raise_exception then ok := true; end;
-  if not ok then raise exception 'FAIL: a solved quest can be run again'; end if;
-  raise notice 'OK 4: grading pays once and a solved quest cannot be run again';
+  r := public.begin_quest_run(u1, q);
+  if not (r ->> 'allowed')::boolean or not (r ->> 'practice')::boolean then raise exception 'FAIL: a solved quest is not a practice run: %', r; end if;
+  if (select xp from public.profiles where id = u1) <> xp0 + 100 then raise exception 'FAIL: a practice run paid'; end if;
+  raise notice 'OK 4: grading pays once and a solved quest can only be practised';
 end $$;
 
 -- ---- 5. A code quest with no entry point cannot be run, and the refused request is not counted ---------------------

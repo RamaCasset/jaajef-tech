@@ -200,14 +200,12 @@ export function Quest() {
                 <span className="mono">{file}</span>
                 {changed ? <span className="quest-dirty" role="img" aria-label={p.unsaved} title={p.unsaved} /> : null}
                 <span className="quest-lang mono tiny muted">{quest.language ? fr.quests.languages[quest.language] : ''}</span>
-                {!solved ? (
-                  <button type="button" className="btn btn-cta quest-run" disabled={running || code.trim() === ''} onClick={() => void run()}>
-                    <Icon name="play" size={14} /> {running ? p.running : p.run}
-                  </button>
-                ) : null}
+                <button type="button" className="btn btn-cta quest-run" disabled={running || code.trim() === ''} onClick={() => void run()}>
+                  <Icon name="play" size={14} /> {running ? p.running : p.run}
+                </button>
               </header>
               <div className="quest-editor-box">
-                <CodeEditor path={file} value={code} onChange={setCode} readOnly={solved} height="100%" onCursor={(line, col) => setCursor({ line, col })} />
+                <CodeEditor path={file} value={code} onChange={setCode} height="100%" onCursor={(line, col) => setCursor({ line, col })} />
               </div>
               <footer className="quest-statusbar">
                 <span className="mono tiny muted">{p.cursor(cursor.line, cursor.col)} · UTF-8</span>
