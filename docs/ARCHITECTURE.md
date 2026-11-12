@@ -392,6 +392,10 @@ a moderator. These roles give no moderation or admin power (tested).
   The amounts (`daily_quest_bonus_xp`, `daily_quest_bonus_kopeks`) are placeholders at 0 until
   Marie decides, so nothing extra is paid yet. `submit_quest` reports `daily_quest`,
   `bonus_xp` and `bonus_kopeks`.
+- **Unlock days override scheduling:** once quests carry an unlock day (`drip_day`), the quest of the day
+  is each member's own quest for their day (see the drip section). Scheduling a quest with
+  `schedule_daily_quest` then changes nothing for members. There is no staff screen for it; leave it
+  unused while unlock days are in use.
 - **Freezes:** a member earns one each time the streak reaches a multiple of
   `streak_freeze_every_days` (7), keeps at most `streak_freeze_max` (2). When the member comes
   back after missing days, stored freezes cover them automatically and the streak continues.
