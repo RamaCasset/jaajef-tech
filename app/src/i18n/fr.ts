@@ -218,7 +218,7 @@ export const frMessages = {
     language: { title: 'Langue', text: "Choisissez la langue de votre interface." },
     notifications: { title: 'Notifications', text: 'Gérez les notifications que vous recevez.', action: 'Gérer' },
     delete: { title: 'Supprimer mon compte', text: 'Cette action est définitive.', action: 'Supprimer' },
-    languagePage: { crumb: 'Paramètres / Langue', title: 'Langue', text: "Choisissez la langue de votre interface. Les noms propres (La Cité, Kopeks, Souk) ne changent pas." },
+    languagePage: { crumb: 'Paramètres / Langue', title: 'Langue', text: "Choisissez la langue de votre interface. Les noms propres (Kopeks, Souk, les clans) ne changent pas. La Cité devient The City en anglais." },
   },
   kopeks: {
     back: 'Retour au Souk',
