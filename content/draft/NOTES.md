@@ -3,12 +3,12 @@
 All of this is a first draft for Thursday night. Nothing is published: every row says `non` in the `published` column.
 
 ## What is in the folder
-- `quests.csv` and `tests.csv`: 18 quests with hidden tests, three hints each and an explanation. The expected answers were computed by running a reference solution, and the JavaScript ones were checked again in Node.
-  - Griot du Code: 10 quests (5 easy Python, 2 harder Python, 3 JavaScript)
-  - Saltigué: 4 Python quests on statistics
-  - Buur/Lingeer: 4 Python quests on security
-  - Forgeron: none yet. HTML and CSS cannot be graded automatically today (see below).
-- `paths.csv` and `steps.csv`: one learning path per clan, six lessons each. Each lesson has an idea, an example, a common mistake and an "À vous" mini-exercise (about 1,000 characters on average). Steps with a quest finish when the quest is solved.
+- `quests.csv` and `tests.csv`: 32 quests with hidden tests, three hints each and an explanation. The expected answers were computed by running a reference solution, and the JavaScript ones were checked again in Node.
+  - Griot du Code: 13 quests (Python and JavaScript)
+  - Saltigué: 8 Python quests (statistics, grouping and ranking)
+  - Buur/Lingeer: 7 Python quests on security and privacy
+  - Forgeron: 4 quests on web concepts (images without alt, hex to RGB, contrast ratio, layout by screen width). The page itself cannot be graded automatically today (see below).
+- `paths.csv` and `steps.csv`: one learning path per clan: 6 lessons each, and 9 for Saltigué (3 SQL lessons, reading only). 24 of the 27 steps have a quest. Each lesson has an explanation, examples, a summary and a practice line (about 290 words on average, 7,800 in total). Steps with a quest finish when the quest is solved.
 - Everything is French, short and meant to be rewritten in your voice.
 
 ## To review on Thursday

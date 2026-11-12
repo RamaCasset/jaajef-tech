@@ -56,3 +56,11 @@ Job details, settings, the staff side, the Kopeks checkout and the Souk sell flo
 - The splash mascot is cropped from the screenshot as a placeholder; the transparent original is needed.
 - À propos text is copied word for word from her screen; the English version is our translation.
 - The GitHub sign-in button sits under the email form on both sign in and sign up (no Figma screen for it).
+
+## One new quest a day (best guess, decided 12 November)
+- Each member's clock starts the day they join: quest 1 on day 1, quest 2 on day 2, up to quest 32.
+- Quests that belong to a published learning path stay open, so a lesson never waits for its quest.
+- A member's quest of the day is the quest of their current day. After day 32 it starts again from quest 1 and every quest is open.
+- A visitor who is not signed in sees quest 1 only. Staff see every quest.
+- The order goes from easy to hard and rotates the four clans. It is the `drip_day` column in `content/draft/quests.csv` and can be changed there.
+- Scheduling a quest of the day by hand (Staff page) no longer changes what members see once drip days are set.

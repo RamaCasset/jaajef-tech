@@ -62,3 +62,18 @@ test('refuses a test that points at an unknown quest', () => {
   t.tests.push({ _line: '9', quest: 'fantome', name: 'x', input: '1', expected: '1' })
   assert.match(build(t).errors.join('\n'), /quest "fantome" is not in quests\.csv/)
 })
+
+test('writes the unlock day of each quest and refuses a repeated day', () => {
+  const t = tables()
+  t.quests[0].drip_day = '1'
+  const ok = build(t)
+  assert.deepEqual(ok.errors, [])
+  assert.match(ok.sql, /update public\.quests set drip_day = null;/)
+  assert.match(ok.sql, /update public\.quests set drip_day = 1 where slug = 'somme-des-pairs';/)
+  const t2 = tables()
+  t2.quests.forEach((q) => { q.drip_day = '2' })
+  if (t2.quests.length > 1) assert.match(build(t2).errors.join('\n'), /drip_day 2 is used by another quest/)
+  const t3 = tables()
+  t3.quests[0].drip_day = 'zero'
+  assert.match(build(t3).errors.join('\n'), /drip_day must be a whole number from 1/)
+})

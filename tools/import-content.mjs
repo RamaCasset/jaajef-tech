@@ -60,6 +60,8 @@ export function build({ quests = [], tests = [], paths = [], steps = [] }) {
   const err = (file, o, msg) => errors.push(`${file} line ${o._line}: ${msg}`)
   const out = []
   const questSlugs = new Set()
+  const dripOut = []
+  const dripDays = new Set()
   const pathSlugs = new Set()
 
   for (const r of quests) {
@@ -80,11 +82,17 @@ export function build({ quests = [], tests = [], paths = [], steps = [] }) {
     if (Number.isNaN(kopeks)) bad.push('kopeks must be a whole number')
     const position = r.position === '' ? null : int(r.position)
     if (Number.isNaN(position)) bad.push('position must be a whole number from 1')
+    // Optional column: the day the quest unlocks for a member (1 = the day they join).
+    const dripRaw = (r.drip_day ?? '').trim()
+    const drip = dripRaw === '' ? null : int(dripRaw)
+    if (dripRaw !== '' && !(Number.isInteger(drip) && drip >= 1)) bad.push('drip_day must be a whole number from 1')
+    if (drip !== null && dripDays.has(drip)) bad.push(`drip_day ${drip} is used by another quest`)
     const graded = GRADED.includes(r.language.trim())
     if (graded && !IDENT.test(r.entry_point.trim())) bad.push('entry_point (the function name the player writes) is required for python and javascript')
     if (graded && !tests.some((t) => t.quest.trim() === slug)) bad.push('needs at least one row in tests.csv')
     if (bad.length) { bad.forEach((m) => err('quests.csv', r, `${slug}: ${m}`)); continue }
 
+    if (drip !== null) { dripDays.add(drip); dripOut.push(`update public.quests set drip_day = ${drip} where slug = ${q(slug)};`) }
     out.push(`-- Quest: ${slug}`)
     out.push(`insert into public.quests (slug, title, summary, statement_md, clan, mastery, language, topic, est_minutes, xp_reward, kopek_reward, entry_point, starter_code, position, published)`)
     out.push(`values (${q(slug)}, ${q(r.title)}, ${qn(r.summary)}, ${qn(r.statement)}, ${q(r.clan.trim())}, ${q(r.mastery.trim())}, ${q(r.language.trim())}, ${qn(r.topic)}, ${minutes}, ${xp}, ${kopeks}, ${graded ? q(r.entry_point.trim()) : 'null'}, ${qn(r.starter_code)}, ${position ?? 'null'}, ${yes(r.published)})`)
@@ -114,6 +122,12 @@ export function build({ quests = [], tests = [], paths = [], steps = [] }) {
   }
   for (const t of tests) {
     if (!questSlugs.has(t.quest.trim())) err('tests.csv', t, `quest "${t.quest}" is not in quests.csv`)
+  }
+
+  if (dripOut.length) {
+    out.push('-- Unlock order: one quest a day from each member\'s join date. Needs the quest drip SQL file to be run first.')
+    out.push('update public.quests set drip_day = null;')
+    out.push(...dripOut)
   }
 
   for (const r of paths) {
