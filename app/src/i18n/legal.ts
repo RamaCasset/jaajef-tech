@@ -47,6 +47,13 @@ const fr: LegalSet = {
           "Candidatures : seule la personne qui a publié l'offre voit votre dossier de candidature, tant que la candidature reste ouverte. Après un refus ou la fermeture de l'offre, l'accès est limité dans le temps puis fermé.",
           "L'équipe : les modérateurs ne voient que ce qui est signalé, pour traiter le signalement. Les administrateurs gèrent les rôles de l'équipe.",
         ] },
+        { h: 'Connexion avec Google et GitHub', p: [
+          "Si vous choisissez « Se connecter avec Google », Google nous transmet votre nom, votre adresse e-mail et votre photo de profil. Nous ne demandons aucune autre permission : pas vos contacts, pas votre agenda, pas vos fichiers, pas votre Gmail.",
+          "Nous utilisons ces trois informations uniquement pour créer votre compte, vous reconnaître quand vous revenez et afficher votre nom et votre photo dans jaajef.tech. Nous ne les vendons pas, ne les utilisons pas pour de la publicité et ne les partageons avec personne d'autre que les services listés plus haut, qui font fonctionner le site.",
+          "L'utilisation par jaajef.tech des informations reçues de Google respecte la politique de Google sur les données des utilisateurs des services API, y compris ses exigences d'utilisation limitée. Ces informations ne servent pas à entraîner des modèles d'intelligence artificielle.",
+          "Vous pouvez retirer l'accès de jaajef.tech à votre compte Google à tout moment dans les paramètres de sécurité de votre compte Google, et supprimer votre compte jaajef.tech dans vos paramètres : vos données reçues de Google sont alors supprimées avec lui.",
+          "Avec GitHub, c'est pareil : nous recevons votre identifiant GitHub, votre adresse e-mail et votre photo. Si vous importez un projet, nous lisons seulement vos dépôts publics.",
+        ] },
         { h: 'Les services qui nous aident', p: [
           "Pour fonctionner, nous nous appuyons sur : Supabase (base de données, connexion, stockage des fichiers), Vercel (hébergement du site), E2B (exécution isolée du code des quêtes : le code que vous envoyez y est exécuté puis effacé), PayDunya (paiements), GitHub (connexion et lecture de vos dépôts publics si vous les importez) et [À CONFIRMER : service d'envoi d'e-mails].",
           "Certains de ces services sont situés hors du Sénégal. Nous ne leur confions que ce qui est nécessaire à leur mission.",
@@ -205,6 +212,13 @@ const en: LegalSet = {
           'Private: your e-mail address, private messages and settings. Private conversations are read only by the people in them.',
           'Applications: only the person who posted the offer sees your application file, while the application is open. After a decline or when the offer closes, access is limited in time and then closed.',
           'The team: moderators see only what is reported, to handle the report. Administrators manage team roles.',
+        ] },
+        { h: 'Signing in with Google and GitHub', p: [
+          "If you choose \"Sign in with Google\", Google sends us your name, e-mail address and profile picture. We ask for no other permission: not your contacts, calendar, files or Gmail.",
+          "We use these three pieces of information only to create your account, recognise you when you come back and show your name and picture inside jaajef.tech. We do not sell them, do not use them for advertising and do not share them with anyone other than the services listed above, which make the site work.",
+          "jaajef.tech's use of information received from Google follows the Google API Services User Data Policy, including its Limited Use requirements. This information is not used to train artificial intelligence models.",
+          "You can remove jaajef.tech's access to your Google account at any time in your Google account security settings, and delete your jaajef.tech account in your settings: the data we received from Google is then deleted with it.",
+          "GitHub works the same way: we receive your GitHub identifier, e-mail address and picture. If you import a project, we only read your public repositories.",
         ] },
         { h: 'Services that help us', p: [
           'To run, we rely on: Supabase (database, sign-in, file storage), Vercel (site hosting), E2B (isolated running of quest code: the code you send is run there and then erased), PayDunya (payments), GitHub (sign-in and reading your public repositories if you import them) and [TO CONFIRM: e-mail sending service].',
