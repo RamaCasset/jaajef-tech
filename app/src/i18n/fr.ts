@@ -45,6 +45,7 @@ export const frMessages = {
     signUp: "S'inscrire",
     or: 'ou',
     github: 'Se connecter avec GitHub',
+    google: 'Se connecter avec Google',
   },
   forgotPassword: {
     eyebrow: 'Connexion / Mot de passe',
@@ -76,6 +77,7 @@ export const frMessages = {
     privacy: 'Politique de confidentialité',
     agreeAfter: '.',
     github: "S'inscrire avec GitHub",
+    google: "S'inscrire avec Google",
     eyebrow: 'Création de personnage / Étape 1 sur 3',
     title: 'Crée ton identité',
     subtitle: 'Un compte pour entrer dans la Cité.',
