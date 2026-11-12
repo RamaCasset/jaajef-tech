@@ -83,6 +83,18 @@ describe('Quest page', () => {
     expect(editor().value).toBe('def somme(l): return sum(l)')
   })
 
+  it('has the run button in the editor header and scrolls to the terminal when it is pressed', async () => {
+    const scroll = vi.fn()
+    window.HTMLElement.prototype.scrollIntoView = scroll
+    runQuest.mockResolvedValue(failing)
+    mount()
+    await screen.findByText('Somme d’une liste')
+    const header = screen.getByText('solution.py').closest('header') as HTMLElement
+    await userEvent.click(within(header).getByRole('button', { name: 'Lancer les tests' }))
+    await waitFor(() => expect(scroll).toHaveBeenCalled())
+    expect(screen.getByRole('tab', { name: 'Terminal' })).toHaveAttribute('aria-selected', 'true')
+  })
+
   it('sends the typed code to be graded and lists each test', async () => {
     runQuest.mockResolvedValue(failing)
     mount()

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
 import { ArticleBody } from '../components/ArticleBody'
@@ -69,8 +69,13 @@ export function Quest() {
 
   const solved = data?.attempt.status === 'solved'
 
+  const resultsRef = useRef<HTMLElement | null>(null)
+
   const run = useCallback(async () => {
     if (!data) return
+    setResultTab('terminal')
+    // Show the terminal straight away, so the member watches the run.
+    window.setTimeout(() => resultsRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' }), 50)
     setRunning(true)
     setError(null)
     setNote(null)
@@ -180,7 +185,7 @@ export function Quest() {
         {solved && !(outcome?.solved && !outcome.already_solved) ? <p className="muted">{p.alreadySolved}</p> : null}
 
         <div className="quest-grid">
-          <section className="panel quest-pane" aria-label={p.statement}>
+          <section className="panel quest-pane quest-brief" aria-label={p.statement}>
             <header className="quest-pane-head"><Icon name="blog" size={18} /> <h2>{p.statementTitle}</h2></header>
             <div className="quest-pane-body">
               <span className="quest-level-chip">{fr.masteries[quest.mastery].name}</span>
@@ -195,6 +200,11 @@ export function Quest() {
                 <span className="mono">{file}</span>
                 {changed ? <span className="quest-dirty" role="img" aria-label={p.unsaved} title={p.unsaved} /> : null}
                 <span className="quest-lang mono tiny muted">{quest.language ? fr.quests.languages[quest.language] : ''}</span>
+                {!solved ? (
+                  <button type="button" className="btn btn-cta quest-run" disabled={running || code.trim() === ''} onClick={() => void run()}>
+                    <Icon name="play" size={14} /> {running ? p.running : p.run}
+                  </button>
+                ) : null}
               </header>
               <div className="quest-editor-box">
                 <CodeEditor path={file} value={code} onChange={setCode} readOnly={solved} height="100%" onCursor={(line, col) => setCursor({ line, col })} />
@@ -205,15 +215,12 @@ export function Quest() {
                   <span className="quest-actions">
                     {note ? <span role="status" className="muted tiny">{note}</span> : null}
                     <button type="button" className="btn" disabled={running} onClick={() => void save()}>{p.saveDraft}</button>
-                    <button type="button" className="btn btn-cta" disabled={running || code.trim() === ''} onClick={() => void run()}>
-                      <Icon name="play" size={14} /> {running ? p.running : p.run}
-                    </button>
                   </span>
                 )}
               </footer>
             </section>
 
-            <section className="panel quest-pane quest-results" aria-label={p.results}>
+            <section ref={resultsRef} className="panel quest-pane quest-results" aria-label={p.results}>
               <header className="quest-pane-head quest-tabs-head">
                 <div role="tablist" className="quest-tabs">
                   <button type="button" role="tab" aria-selected={resultTab === 'terminal'} className={resultTab === 'terminal' ? 'quest-tab quest-tab-on' : 'quest-tab'} onClick={() => setResultTab('terminal')}>Terminal</button>

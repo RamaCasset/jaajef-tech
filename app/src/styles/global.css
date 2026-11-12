@@ -1089,6 +1089,7 @@ div.alert[data-dismissed], p.alert[data-dismissed], div.notice[data-dismissed], 
 .quest-file-head { color: var(--fg-muted); }
 .quest-file-head .mono { color: var(--fg); font-size: 13px; }
 .quest-lang { margin-left: auto; }
+.quest-run { padding: 6px 14px; }
 .quest-dirty { width: 8px; height: 8px; border-radius: 50%; background: #f0b24a; }
 .quest-statusbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 18px; border-top: 1px solid var(--line); }
 .quest-statusbar .quest-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
@@ -1134,6 +1135,7 @@ div.alert[data-dismissed], p.alert[data-dismissed], div.notice[data-dismissed], 
   .quest-center { grid-template-rows: auto auto; }
   .quest-center > .quest-pane { display: flex; flex-direction: column; }
   .quest-editor-box { height: max(620px, calc(100vh - 240px)); }
+  .quest-brief .quest-pane-body { max-height: max(620px, calc(100vh - 240px)); overflow-y: auto; align-content: start; }
   .quest-center .quest-results .quest-pane-body { min-height: 240px; }
 }
 
