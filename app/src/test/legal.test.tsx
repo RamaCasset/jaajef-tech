@@ -5,10 +5,10 @@ import { Legal } from '../pages/Legal'
 import { legal } from '../i18n/legal'
 
 describe('Legal pages', () => {
-  it('shows the privacy policy to a visitor, with the draft notice and the other texts', () => {
+  it('shows the privacy policy to a visitor, with the other texts', () => {
     render(<MemoryRouter><Legal doc="privacy" /></MemoryRouter>)
     expect(screen.getByRole('heading', { level: 1, name: 'Politique de confidentialité' })).toBeInTheDocument()
-    expect(screen.getByRole('note')).toHaveTextContent('Version provisoire')
+    expect(screen.queryByRole('note')).not.toBeInTheDocument()
     const menu = within(screen.getByRole('navigation', { name: 'Textes et règles' }))
     expect(menu.getByRole('link', { name: "Conditions d'utilisation" })).toHaveAttribute('href', '/conditions')
     expect(menu.getByRole('link', { name: 'Règles des offres' })).toHaveAttribute('href', '/regles-offres')

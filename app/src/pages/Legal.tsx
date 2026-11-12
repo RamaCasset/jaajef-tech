@@ -29,7 +29,6 @@ export function Legal({ doc }: { doc: LegalDocKey }) {
       </nav>
       <article className="legal-body">
         <h1>{d.title}</h1>
-        <p className="notice" role="note">{set.draft}</p>
         <p className="tiny muted">{set.updated}</p>
         <p>{d.intro}</p>
         {d.sections.map((s) => (
