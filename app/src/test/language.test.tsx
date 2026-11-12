@@ -63,7 +63,7 @@ describe('French and English', () => {
         const ph = (s: string) => (s.match(/\{[a-z]+\}/g) ?? []).sort().join(',')
         if (ph(f) !== ph(e)) problems.push(`${path}: placeholders differ`)
         // Proper names are the same in both languages.
-        const properNames = ['fr.clans.saltigue.name', 'fr.nav.city']
+        const properNames = ['fr.clans.saltigue.name']
         if (f === e && /[éèêàùçô]/.test(f) && !properNames.includes(path)) problems.push(`${path}: still French`)
       } else if (typeof f === 'function') {
         if (typeof e !== 'function') problems.push(`${path}: not a function`)
