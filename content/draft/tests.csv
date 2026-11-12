@@ -83,3 +83,88 @@ adresse-ip-valide,Zéro de tête,"""01.2.3.4""",false
 adresse-ip-valide,Zéros seuls,"""0.0.0.0""",true
 adresse-ip-valide,Lettres,"""a.b.c.d""",false
 adresse-ip-valide,Vide,"""""",false
+le-prix-des-mangues,Trois kilos,"{""kilos"": 3, ""price_per_kilo"": 700}",2100
+le-prix-des-mangues,Zéro kilo,"{""kilos"": 0, ""price_per_kilo"": 700}",0
+le-prix-des-mangues,Un kilo,"{""kilos"": 1, ""price_per_kilo"": 1250}",1250
+le-prix-des-mangues,Beaucoup,"{""kilos"": 12, ""price_per_kilo"": 450}",5400
+le-tarif-du-concert,Enfant,8,500
+le-tarif-du-concert,Adulte,30,1000
+le-tarif-du-concert,Senior,75,700
+le-tarif-du-concert,Limite 12,12,1000
+le-tarif-du-concert,Limite 60,60,700
+le-tarif-du-concert,Limite 11,11,500
+le-tarif-du-concert,Limite 59,59,1000
+le-tarif-du-concert,Bébé,0,500
+compter-les-mots,Simple,"""Riz riz mil""","{""riz"": 2, ""mil"": 1}"
+compter-les-mots,Vide,"""""",{}
+compter-les-mots,Ponctuation,"""Salam, salam ! Ca va ?""","{""salam"": 2, ""ca"": 1, ""va"": 1}"
+compter-les-mots,Majuscules,"""Thieb THIEB thieb""","{""thieb"": 3}"
+compter-les-mots,Phrase,"""le riz et le mil et le maïs""","{""le"": 3, ""riz"": 1, ""et"": 2, ""mil"": 1, ""maïs"": 1}"
+compter-les-mots,Espaces,"""  un  deux  un ""","{""un"": 2, ""deux"": 1}"
+le-resume-des-ventes,Trois valeurs,"[3, 5, 8]","{""count"": 3, ""total"": 16, ""min"": 3, ""max"": 8}"
+le-resume-des-ventes,Vide,[],"{""count"": 0, ""total"": 0, ""min"": 0, ""max"": 0}"
+le-resume-des-ventes,Une valeur,[7],"{""count"": 1, ""total"": 7, ""min"": 7, ""max"": 7}"
+le-resume-des-ventes,Négatifs,"[-2, 4, -9, 1]","{""count"": 4, ""total"": -6, ""min"": -9, ""max"": 4}"
+le-resume-des-ventes,Doublons,"[5, 5, 5, 2]","{""count"": 4, ""total"": 17, ""min"": 2, ""max"": 5}"
+les-valeurs-qui-sortent-du-lot,Un gros jour,"[10, 11, 9, 10, 10, 11, 9, 10, 100]",[100]
+les-valeurs-qui-sortent-du-lot,Tout égal,"[5, 5, 5]",[]
+les-valeurs-qui-sortent-du-lot,Vide,[],[]
+les-valeurs-qui-sortent-du-lot,Rien d'étrange,"[4, 5, 6, 5, 4, 6]",[]
+les-valeurs-qui-sortent-du-lot,Un trou,"[50, 52, 49, 51, 50, 48, 51, 50, 2]",[2]
+les-valeurs-qui-sortent-du-lot,Deux extrêmes,"[20, 21, 19, 20, 20, 21, 19, 20, 20, 21, 19, 20, 20, 21, 19, 20, 20, 21, 19, 20, 90, -50]","[-50, 90]"
+le-total-par-produit,Deux produits,"[[""mangues"", 3], [""oranges"", 2], [""mangues"", 4]]","{""mangues"": 7, ""oranges"": 2}"
+le-total-par-produit,Vide,[],{}
+le-total-par-produit,Un seul,"[[""bananes"", 20]]","{""bananes"": 20}"
+le-total-par-produit,Même produit,"[[""riz"", 1], [""riz"", 1], [""riz"", 1]]","{""riz"": 3}"
+le-total-par-produit,Plusieurs,"[[""a"", 5], [""b"", 1], [""c"", 2], [""b"", 9], [""a"", 1]]","{""a"": 6, ""b"": 10, ""c"": 2}"
+les-deux-plus-chers,Trois produits,"[{""produit"": ""mangues"", ""prix"": 500}, {""produit"": ""papayes"", ""prix"": 800}, {""produit"": ""oranges"", ""prix"": 300}]","[""papayes"", ""mangues""]"
+les-deux-plus-chers,Un seul,"[{""produit"": ""riz"", ""prix"": 100}]","[""riz""]"
+les-deux-plus-chers,Vide,[],[]
+les-deux-plus-chers,Égalité,"[{""produit"": ""b"", ""prix"": 5}, {""produit"": ""a"", ""prix"": 5}, {""produit"": ""c"", ""prix"": 1}]","[""a"", ""b""]"
+les-deux-plus-chers,Quatre,"[{""produit"": ""w"", ""prix"": 1}, {""produit"": ""x"", ""prix"": 9}, {""produit"": ""y"", ""prix"": 7}, {""produit"": ""z"", ""prix"": 9}]","[""x"", ""z""]"
+reperer-l-hamecon,Deux signes,"""URGENT : cliquez ici""",2
+reperer-l-hamecon,Aucun,"""Rendez-vous demain à 10h""",0
+reperer-l-hamecon,Quatre,"""Urgent ! Cliquez ici http://faux.sn et envoyez votre mot de passe""",4
+reperer-l-hamecon,Répété,"""urgent urgent urgent""",1
+reperer-l-hamecon,Vide,"""""",0
+reperer-l-hamecon,Mot de passe,"""Changez votre Mot de Passe""",1
+le-videur-de-formulaire,Normal,25,true
+le-videur-de-formulaire,Texte,"""25""",false
+le-videur-de-formulaire,Trop grand,121,false
+le-videur-de-formulaire,Négatif,-1,false
+le-videur-de-formulaire,Zéro,0,true
+le-videur-de-formulaire,Limite haute,120,true
+le-videur-de-formulaire,À virgule,3.5,false
+le-videur-de-formulaire,Rien,null,false
+le-videur-de-formulaire,Booléen,true,false
+le-videur-de-formulaire,Liste,[30],false
+cacher-le-numero,Neuf chiffres,"""771234567""","""77*****67"""
+cacher-le-numero,Court,"""1234""","""****"""
+cacher-le-numero,Cinq,"""12345""","""12*45"""
+cacher-le-numero,Vide,"""""",""""""
+cacher-le-numero,Dix,"""7812345690""","""78******90"""
+images-sans-alt,Une manque,"""<img src=\""a.jpg\"" alt=\""Un baobab\""><img src=\""b.jpg\"">""",1
+images-sans-alt,Aucune image,"""<p>Pas d'image</p>""",0
+images-sans-alt,Alt vide,"""<img src=\""a.jpg\"" alt=\""\"">""",0
+images-sans-alt,Toutes manquent,"""<img src=\""1.png\""><img src=\""2.png\""><img src=\""3.png\"">""",3
+images-sans-alt,Majuscules,"""<IMG SRC=\""x.png\"" ALT=\""Logo\""><IMG SRC=\""y.png\"">""",1
+images-sans-alt,Mélange,"""<div><img alt=\""a\"" src=\""1\""></div><img src=\""2\""><p>texte</p><img src=\""3\"" alt=\""c\"">""",1
+de-hexa-vers-rgb,Doré,"""#f0b24a""","[240, 178, 74]"
+de-hexa-vers-rgb,Noir,"""#000000""","[0, 0, 0]"
+de-hexa-vers-rgb,Blanc,"""#ffffff""","[255, 255, 255]"
+de-hexa-vers-rgb,Rouge,"""#ff0000""","[255, 0, 0]"
+de-hexa-vers-rgb,Majuscules,"""#1A2B3C""","[26, 43, 60]"
+de-hexa-vers-rgb,Gris,"""#808080""","[128, 128, 128]"
+le-contraste-des-couleurs,Noir et blanc,"[""#000000"", ""#ffffff""]",21.0
+le-contraste-des-couleurs,Même couleur,"[""#ffffff"", ""#ffffff""]",1.0
+le-contraste-des-couleurs,Ordre inverse,"[""#ffffff"", ""#000000""]",21.0
+le-contraste-des-couleurs,Doré sur sombre,"[""#f0b24a"", ""#17130f""]",9.83
+le-contraste-des-couleurs,Gris clair sur blanc,"[""#cccccc"", ""#ffffff""]",1.61
+le-contraste-des-couleurs,Bleu sur blanc,"[""#0000ff"", ""#ffffff""]",8.59
+la-mise-en-page-du-site,Téléphone,375,"""colonne"""
+la-mise-en-page-du-site,Tablette,768,"""deux colonnes"""
+la-mise-en-page-du-site,Bureau,1280,"""trois colonnes"""
+la-mise-en-page-du-site,Limite 600,600,"""colonne"""
+la-mise-en-page-du-site,Limite 601,601,"""deux colonnes"""
+la-mise-en-page-du-site,Limite 900,900,"""deux colonnes"""
+la-mise-en-page-du-site,Limite 901,901,"""trois colonnes"""

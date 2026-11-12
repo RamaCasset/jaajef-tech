@@ -220,3 +220,213 @@ Complétez `is_valid_ipv4(text)`. Une adresse IPv4 valide a 4 nombres séparés 
     # votre code ici
     pass
 ",4,split('.') doit donner exactement 4 morceaux.,Chaque morceau doit être fait de chiffres : x.isdigit().,"Refusez un morceau de plus d'un caractère qui commence par '0', et tout nombre au-dessus de 255.","On valide morceau par morceau : nombre de morceaux, chiffres seulement, pas de zéro de tête, valeur au plus 255.",non
+le-prix-des-mangues,Le prix des mangues,Calcule le prix d'un achat à partir d'un poids et d'un prix au kilo.,"À Sandaga, une vendeuse pèse les mangues puis annonce le prix.
+
+## Votre mission
+
+Complétez `fruit_price(achat)`. L'argument est un dictionnaire avec `kilos` et `price_per_kilo`. Renvoyez le prix total.
+
+## Exemples
+
+- `{""kilos"": 3, ""price_per_kilo"": 700}` donne `2100`
+- `{""kilos"": 0, ""price_per_kilo"": 700}` donne `0`",griot_du_code,ndongo,python,Variables,5,100,20,fruit_price,"def fruit_price(achat):
+    # votre code ici
+    pass
+",11,"Un dictionnaire se lit avec des crochets : achat[""kilos""].",Rangez chaque valeur dans une variable avec un bon nom.,Le total est kilos * price_per_kilo : renvoyez-le avec return.,"On lit deux valeurs dans le dictionnaire, on les range sous des noms clairs, puis on les multiplie. Une variable garde une valeur sous un nom.",non
+le-tarif-du-concert,Le tarif du concert,Choisit le prix du billet selon l'âge.,"Le concert applique trois tarifs selon l'âge.
+
+## Votre mission
+
+Complétez `ticket_price(age)`.
+
+- moins de 12 ans : `500`
+- de 12 à 59 ans : `1000`
+- 60 ans et plus : `700`
+
+## Exemples
+
+- `8` donne `500`
+- `30` donne `1000`
+- `60` donne `700`",griot_du_code,ndongo,python,Conditions,6,100,20,ticket_price,"def ticket_price(age):
+    # votre code ici
+    pass
+",12,"Il y a trois cas : pensez à if, elif et else.","Testez d'abord age < 12, puis age < 60.","Les bornes comptent : 12 est adulte, 60 est senior.","On teste les cas dans l'ordre. Python s'arrête au premier cas vrai, donc le deuxième test n'a besoin de vérifier que la limite haute.",non
+compter-les-mots,Compter les mots,Compte combien de fois chaque mot apparaît dans une phrase.,"La radio du quartier veut savoir quels mots reviennent le plus.
+
+## Votre mission
+
+Complétez `count_words(text)`. Renvoyez un dictionnaire : chaque mot en minuscules, avec le nombre de fois où il apparaît. Ignorez la ponctuation `. , ; : ! ?` autour des mots.
+
+## Exemples
+
+- `""Riz riz mil""` donne `{""riz"": 2, ""mil"": 1}`
+- `""""` donne `{}`",griot_du_code,bagne,python,Dictionnaires,9,150,30,count_words,"def count_words(text):
+    # votre code ici
+    pass
+",13,"Mettez le texte en minuscules avec lower(), puis coupez-le avec split().","Enlevez la ponctuation autour de chaque mot avec strip("".,;:!?"").","Comptez avec compte[mot] = compte.get(mot, 0) + 1.","On nettoie chaque mot, puis on compte avec un dictionnaire : get(mot, 0) renvoie 0 si le mot n'a pas encore été vu.",non
+le-resume-des-ventes,Le résumé des ventes,"Résume une série de chiffres : nombre, total, plus petit, plus grand.","Avant toute analyse, on résume les données.
+
+## Votre mission
+
+Complétez `summarize(values)`. Renvoyez un dictionnaire avec `count` (combien de valeurs), `total`, `min` et `max`. Pour une liste vide, renvoyez `0` pour chaque clé.
+
+## Exemples
+
+- `[3, 5, 8]` donne `{""count"": 3, ""total"": 16, ""min"": 3, ""max"": 8}`
+- `[]` donne `{""count"": 0, ""total"": 0, ""min"": 0, ""max"": 0}`",saltigue,ndongo,python,Statistiques,6,100,20,summarize,"def summarize(values):
+    # votre code ici
+    pass
+",5,"len, sum, min et max font presque tout le travail.",Attention : min([]) et max([]) provoquent une erreur.,"Testez d'abord si la liste est vide, et renvoyez le dictionnaire de zéros.","Quatre fonctions toutes faites donnent le résumé. Le cas de la liste vide se traite à part, sinon min et max plantent.",non
+les-valeurs-qui-sortent-du-lot,Les valeurs qui sortent du lot,Repère les valeurs très éloignées de la moyenne.,"Dans une série de ventes, une journée sort parfois du lot : jour de fête, erreur de saisie. Il faut la repérer pour la vérifier.
+
+## Votre mission
+
+Complétez `outliers(values)`. Calculez la moyenne `m` puis l'écart type `sd` : la racine carrée de la moyenne des `(x - m) ** 2`. Renvoyez, dans l'ordre croissant, les valeurs dont la distance à la moyenne est strictement supérieure à `2 * sd`. Si la liste est vide ou si `sd` vaut 0, renvoyez `[]`.
+
+## Exemples
+
+- `[10, 11, 9, 10, 10, 11, 9, 10, 100]` donne `[100]`
+- `[5, 5, 5]` donne `[]`",saltigue,bagne,python,Statistiques,10,150,30,outliers,"import math
+
+
+def outliers(values):
+    # votre code ici
+    pass
+",6,Calculez d'abord la moyenne : sum(values) / len(values).,L'écart type : math.sqrt(sum((x - m) ** 2 for x in values) / len(values)).,"Gardez x si abs(x - m) > 2 * sd, puis triez avec sorted.","La moyenne et l'écart type mesurent le centre et la dispersion. Une valeur à plus de deux écarts types du centre est inhabituelle : on la signale pour la vérifier, on ne la supprime pas.",non
+le-total-par-produit,Le total par produit,"Additionne les ventes de chaque produit, comme un GROUP BY.","Le carnet du marchand contient une ligne par vente : un produit et une quantité. Pour le bilan, il faut le total par produit. C'est ce que fait `GROUP BY` en SQL.
+
+## Votre mission
+
+Complétez `group_totals(rows)`. Chaque ligne est une liste `[produit, quantité]`. Renvoyez un dictionnaire produit → somme des quantités.
+
+## Exemples
+
+- `[[""mangues"", 3], [""oranges"", 2], [""mangues"", 4]]` donne `{""mangues"": 7, ""oranges"": 2}`
+- `[]` donne `{}`",saltigue,bagne,python,Données,8,150,30,group_totals,"def group_totals(rows):
+    # votre code ici
+    pass
+",7,"Parcourez les lignes avec for produit, quantite in rows.",Un dictionnaire sert de carnet : totaux[produit].,"Utilisez totaux.get(produit, 0) + quantite pour ajouter.",On parcourt les lignes et on cumule dans un dictionnaire. SQL fait la même chose avec GROUP BY et SUM.,non
+les-deux-plus-chers,Les deux plus chers,"Trouve les deux produits les plus chers, comme ORDER BY et LIMIT.","Le marchand veut afficher ses deux produits les plus chers. En SQL on écrirait `ORDER BY prix DESC LIMIT 2`.
+
+## Votre mission
+
+Complétez `top_two(rows)`. Chaque ligne est un dictionnaire avec `produit` et `prix`. Renvoyez la liste des noms des deux produits les plus chers, du plus cher au moins cher. À prix égal, classez par ordre alphabétique. S'il y a moins de deux produits, renvoyez ceux qui existent.
+
+## Exemples
+
+- `[{""produit"": ""mangues"", ""prix"": 500}, {""produit"": ""papayes"", ""prix"": 800}, {""produit"": ""oranges"", ""prix"": 300}]` donne `[""papayes"", ""mangues""]`",saltigue,bagne,python,Données,8,150,30,top_two,"def top_two(rows):
+    # votre code ici
+    pass
+",8,sorted accepte un argument key= qui dit sur quoi trier.,"Pour trier du plus grand au plus petit puis par nom, utilisez la clé (-prix, produit).","Gardez les deux premiers avec [:2], puis extrayez les noms.","Trier avec une clé composée (-prix, produit) classe du plus cher au moins cher, puis par nom. Le découpage [:2] joue le rôle de LIMIT 2.",non
+reperer-l-hamecon,Repérer l'hameçonnage,Compte les signes suspects d'un message.,"Un faux SMS de « votre banque » arrive. Pour aider les membres, on veut compter ses signes suspects.
+
+## Votre mission
+
+Complétez `phishing_signs(message)`. Renvoyez combien de ces signes le message contient, sans tenir compte des majuscules :
+
+- `cliquez ici`
+- `urgent`
+- `http://`
+- `mot de passe`
+
+Chaque signe compte une fois, même s'il apparaît plusieurs fois.
+
+## Exemples
+
+- `""URGENT : cliquez ici""` donne `2`
+- `""Rendez-vous demain""` donne `0`",buur_linguere,ndongo,python,Sécurité,6,100,20,phishing_signs,"def phishing_signs(message):
+    # votre code ici
+    pass
+",5,Mettez le message en minuscules avec lower().,"L'opérateur in teste si un texte en contient un autre : ""urgent"" in m.",Faites une liste des signes et comptez ceux qui sont dans le message.,"Les attaques visent souvent les personnes : l'urgence, un lien et une demande de mot de passe sont des signes classiques. Un programme peut les compter, mais le jugement final reste humain.",non
+le-videur-de-formulaire,Le videur de formulaire,Accepte seulement un âge valide.,"Un formulaire reçoit n'importe quoi : un nombre, un texte, rien du tout. Il faut ne laisser passer que ce qui est attendu.
+
+## Votre mission
+
+Complétez `valid_age(value)`. Renvoyez `True` seulement si `value` est un nombre **entier** entre 0 et 120 inclus. Un texte comme `""25""`, un nombre à virgule, `None` ou un booléen donnent `False`.
+
+## Exemples
+
+- `25` donne `True`
+- `""25""` donne `False`
+- `121` donne `False`",buur_linguere,bagne,python,Sécurité,8,150,30,valid_age,"def valid_age(value):
+    # votre code ici
+    pass
+",6,"isinstance(value, int) teste si c'est un entier.","En Python, True est aussi un int : testez isinstance(value, bool) pour l'exclure.",Combinez le type et la plage : 0 <= value <= 120.,"On vérifie d'abord le type, puis la plage. Les entrées extérieures ne sont jamais de confiance : on accepte uniquement ce qui est attendu.",non
+cacher-le-numero,Cacher le numéro,Masque un numéro de téléphone en gardant les deux premiers et deux derniers chiffres.,"Sur un profil public, on ne montre pas le numéro entier.
+
+## Votre mission
+
+Complétez `mask_phone(number)`. L'argument est un texte de chiffres. Gardez les deux premiers et les deux derniers caractères, et remplacez tous les autres par `*`. Si le texte fait 4 caractères ou moins, remplacez tout par `*`.
+
+## Exemples
+
+- `""771234567""` donne `""77*****67""`
+- `""1234""` donne `""****""`",buur_linguere,ndongo,python,Vie privée,6,100,20,mask_phone,"def mask_phone(number):
+    # votre code ici
+    pass
+",7,Les deux premiers caractères : number[:2]. Les deux derniers : number[-2:].,"Le milieu a len(number) - 4 caractères : multipliez ""*"" par ce nombre.",Traitez d'abord le cas où le texte est trop court.,"On montre le minimum utile. Le découpage garde le début et la fin, et le milieu est remplacé par des étoiles.",non
+images-sans-alt,Images sans texte alternatif,Compte les images d'une page qui n'ont pas d'attribut alt.,"Une personne aveugle ne voit pas les images : le texte alternatif `alt` les décrit. Il faut vérifier qu'aucune image n'en manque.
+
+## Votre mission
+
+Complétez `images_without_alt(html)`. L'argument est le code HTML d'une page. Renvoyez le nombre de balises `<img ...>` qui n'ont **pas** d'attribut `alt`. Un `alt=""""` vide compte comme présent (image décorative).
+
+## Exemples
+
+- `<img src=""a.jpg"" alt=""Un baobab""><img src=""b.jpg"">` donne `1`
+- `<p>Pas d'image</p>` donne `0`",forgeron,ndongo,python,Accessibilité,8,100,20,images_without_alt,"import re
+
+
+def images_without_alt(html):
+    # votre code ici
+    pass
+",1,"re.findall(r""<img\b[^>]*>"", html, re.I) trouve toutes les balises img.","Pour chaque balise, cherchez alt avec re.search(r""\balt\s*="", tag, re.I).",Comptez celles pour lesquelles la recherche ne trouve rien.,"Une expression régulière isole chaque balise img, puis on cherche l'attribut alt. L'absence d'alt est le défaut à signaler ; un alt vide est un choix légitime pour une image décorative.",non
+de-hexa-vers-rgb,De l'hexadécimal au RGB,Convertit une couleur CSS #rrggbb en trois nombres.,"En CSS, la couleur dorée du site s'écrit `#f0b24a`. Ces six caractères sont trois nombres écrits en base 16 : rouge, vert, bleu.
+
+## Votre mission
+
+Complétez `hexToRgb(hex)`. Renvoyez un tableau `[rouge, vert, bleu]` de trois nombres entre 0 et 255. Le `#` est présent au début.
+
+## Exemples
+
+- `""#f0b24a""` donne `[240, 178, 74]`
+- `""#000000""` donne `[0, 0, 0]`",forgeron,ndongo,javascript,Couleurs,8,100,20,hexToRgb,"function hexToRgb(hex) {
+  // votre code ici
+}
+",2,Enlevez le # avec hex.slice(1).,"Chaque couleur occupe deux caractères : slice(0, 2), slice(2, 4), slice(4, 6).","parseInt(texte, 16) convertit de la base 16 en nombre.","On découpe la chaîne en trois morceaux de deux caractères et on convertit chacun de la base 16 vers un nombre avec parseInt(..., 16).",non
+le-contraste-des-couleurs,Le contraste des couleurs,Calcule le rapport de contraste entre deux couleurs.,"Pour qu'un texte se lise, le contraste entre le texte et le fond doit être d'au moins 4,5 pour 1. On le calcule avec une formule de luminance.
+
+## Votre mission
+
+Complétez `contrast(couleurs)`. L'argument est une liste de deux couleurs `[a, b]` au format `#rrggbb`. Pour chaque couleur :
+
+1. Divisez chaque composante rouge, vert, bleu par 255 pour obtenir `c`.
+2. Si `c <= 0.03928`, prenez `c / 12.92`, sinon `((c + 0.055) / 1.055) ** 2.4`.
+3. La luminance est `0.2126 * R + 0.7152 * G + 0.0722 * B`.
+
+Soit `clair` la plus grande luminance et `sombre` la plus petite. Renvoyez `(clair + 0.05) / (sombre + 0.05)` arrondi à 2 décimales avec `round`.
+
+## Exemples
+
+- `[""#000000"", ""#ffffff""]` donne `21.0`
+- `[""#ffffff"", ""#ffffff""]` donne `1.0`",forgeron,bagne,python,Accessibilité,10,150,30,contrast,"def contrast(couleurs):
+    # votre code ici
+    pass
+",3,Écrivez d'abord une fonction qui calcule la luminance d'une seule couleur.,"Pour lire les composantes : int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16) après avoir enlevé le #.","Le rapport divise la plus grande luminance par la plus petite, chacune augmentée de 0.05.","La luminance mesure à quel point une couleur paraît claire à l'oeil. Le rapport entre deux luminances donne le contraste : 21 est le maximum (noir sur blanc), 4,5 est le minimum recommandé pour un texte normal.",non
+la-mise-en-page-du-site,La mise en page du site,Choisit le nombre de colonnes selon la largeur de l'écran.,"Une page responsive change de mise en page selon la largeur de l'écran.
+
+## Votre mission
+
+Complétez `pickLayout(width)`. `width` est la largeur de l'écran en pixels. Renvoyez :
+
+- `""colonne""` si `width <= 600`
+- `""deux colonnes""` si `width <= 900`
+- `""trois colonnes""` sinon
+
+## Exemples
+
+- `375` donne `""colonne""`
+- `1280` donne `""trois colonnes""`",forgeron,ndongo,javascript,Responsive,6,100,20,pickLayout,"function pickLayout(width) {
+  // votre code ici
+}
+",4,"Pensez à if, else if et else.",Testez d'abord le plus petit écran : width <= 600.,"Les bornes comptent : 600 est encore une colonne, 900 deux colonnes.",C'est la même logique qu'un @media en CSS : on teste les seuils du plus petit écran au plus grand.,non
