@@ -6,7 +6,7 @@ Three optional tools. The site works without them. Never paste a key into a chat
 1. Create an account on sentry.io and a project of type "Browser JavaScript".
 2. Copy the DSN (a link starting with https://).
 3. In Vercel add `VITE_SENTRY_DSN` with that value. Redeploy.
-4. Check: open the site, then in the browser console type `setTimeout(() => { throw new Error('test') })`. The error should appear in Sentry within a minute.
+4. Check: open the site (a refused or blocked report is also written to the browser console, starting with [monitoring]), then in the browser console type `setTimeout(() => { throw new Error('test') })`. The error should appear in Sentry within a minute.
 
 ## 2. Visit counts (Plausible, no cookies)
 1. Create an account on plausible.io and add the site `jaajef.tech`.
