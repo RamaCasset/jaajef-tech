@@ -7,6 +7,9 @@ const signIn = vi.fn()
 const signUp = vi.fn()
 const signInWithGithub = vi.fn()
 const signInWithGoogle = vi.fn()
+const isUsernameAvailable = vi.fn()
+
+vi.mock('../lib/api', () => ({ isUsernameAvailable: (u: string) => isUsernameAvailable(u) }))
 
 vi.mock('../auth/AuthContext', () => ({
   useAuth: () => ({ signIn, signUp, signInWithGithub, signInWithGoogle, loading: false, session: null, member: null, signOut: vi.fn(), refreshMember: vi.fn() }),
@@ -27,7 +30,7 @@ function at(path: string, ui: JSX.Element, target: string) {
   )
 }
 
-beforeEach(() => { signIn.mockReset(); signUp.mockReset(); signInWithGithub.mockReset(); signInWithGoogle.mockReset() })
+beforeEach(() => { signIn.mockReset(); signUp.mockReset(); signInWithGithub.mockReset(); signInWithGoogle.mockReset(); isUsernameAvailable.mockReset(); isUsernameAvailable.mockResolvedValue(true) })
 
 describe('Login', () => {
   it('signs in and goes to the city', async () => {
@@ -91,6 +94,8 @@ describe('Google button', () => {
 describe('Signup', () => {
   it('refuses a short password before calling the server', async () => {
     at('/inscription', <Signup />, '/inscription/clan')
+    await userEvent.type(screen.getByLabelText('Nom complet'), 'Awa Diallo')
+    await userEvent.type(screen.getByLabelText('Nom d’utilisateur'), 'Awa_Dev')
     await userEvent.type(screen.getByLabelText('Adresse e-mail'), 'a@b.sn')
     await userEvent.type(screen.getByLabelText('Mot de passe'), 'short')
     await userEvent.click(screen.getByRole('button', { name: /Continuer/ }))
@@ -98,9 +103,47 @@ describe('Signup', () => {
     expect(signUp).not.toHaveBeenCalled()
   })
 
+  it('sends the full name and the lowercase username with the sign-up', async () => {
+    signUp.mockResolvedValue('signed_in')
+    at('/inscription', <Signup />, '/inscription/clan')
+    await userEvent.type(screen.getByLabelText('Nom complet'), 'Awa Diallo')
+    await userEvent.type(screen.getByLabelText('Nom d’utilisateur'), 'Awa_Dev')
+    await userEvent.type(screen.getByLabelText('Adresse e-mail'), 'a@b.sn')
+    await userEvent.type(screen.getByLabelText('Mot de passe'), 'long-enough-1')
+    await userEvent.click(screen.getByRole('button', { name: /Continuer/ }))
+    await waitFor(() => expect(signUp).toHaveBeenCalledWith('a@b.sn', 'long-enough-1', { fullName: 'Awa Diallo', username: 'awa_dev' }))
+    expect(isUsernameAvailable).toHaveBeenCalledWith('awa_dev')
+  })
+
+  it('refuses a username that is already taken, without creating the account', async () => {
+    isUsernameAvailable.mockResolvedValue(false)
+    at('/inscription', <Signup />, '/inscription/clan')
+    await userEvent.type(screen.getByLabelText('Nom complet'), 'Awa Diallo')
+    await userEvent.type(screen.getByLabelText('Nom d’utilisateur'), 'Awa_Dev')
+    await userEvent.type(screen.getByLabelText('Adresse e-mail'), 'a@b.sn')
+    await userEvent.type(screen.getByLabelText('Mot de passe'), 'long-enough-1')
+    await userEvent.click(screen.getByRole('button', { name: /Continuer/ }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('déjà pris')
+    expect(signUp).not.toHaveBeenCalled()
+  })
+
+  it('refuses a badly formed username before asking the server', async () => {
+    at('/inscription', <Signup />, '/inscription/clan')
+    await userEvent.type(screen.getByLabelText('Nom complet'), 'Awa Diallo')
+    await userEvent.type(screen.getByLabelText('Nom d’utilisateur'), 'a b')
+    await userEvent.type(screen.getByLabelText('Adresse e-mail'), 'a@b.sn')
+    await userEvent.type(screen.getByLabelText('Mot de passe'), 'long-enough-1')
+    await userEvent.click(screen.getByRole('button', { name: /Continuer/ }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('3 à 24 caractères')
+    expect(isUsernameAvailable).not.toHaveBeenCalled()
+    expect(signUp).not.toHaveBeenCalled()
+  })
+
   it('goes to the clan step when signed in right away', async () => {
     signUp.mockResolvedValue('signed_in')
     at('/inscription', <Signup />, '/inscription/clan')
+    await userEvent.type(screen.getByLabelText('Nom complet'), 'Awa Diallo')
+    await userEvent.type(screen.getByLabelText('Nom d’utilisateur'), 'Awa_Dev')
     await userEvent.type(screen.getByLabelText('Adresse e-mail'), 'a@b.sn')
     await userEvent.type(screen.getByLabelText('Mot de passe'), 'long-enough-1')
     await userEvent.click(screen.getByRole('button', { name: /Continuer/ }))
@@ -110,6 +153,8 @@ describe('Signup', () => {
   it('asks to confirm the email when no session comes back', async () => {
     signUp.mockResolvedValue('confirm_email')
     at('/inscription', <Signup />, '/inscription/clan')
+    await userEvent.type(screen.getByLabelText('Nom complet'), 'Awa Diallo')
+    await userEvent.type(screen.getByLabelText('Nom d’utilisateur'), 'Awa_Dev')
     await userEvent.type(screen.getByLabelText('Adresse e-mail'), 'a@b.sn')
     await userEvent.type(screen.getByLabelText('Mot de passe'), 'long-enough-1')
     await userEvent.click(screen.getByRole('button', { name: /Continuer/ }))

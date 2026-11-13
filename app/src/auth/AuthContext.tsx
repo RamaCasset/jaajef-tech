@@ -10,7 +10,7 @@ type AuthState = {
   session: Session | null
   member: MemberState | null
   signIn: (email: string, password: string) => Promise<void>
-  signUp: (email: string, password: string) => Promise<SignUpResult>
+  signUp: (email: string, password: string, profile?: { fullName: string; username: string }) => Promise<SignUpResult>
   signInWithGithub: () => Promise<void>
   signInWithGoogle: () => Promise<void>
   requestPasswordReset: (email: string) => Promise<void>
@@ -55,8 +55,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) throw new Error(error.message)
     },
-    async signUp(email, password) {
-      const { data, error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: `${window.location.origin}/connexion` } })
+    async signUp(email, password, profile) {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/connexion`,
+          ...(profile ? { data: { full_name: profile.fullName, username: profile.username } } : {}),
+        },
+      })
       if (error) throw new Error(error.message)
       return data.session ? 'signed_in' : 'confirm_email'
     },
