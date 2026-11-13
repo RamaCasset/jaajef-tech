@@ -563,6 +563,11 @@ export async function getQuestDrip(): Promise<QuestDrip | null> {
   return (await rpc<QuestDrip | null>('my_quest_drip')) ?? null
 }
 
+/** Whether a username is well formed and free. Usernames are public, so anyone may ask. */
+export async function isUsernameAvailable(username: string): Promise<boolean> {
+  return (await rpc<boolean>('username_available', { p_username: username })) === true
+}
+
 export type StreakInfo = {
   current_streak: number
   longest_streak: number
